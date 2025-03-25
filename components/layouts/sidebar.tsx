@@ -12,14 +12,17 @@ import {
   FileText,
   HelpCircle,
   MessageSquare,
+  Moon,
   Settings,
   TrendingUp,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import Blockchain from "../icons/blockchain";
 import { usePathname } from "next/navigation";
+import DARK from "../../public/logo/dark.png";
+import LIGHT from "../../public/logo/light.png";
+import Image from "next/image";
 
 interface SidebarProps {
   open: boolean;
@@ -72,7 +75,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         className={cn(
           "fixed text-xs font-bold inset-y-0 left-0 z-50 flex flex-col bg-[#202426] transition-all duration-300 ease-in-out md:relative md:z-0",
           open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          collapsed ? "w-16" : "w-[250px]"
+          collapsed ? "w-[52px] px-[10px]" : "w-[250px]"
         )}
       >
         {/* Logo */}
@@ -83,7 +86,23 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
           )}
         >
           <Link href="/" className="flex items-center">
-            <Blockchain className="h-6 w-6 text-primary" />
+            {collapsed ? (
+              <Image
+                src={DARK}
+                alt={"LOGO"}
+                width={30}
+                height={12}
+                className="object-none text-primary"
+              />
+            ) : (
+              <Image
+                src={DARK}
+                alt={"LOGO"}
+                width={100}
+                height={24}
+                className="text-primary"
+              />
+            )}
           </Link>
           <Button
             variant="ghost"
@@ -104,10 +123,22 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               collapsed ? "px-0" : "px-2"
             )}
           >
-            <NavItem href="/" active={isRouteActive("/")} icon={TrendingUp} collapsed={collapsed}>
+            <NavItem
+              href="/"
+              active={isRouteActive("/")}
+              className="text-[13px] text-[#ffffffcc] font-semibold"
+              icon={TrendingUp}
+              collapsed={collapsed}
+            >
               Earn
             </NavItem>
-            <NavItem href="/ecosystem" active={isRouteActive("/ecosystem")} icon={Settings} collapsed={collapsed}>
+            <NavItem
+              href="/ecosystem"
+              active={isRouteActive("/ecosystem")}
+              className="text-[13px] text-[#ffffffcc] font-semibold"
+              icon={Settings}
+              collapsed={collapsed}
+            >
               Ecosystem
             </NavItem>
           </nav>
@@ -119,53 +150,65 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             )}
           >
             <div className={cn("space-y-1", collapsed ? "px-0" : "px-2")}>
-              <NavItem href="/analytics" active={isRouteActive("/analytics")} icon={BarChart2} collapsed={collapsed}>
+              <NavItem
+                href="/analytics"
+                active={isRouteActive("/analytics")}
+                className="text-zinc-400"
+                icon={BarChart2}
+                collapsed={collapsed}
+              >
                 Analytics
               </NavItem>
               <NavItem
-                href="/app"
+                href="https://app.morpho.org/"
                 icon={Settings}
                 external
+                className="text-zinc-400"
                 collapsed={collapsed}
               >
                 Morpho App V2
               </NavItem>
               <NavItem
-                href="/delegate"
+                href="https://delegate.morpho.org/"
                 icon={ExternalLink}
                 external
+                className="text-zinc-400"
                 collapsed={collapsed}
               >
                 Delegate
               </NavItem>
               <NavItem
-                href="/docs"
+                href="https://docs.morpho.org/"
                 icon={FileText}
                 external
+                className="text-zinc-400"
                 collapsed={collapsed}
               >
                 Morpho Docs
               </NavItem>
               <NavItem
-                href="/optimizers"
+                href="https://optimizers.morpho.org/"
                 icon={Settings}
                 external
+                className="text-zinc-400"
                 collapsed={collapsed}
               >
                 Morpho Optimizers
               </NavItem>
               <NavItem
-                href="/feedback"
+                href="https://docs.google.com/forms/d/e/1FAIpQLSc3ZpfvlcBmMgCDfg6ahM6cKNm003bbns5Ao6QfXJNfcfpATw/viewform?embedded=true"
                 icon={MessageSquare}
                 external
+                className="text-zinc-400"
                 collapsed={collapsed}
               >
                 Feedback
               </NavItem>
               <NavItem
-                href="/terms"
+                href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf"
                 icon={HelpCircle}
                 external
+                className="text-zinc-400"
                 collapsed={collapsed}
               >
                 Terms of Use
@@ -188,19 +231,60 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               onClick={() => setCollapsed(false)}
               className="hover:bg-transparent cursor-pointer hover:text-white"
             >
-              <ChevronRight className="h-5 w-5" />
+              <div>
+                <svg
+                  width="20"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  fill="#e5e5e5"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M2.14645 11.1464C1.95118 11.3417 1.95118 11.6583 2.14645 11.8536C2.34171 12.0488 2.65829 12.0488 2.85355 11.8536L6.85355 7.85355C7.04882 7.65829 7.04882 7.34171 6.85355 7.14645L2.85355 3.14645C2.65829 2.95118 2.34171 2.95118 2.14645 3.14645C1.95118 3.34171 1.95118 3.65829 2.14645 3.85355L5.79289 7.5L2.14645 11.1464ZM8.14645 11.1464C7.95118 11.3417 7.95118 11.6583 8.14645 11.8536C8.34171 12.0488 8.65829 12.0488 8.85355 11.8536L12.8536 7.85355C13.0488 7.65829 13.0488 7.34171 12.8536 7.14645L8.85355 3.14645C8.65829 2.95118 8.34171 2.95118 8.14645 3.14645C7.95118 3.34171 7.95118 3.65829 8.14645 3.85355L11.7929 7.5L8.14645 11.1464Z"
+                    fill="var(--colors-icon-secondary)"
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+              </div>
               <span className="sr-only">Expand sidebar</span>
             </Button>
           ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCollapsed(true)}
-              className="hover:bg-transparent float-right cursor-pointer hover:text-white ml-auto"
-            >
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only">Collapse sidebar</span>
-            </Button>
+            <div className="flex justify-start">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollapsed(true)}
+                className="hover:bg-transparent float-right cursor-pointer hover:text-white ml-auto"
+              >
+                <div>
+                  <svg
+                    width="20"
+                    height="15"
+                    viewBox="0 0 15 15"
+                    fill="#e5e5e5"
+                    className="h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6.85355 3.85355C7.04882 3.65829 7.04882 3.34171 6.85355 3.14645C6.65829 2.95118 6.34171 2.95118 6.14645 3.14645L2.14645 7.14645C1.95118 7.34171 1.95118 7.65829 2.14645 7.85355L6.14645 11.8536C6.34171 12.0488 6.65829 12.0488 6.85355 11.8536C7.04882 11.6583 7.04882 11.3417 6.85355 11.1464L3.20711 7.5L6.85355 3.85355ZM12.8536 3.85355C13.0488 3.65829 13.0488 3.34171 12.8536 3.14645C12.6583 2.95118 12.3417 2.95118 12.1464 3.14645L8.14645 7.14645C7.95118 7.34171 7.95118 7.65829 8.14645 7.85355L12.1464 11.8536C12.3417 12.0488 12.6583 12.0488 12.8536 11.8536C13.0488 11.6583 13.0488 11.3417 12.8536 11.1464L9.20711 7.5L12.8536 3.85355Z"
+                      fill="var(--colors-icon-secondary)"
+                      fillRule="evenodd"
+                      clipRule="evenodd"
+                    ></path>
+                  </svg>
+                </div>
+                <span className="sr-only">Collapse sidebar</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hover:bg-transparent float-right cursor-pointer hover:text-white ml-auto"
+              >
+                <Moon className="h-5 w-5" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            </div>
           )}
         </div>
       </aside>
@@ -215,6 +299,7 @@ interface NavItemProps {
   active?: boolean;
   external?: boolean;
   collapsed?: boolean;
+  className?: string;
 }
 
 function NavItem({
@@ -224,16 +309,18 @@ function NavItem({
   active,
   external,
   collapsed,
+  className,
 }: NavItemProps) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 rounded-sm py-[6px] text-xs font-medium transition-colors",
+        "flex items-center gap-3 rounded-sm py-[6px] font-medium transition-colors",
         collapsed ? "justify-center px-0" : "px-[10px]",
+        className,
         active
           ? "bg-[#fafafa1a] text-white"
-          : "text-zinc-400 hover:bg-[#fafafa20] hover:text-white"
+          : " hover:bg-[#fafafa20] hover:text-white"
       )}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}

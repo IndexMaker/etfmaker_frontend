@@ -3,12 +3,11 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 interface TooltipProps {
   children: React.ReactNode;
   content: React.ReactNode;
-  key: string;
 }
 
-const CustomTooltip = ({ children, content, key }: TooltipProps) => {
+const CustomTooltip = ({ children, content }: TooltipProps) => {
   return (
-    <Tooltip.Provider key={key}>
+    <Tooltip.Provider>
       <Tooltip.Root>
         <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
         <Tooltip.Portal>

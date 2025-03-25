@@ -21,6 +21,8 @@ import Image from "next/image";
 import vaults from "@/lib/data";
 import CustomTooltip from "./custom-tooltip";
 import { useState } from "react";
+import RightArrow from "../icons/right-arrow";
+import LeftArrow from "../icons/left-arrow";
 
 interface VaultTableProps {
   visibleColumns: { id: string; title: string; visible: boolean }[];
@@ -88,7 +90,17 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
                             </div>
                           </>
                         )}
-                        {col.id === "token" && vault.token}
+                        {col.id === "token" && (
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
+                              alt={vault.token}
+                              width={17}
+                              height={17}
+                            />
+                            <span>{vault.token}</span>
+                          </div>
+                        )}
                         {col.id === "totalSupply" && (
                           <div className="flex items-center">
                             <div>{vault.totalSupply}</div>
@@ -215,21 +227,23 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
             ))}
           </TableBody>
         </Table>
-        <div className="flex justify-between mt-4 text-white text-sx">
+        <div className="flex justify-center items-center mt-4 text-white text-sx">
           <Button
+            className="text-xs text-[#ffffff80] p-0 h-4"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
           >
-            Previous
+            <LeftArrow className="w-4 h-4" />
           </Button>
-          <span>
+          <span className="text-xs text-[#ffffff80]">
             Page {currentPage} of {totalPages}
           </span>
           <Button
+            className="text-xs text-[#ffffff80] p-0 h-4"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
-            Next
+            <RightArrow className="w-[8px] h-[8px] rotate-180" />
           </Button>
         </div>
       </div>

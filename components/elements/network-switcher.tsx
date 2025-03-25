@@ -36,7 +36,7 @@ export function NetworkSwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild className="px-0">
         <Button
           variant="outline"
           className="flex rounded-[3px] cursor-pointer text-xs line-[16px] items-center gap-2 bg-[#fafafa1a] px-[5px] py-[3px] max-h-[26px] border-none text-white hover:text-white hover:bg-[#fafafa1a] hover:border-none shadow-none"

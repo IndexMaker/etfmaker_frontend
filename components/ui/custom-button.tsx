@@ -13,7 +13,7 @@ export function CustomButton({
   return (
     <button
       className={cn(
-        "px-[8px] py-[5px] rounded-md text-sm font-medium transition-colors cursor-pointer",
+        "px-[8px] py-[5px] rounded-xs text-sm font-medium transition-colors cursor-pointer",
         variant === "default" && "bg-blue-500 text-white hover:bg-blue-600",
         variant === "outline" &&
           "border border-gray-600 text-gray-300 hover:bg-gray-700",
