@@ -43,38 +43,40 @@ export function EarnContent() {
   return (
     <div className="space-y-6">
       <div className="flex flex-row justify-between">
-        <h1 className="text-[38px] text-white font-normal flex items-center">
-          Earn
-        </h1>
-        <div className="hidden gap-4 grid-cols-2 md:flex ">
-          <Card className="bg-[#202426] border-none cursor-pointer p-5 flex flex-col min-w-[200px] rounded-sm">
+        <h1 className="text-[38px] text-white flex items-center">Earn</h1>
+        <div className="hidden gap-3 md:flex">
+          <Card className="bg-[#202426] gap-5 border-none cursor-pointer p-5 flex flex-col h-[98px] min-w-[194px] rounded-[12px]">
             <CardHeader className="flex flex-row items-center justify-between p-0 w-full">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 <div className="flex items-center gap-2 w-full">
-                  <Deposit className="h-4 w-4 text-[12px]" />
-                  <span className="text-[#ffffffcc]">Total Deposits</span>
+                  <Deposit className="h-[14px] w-[14px]" />
+                  <div className="text-[#ffffffcc] text-[12px]">
+                    Total Deposits
+                  </div>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="font-normal text-white text-[15px]">
-                $4,708,629,073
+            <CardContent className="p-0 h-[20px]">
+              <div className="font-normal text-white text-[15px] pb-2">
+                $4,736,811,455
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#202426] border-none cursor-pointer p-5 flex flex-col min-w-[200px] rounded-sm">
+          <Card className="bg-[#202426] gap-5 border-none cursor-pointer p-5 flex flex-col h-[98px] min-w-[194px] rounded-[12px]">
             <CardHeader className="flex flex-row items-center justify-between p-0 w-full">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Borrow className="h-4 w-4 text-[12px]" />
-                  <span className="text-[#ffffffcc]">Total Borrow</span>
+                  <Borrow className="h-[14px] w-[14px]" />
+                  <div className="text-[#ffffffcc] text-[12px]">
+                    Total Borrow
+                  </div>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="text-[15px] font-normal text-white ">
-                $1,776,426,021
+            <CardContent className="p-0 h-[20px]">
+              <div className="text-[15px] font-normal text-white mb-2">
+                $1,706,255,566
               </div>
             </CardContent>
           </Card>
@@ -82,20 +84,20 @@ export function EarnContent() {
       </div>
 
       <div className="space-y-4 mt-20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-[16px] font-normal text-white">
+        <div className="flex gap-4 md:items-center md:justify-between flex-col md:flex-row">
+          <div className="flex items-center gap-4">
+            <h2 className="text-[16px] font-normal text-[#fffffff2]">
               Deposit in a vault
             </h2>
             <CustomButton
               variant="secondary"
-              className="h-auto text-xs rounded-[2px]"
+              className="h-auto text-[11px] rounded-[2px]"
             >
               How does it work?
             </CustomButton>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 justify-between">
             <ColumnVisibilityPopover
               columns={columns}
               onColumnVisibilityChange={handleColumnVisibilityChange}
@@ -105,7 +107,7 @@ export function EarnContent() {
               <Input
                 type="search"
                 placeholder="Search vaults..."
-                className="w-[200px] pl-8 text-xs h-[32px] text-white"
+                className="pl-8 text-xs h-[32px] md:w-[150px] text-white border-[#afafaf1a] focus:border-[#afafaf1a] focus:border-none"
               />
             </div>
           </div>

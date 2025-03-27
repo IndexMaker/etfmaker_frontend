@@ -6,6 +6,8 @@ import { Maximize2, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NetworkSwitcher } from "../elements/network-switcher";
 import { CustomButton } from "../ui/custom-button";
+import Navigation from "../icons/navigation";
+import { LanguageSelector } from "../elements/language-selector";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -29,38 +31,35 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
     };
   });
 
-  console.log(breadcrumbItems)
-
   return (
-    <header className="flex h-[50px] shrink-0 items-center bg-[#15181a] px-[40px] md:px-[40px]">
+    <header className="flex h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-[#15181a] px-[11px] md:px-[40px]">
       <Button
         variant="ghost"
         size="icon"
-        className="mr-2 md:hidden"
+        className="md:hidden"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
-        <Menu className="h-6 w-6" />
+        <Navigation className="h-6 w-6 text-white" />
         <span className="sr-only">Toggle menu</span>
       </Button>
 
       {/* Breadcrumb (only if there's a second segment) */}
       {shouldShowBreadcrumb && (
-        <nav className="text-sm text-gray-400">
+        <nav className="text-sm text-gray-400 hidden md:flex">
           <ol className="flex items-center space-x-2">
             {breadcrumbItems.map((item, index) => (
               <li key={item.href} className="flex items-center">
                 {index === breadcrumbItems.length - 1 ? (
-                  <span className="text-white">{item.name}</span>
+                  <span className="text-[#ffffff80] text-semibold text-[13px]">{item.name}</span>
                 ) : (
                   <Link
                     href={item.href}
-                    className="text-gray-300 hover:text-white"
+                    className="text-[#ffffff80] text-semibold hover:text-white text-[13px]"
                   >
                     {item.name}
-                    <span className="mx-2"> / </span>
+                    <span className="mx-2 text-[#ffffff80] text-semibold text-[13px]"> / </span>
                   </Link>
                 )}
-                
               </li>
             ))}
           </ol>
@@ -72,9 +71,10 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
       </div>
 
       <div className="ml-auto flex items-center gap-2">
+        <LanguageSelector />
         <NetworkSwitcher />
 
-        <CustomButton className="bg-blue-600 hover:bg-blue-700 text-xs rounded-[3px] cursor-pointer">
+        <CustomButton className="bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer">
           Connect Wallet
         </CustomButton>
       </div>

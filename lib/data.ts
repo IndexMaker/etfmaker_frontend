@@ -1,6 +1,8 @@
-const vaults = [
+import type { Vault } from "./types/vault";
+
+export const vaults = [
   {
-    id: 1,
+    id: "spark-dai",
     name: "Spark DAI Vault",
     icon: "🟠",
     token: "DAI",
@@ -16,7 +18,7 @@ const vaults = [
     performanceFee: "0%",
   },
   {
-    id: 2,
+    id: "mev-usdc",
     name: "MEV Capital Usual USDC",
     icon: "🔵",
     token: "USDC",
@@ -160,6 +162,93 @@ const vaults = [
     performanceFee: "10%",
   },
 ];
+
+export const mockup_vaults: Vault[] = [
+  {
+    id: "spark-dai",
+    name: "Spark DAI Vault",
+    description:
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to Morpho markets.",
+    icon: "https://cdn.morpho.org/assets/logos/dai.svg",
+    token: {
+      symbol: "DAI",
+      icon: "https://cdn.morpho.org/assets/logos/dai.svg",
+      address: "0x6b175474e89094c44da98b954eedeac495271d0f",
+    },
+    curator: {
+      name: "SparkDAO",
+      icon: "https://cdn.morpho.org/v2/assets/images/spark.svg",
+      url: "https://spark.fi",
+    },
+    totalSupply: {
+      amount: "525.00M DAI",
+      usdValue: "$526.24M",
+    },
+    instantApy: "5.25%",
+    performanceFee: "0%",
+    vaultAddress: "0x73e6...ed9D",
+    guardianAddress: "0x0000...0000",
+    liquidity: {
+      amount: "163.35M DAI",
+      usdValue: "$163.74M",
+    },
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Whitepaper",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
+  },
+  {
+    id: "mev-usdc",
+    name: "MEV Capital Usual USDC",
+    description:
+      "MEV Capital's USDC vault optimizes yield through strategic market positioning and MEV capture techniques.",
+    icon: "https://cdn.morpho.org/assets/logos/usual.svg",
+    token: {
+      symbol: "USDC",
+      icon: "https://cdn.morpho.org/assets/logos/usdc.svg",
+      address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    },
+    curator: {
+      name: "MEV Capital",
+      icon: "https://cdn.morpho.org/assets/logos/mevcapital.png",
+      url: "https://mev.capital",
+    },
+    totalSupply: {
+      amount: "244.19M USDC",
+      usdValue: "$244.13M",
+    },
+    instantApy: "8.45%",
+    performanceFee: "2%",
+    vaultAddress: "0x8a43...b721",
+    guardianAddress: "0x9f72...e451",
+    liquidity: {
+      amount: "198.35M USDC",
+      usdValue: "$198.31M",
+    },
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Whitepaper",
+        url: "#",
+        description: "Technical details about the MEV Capital USDC vault",
+      },
+    ],
+  },
+];
+
+export function getVaultById(id: string): Vault | undefined {
+  return mockup_vaults.find((vault) => vault.id === id);
+}
 
 export interface Project {
   id: string;
@@ -326,4 +415,282 @@ export const projects: Project[] = [
   },
 ];
 
-export default vaults;
+export interface VaultAllocation {
+  id: string;
+  percentage: string;
+  vaultSupply: {
+    amount: string;
+    usdValue: string;
+  };
+  collateral: {
+    name: string;
+    icon?: string; // For the colored circle icons
+  };
+  liquidationLTV: string;
+  netAPY: string;
+  oracle?: string;
+  supplyCap?: string;
+  capPercentage?: string;
+  supplyAPY?: string;
+  rewards?: string;
+  totalCollateral?: string;
+  utilization?: string;
+  rateAtUTarget?: string;
+  marketId?: string;
+}
+
+export const vaultAllocations: VaultAllocation[] = [
+  {
+    id: "1",
+    percentage: "46.12%",
+    vaultSupply: {
+      amount: "242,198,468.99 DAI",
+      usdValue: "$242.1M",
+    },
+    collateral: {
+      name: "PT-sUSDe-27MAR2025",
+      icon: "green",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "5.11%",
+    oracle: "Chainlink",
+    supplyCap: "500,000,000 DAI",
+    capPercentage: "48.4%",
+    supplyAPY: "5.25%",
+    rewards: "None",
+    totalCollateral: "264,698,874 PT-sUSDe",
+    utilization: "91.5%",
+    rateAtUTarget: "5.2%",
+    marketId: "0x7a3e...e45d",
+  },
+  {
+    id: "2",
+    percentage: "22.48%",
+    vaultSupply: {
+      amount: "118,064,884.77 DAI",
+      usdValue: "$118.01M",
+    },
+    collateral: {
+      name: "PT-sUSDe-29MAY2025",
+      icon: "green",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "5.67%",
+    oracle: "Chainlink",
+    supplyCap: "200,000,000 DAI",
+    capPercentage: "59.0%",
+    supplyAPY: "5.80%",
+    rewards: "None",
+    totalCollateral: "129,032,660 PT-sUSDe",
+    utilization: "91.5%",
+    rateAtUTarget: "5.7%",
+    marketId: "0x8b2c...f32a",
+  },
+  {
+    id: "3",
+    percentage: "9.52%",
+    vaultSupply: {
+      amount: "50,000,376.01 DAI",
+      usdValue: "$49.98M",
+    },
+    collateral: {
+      name: "PT-sUSDe-29MAY2025",
+      icon: "yellow",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "0.74%",
+    oracle: "Chainlink",
+    supplyCap: "100,000,000 DAI",
+    capPercentage: "50.0%",
+    supplyAPY: "0.85%",
+    rewards: "None",
+    totalCollateral: "54,644,127 PT-sUSDe",
+    utilization: "91.5%",
+    rateAtUTarget: "0.8%",
+    marketId: "0x9c3d...a21b",
+  },
+  {
+    id: "4",
+    percentage: "7.38%",
+    vaultSupply: {
+      amount: "38,783,433.16 DAI",
+      usdValue: "$38.78M",
+    },
+    collateral: {
+      name: "PT-USDe-27MAR2025",
+      icon: "yellow",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "4.88%",
+    oracle: "Chainlink",
+    supplyCap: "100,000,000 DAI",
+    capPercentage: "38.8%",
+    supplyAPY: "5.00%",
+    rewards: "None",
+    totalCollateral: "42,386,266 PT-USDe",
+    utilization: "91.5%",
+    rateAtUTarget: "4.9%",
+    marketId: "0x6d4e...b78c",
+  },
+  {
+    id: "5",
+    percentage: "4.94%",
+    vaultSupply: {
+      amount: "25,966,814.51 DAI",
+      usdValue: "$25.95M",
+    },
+    collateral: {
+      name: "0x000...00",
+      icon: "gray",
+    },
+    liquidationLTV: "0%",
+    netAPY: "0.00%",
+    oracle: "None",
+    supplyCap: "50,000,000 DAI",
+    capPercentage: "51.9%",
+    supplyAPY: "0.00%",
+    rewards: "None",
+    totalCollateral: "0",
+    utilization: "0%",
+    rateAtUTarget: "0.0%",
+    marketId: "0x000...000",
+  },
+  {
+    id: "6",
+    percentage: "2.91%",
+    vaultSupply: {
+      amount: "15,306,285.73 DAI",
+      usdValue: "$15.3M",
+    },
+    collateral: {
+      name: "USDe",
+      icon: "gray",
+    },
+    liquidationLTV: "86%",
+    netAPY: "7.52%",
+    oracle: "Chainlink",
+    supplyCap: "30,000,000 DAI",
+    capPercentage: "51.0%",
+    supplyAPY: "7.65%",
+    rewards: "None",
+    totalCollateral: "17,798,007 USDe",
+    utilization: "86%",
+    rateAtUTarget: "7.5%",
+    marketId: "0x3f2a...c45e",
+  },
+  {
+    id: "7",
+    percentage: "2.58%",
+    vaultSupply: {
+      amount: "13,575,735.31 DAI",
+      usdValue: "$13.57M",
+    },
+    collateral: {
+      name: "sUSDe",
+      icon: "green",
+    },
+    liquidationLTV: "86%",
+    netAPY: "4.72%",
+    oracle: "Chainlink",
+    supplyCap: "30,000,000 DAI",
+    capPercentage: "45.3%",
+    supplyAPY: "4.85%",
+    rewards: "None",
+    totalCollateral: "15,786,901 sUSDe",
+    utilization: "86%",
+    rateAtUTarget: "4.8%",
+    marketId: "0x2e7b...a93d",
+  },
+  {
+    id: "8",
+    percentage: "1.9%",
+    vaultSupply: {
+      amount: "10,000,000.00 DAI",
+      usdValue: "$9.99M",
+    },
+    collateral: {
+      name: "PT-USDe-31JUL2025",
+      icon: "yellow",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "0.00%",
+    oracle: "Chainlink",
+    supplyCap: "20,000,000 DAI",
+    capPercentage: "50.0%",
+    supplyAPY: "0.00%",
+    rewards: "None",
+    totalCollateral: "10,928,962 PT-USDe",
+    utilization: "91.5%",
+    rateAtUTarget: "0.0%",
+    marketId: "0x4a1c...e72f",
+  },
+  {
+    id: "9",
+    percentage: "1.87%",
+    vaultSupply: {
+      amount: "9,827,894.31 DAI",
+      usdValue: "$9.82M",
+    },
+    collateral: {
+      name: "sUSDe",
+      icon: "green",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "5.48%",
+    oracle: "Chainlink",
+    supplyCap: "20,000,000 DAI",
+    capPercentage: "49.1%",
+    supplyAPY: "5.60%",
+    rewards: "None",
+    totalCollateral: "10,740,868 sUSDe",
+    utilization: "91.5%",
+    rateAtUTarget: "5.5%",
+    marketId: "0x5b3a...f12d",
+  },
+  {
+    id: "10",
+    percentage: "0.22%",
+    vaultSupply: {
+      amount: "1,188,638.93 DAI",
+      usdValue: "$1.18M",
+    },
+    collateral: {
+      name: "USDe",
+      icon: "gray",
+    },
+    liquidationLTV: "91.5%",
+    netAPY: "4.88%",
+    oracle: "Chainlink",
+    supplyCap: "10,000,000 DAI",
+    capPercentage: "11.9%",
+    supplyAPY: "5.00%",
+    rewards: "None",
+    totalCollateral: "1,298,512 USDe",
+    utilization: "91.5%",
+    rateAtUTarget: "4.9%",
+    marketId: "0x7c2d...a45e",
+  },
+  {
+    id: "11",
+    percentage: "0.01%",
+    vaultSupply: {
+      amount: "83,076.39 DAI",
+      usdValue: "$83.05K",
+    },
+    collateral: {
+      name: "USDe",
+      icon: "gray",
+    },
+    liquidationLTV: "77%",
+    netAPY: "7.96%",
+    oracle: "Chainlink",
+    supplyCap: "1,000,000 DAI",
+    capPercentage: "8.3%",
+    supplyAPY: "8.10%",
+    rewards: "None",
+    totalCollateral: "107,891 USDe",
+    utilization: "77%",
+    rateAtUTarget: "8.0%",
+    marketId: "0x8e1f...b23a",
+  },
+];

@@ -19,22 +19,34 @@ export function AnalyticsPage() {
   return (
     <Dashboard>
       <div className="">
-        <h1 className="text-[38px] font-normal tracking-tight text-white">
+        <div className="text-[38px] h-[44px] font-normal tracking-tight text-white flex items-center">
           Analytics
-        </h1>
+        </div>
 
         {/* Total Morpho Section */}
-        <div className="space-y-4 pt-12">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4 pt-16">
+          <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-white">Total Morpho</h2>
             <div className="flex gap-2">
-              <AnalyticsLink name="DefiLlama" icon="defillama" url="https://defillama.com/protocol/morpho" />
-              <AnalyticsLink name="Dune" icon="dune" url="https://dune.com/morpho/" />
-              <AnalyticsLink name="TokenTerminal" icon="token-terminal" url="https://tokenterminal.com/terminal/projects/morpho" />
+              <AnalyticsLink
+                name="DefiLlama"
+                icon="defillama"
+                url="https://defillama.com/protocol/morpho"
+              />
+              <AnalyticsLink
+                name="Dune"
+                icon="dune"
+                url="https://dune.com/morpho/"
+              />
+              <AnalyticsLink
+                name="TokenTerminal"
+                icon="token-terminal"
+                url="https://tokenterminal.com/terminal/projects/morpho"
+              />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 md:gap-4 gap-3">
             <MetricCard
               title="Total Deposits"
               value="$4.87B"
@@ -55,14 +67,26 @@ export function AnalyticsPage() {
 
         {/* Morpho - Mainnet Section */}
         <div className="space-y-4 pt-12">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-white">
               Morpho - Mainnet
             </h2>
-            <div className="flex gap-2">
-              <AnalyticsLink name="BlockAnalytica" icon="morpho" url="https://morpho.blockanalitica.com/" />
-              <AnalyticsLink name="DefiLlama - Morpho" icon="defillama" url="https://defillama.com/protocol/morpho-blue" />
-              <AnalyticsLink name="Dune - Morpho" icon="dune" url="https://dune.com/morpho/morpho-blue-dashboard" />
+            <div className="flex gap-2 flex-wrap">
+              <AnalyticsLink
+                name="BlockAnalytica"
+                icon="morpho"
+                url="https://morpho.blockanalitica.com/"
+              />
+              <AnalyticsLink
+                name="DefiLlama - Morpho"
+                icon="defillama"
+                url="https://defillama.com/protocol/morpho-blue"
+              />
+              <AnalyticsLink
+                name="Dune - Morpho"
+                icon="dune"
+                url="https://dune.com/morpho/morpho-blue-dashboard"
+              />
             </div>
           </div>
 
@@ -134,14 +158,26 @@ export function AnalyticsPage() {
 
         {/* Morpho Optimizer Section */}
         <div className="space-y-4 pt-12">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-white">
               Morpho Optimizer
             </h2>
-            <div className="flex gap-2">
-              <AnalyticsLink name="Morpho Optimizers" icon="morpho" url="https://optimizers.morpho.org/" />
-              <AnalyticsLink name="DefiLlama - Morpho Aave V3" icon="defillama" url="https://defillama.com/protocol/morpho-aavev3" />
-              <AnalyticsLink name="DefiLlama - Morpho Aave V2" icon="defillama" url="https://defillama.com/protocol/morpho-aave" />
+            <div className="flex gap-2 flex-wrap">
+              <AnalyticsLink
+                name="Morpho Optimizers"
+                icon="morpho"
+                url="https://optimizers.morpho.org/"
+              />
+              <AnalyticsLink
+                name="DefiLlama - Morpho Aave V3"
+                icon="defillama"
+                url="https://defillama.com/protocol/morpho-aavev3"
+              />
+              <AnalyticsLink
+                name="DefiLlama - Morpho Aave V2"
+                icon="defillama"
+                url="https://defillama.com/protocol/morpho-aave"
+              />
             </div>
           </div>
 
@@ -181,13 +217,13 @@ interface MetricCardProps {
 
 function MetricCard({ title, value, icon }: MetricCardProps) {
   return (
-    <Card className="bg-[#202426] border-zinc-800 p-5 h-[160px]">
-      <CardContent className="p-0 flex flex-col justify-between h-full">
-        <div className="flex items-center gap-2 text-[12px] text-[#ffffffcc] mb-4">
+    <Card className="bg-[#202426] border-zinc-800 p-5 md:h-[160px] h-[110px]">
+      <CardContent className="p-0 flex flex-col justify-between h-full gap-2">
+        <div className="flex items-center gap-2 text-[12px] text-[#ffffffcc]">
           {icon}
           <span>{title}</span>
         </div>
-        <div className="text-[38px] text-white font-custom">{value}</div>
+        <div className="text-[38px] text-white h-[44px]">{value}</div>
       </CardContent>
     </Card>
   );
@@ -195,9 +231,9 @@ function MetricCard({ title, value, icon }: MetricCardProps) {
 
 function SMMetricCard({ title, value, icon }: MetricCardProps) {
   return (
-    <Card className="bg-[#202426] border-zinc-800 p-5 h-[100px]">
-      <CardContent className="p-0 flex flex-col justify-between h-full">
-        <div className="flex items-center gap-2 text-[12px] text-[#ffffffcc] mb-4">
+    <Card className="bg-[#202426] border-zinc-800 p-5 md:h-[100px] h-[90px]">
+      <CardContent className="p-0 flex flex-col justify-between h-full gap-2">
+        <div className="flex items-center gap-2 text-[12px] text-[#ffffffcc]">
           {icon}
           <span>{title}</span>
         </div>
@@ -214,61 +250,21 @@ interface AnalyticsLinkProps {
 }
 
 function AnalyticsLink({ name, icon, url }: AnalyticsLinkProps) {
-    return (
-      <a href={url} target="_blank" rel="noopener noreferrer">
-        <CustomButton
-          variant="outline"
-          className="bg-[#202426] border-zinc-700 hover:bg-zinc-800 text-xs text-white rounded-[2px] flex items-center gap-1"
-        >
-          <Image
-            src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}
-            width={15}
-            height={15}
-            alt="Morpho"
-          />
-          <div>{name}</div>
-          <ArrowUpRight className="ml-1 h-3 w-3" />
-        </CustomButton>
-      </a>
-    );
-  }
-
-function ArrowDown(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 5v14" />
-      <path d="m19 12-7 7-7-7" />
-    </svg>
-  );
-}
-
-function ArrowUp(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 19V5" />
-      <path d="m5 12 7-7 7 7" />
-    </svg>
+    <a href={url} target="_blank" rel="noopener noreferrer">
+      <CustomButton
+        variant="outline"
+        className="bg-[#fafafa1a] border-none hover:bg-zinc-800 text-xs text-white rounded-[2px] flex items-center gap-1"
+      >
+        <Image
+          src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}
+          width={15}
+          height={15}
+          alt="Morpho"
+        />
+        <div>{name}</div>
+        <ArrowUpRight className="ml-1 h-3 w-3" />
+      </CustomButton>
+    </a>
   );
 }

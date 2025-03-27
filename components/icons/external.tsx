@@ -1,9 +1,9 @@
 import React from "react";
 
-export default function External({ className = "" }) {
+export default function External({ className = "", width = '8px' }) {
   return (
     <svg
-      style={{width: '8px'}}
+      style={{width}}
       viewBox="0 0 8 9"
       fill="#ffffff80"
       xmlns="http://www.w3.org/2000/svg"

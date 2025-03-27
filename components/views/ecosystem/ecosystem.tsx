@@ -9,10 +9,12 @@ import { Project, projects } from "@/lib/data";
 export function EcosystemPage() {
   return (
     <Dashboard>
-      <div className="">
-        <div>
-          <h1 className="text-[38px] font-normal text-white">Ecosystem</h1>
-          <p className="text-[#ffffffcc] text-[14px] mt-2">
+      <div className="flex flex-col gap-4">
+        <div className="flex gap-5 flex-col">
+          <h1 className="text-[38px] font-normal text-white h-[44px] items-center flex">
+            Ecosystem
+          </h1>
+          <p className="text-[#ffffffcc] text-[14px]">
             Projects building on Morpho
           </p>
         </div>
@@ -33,20 +35,9 @@ interface ProjectCardProps {
 
 function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <div className="bg-[#202426] rounded-lg p-5 relative group">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute top-2 right-2 opacity-100 rounded-full bg-[#fafafa1a] hover:bg-[#2470ff] cursor-pointer w-[31px] h-[31px]"
-      >
-        <Link href={`/ecosystem/${project.id}`} className="block group">
-          <External className="h-[2px] w-[2px] text-white" />
-        </Link>
-        <span className="sr-only text-white">Visit {project.name}</span>
-      </Button>
-
-      <div className="flex flex-col h-full">
-        <div className="mb-4">
+    <div className="bg-[#202426] rounded-lg p-5 flex h-[240px]">
+      <div className="flex flex-col h-full justify-between">
+        <div className="mb-4 flex justify-between">
           <div className="bg-[#fafafa1a] w-[60px] h-[60px] rounded-full flex items-center justify-center text-xl">
             <Image
               src={
@@ -59,12 +50,24 @@ function ProjectCard({ project }: ProjectCardProps) {
               alt={project.name}
             />
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-[#fafafa1a] hover:bg-[#2470ff] cursor-pointer w-[31px] h-[31px]"
+          >
+            <Link href={`/ecosystem/${project.id}`} className="block group">
+              <External className="h-[2px] w-[2px] text-white" width="6px" />
+            </Link>
+            <span className="sr-only text-white">Visit {project.name}</span>
+          </Button>
         </div>
 
-        <h3 className="text-lg font-semibold mb-2 text-white">
-          {project.name}
-        </h3>
-        <p className="text-sm text-muted-foreground">{project.description}</p>
+        <div className="flex flex-col gap-4">
+          <div className="text-[20px] font-semibold text-white">
+            {project.name}
+          </div>
+          <p className="text-[14px] text-[#ffffff80] leading-[16px]">{project.description}</p>
+        </div>
       </div>
     </div>
   );

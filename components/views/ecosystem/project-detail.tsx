@@ -17,11 +17,11 @@ interface ProjectDetailPageProps {
 export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
   return (
     <Dashboard>
-      <div className="">
+      <div className="flex gap-15 flex-col">
         {/* Project Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-zinc-800 w-12 h-12 rounded-full flex items-center justify-center text-xl">
+        <div className="flex items-end md:items-center justify-between h-[100px] md:h-[60px]">
+          <div className="flex items-center gap-3 md:gap-5 flex-col md:flex-row">
+            <div className="bg-[#202426] w-15 h-15 rounded-full flex items-center justify-center text-xl">
               <Image
                 src={
                   project.icon !== "ionic"
@@ -33,24 +33,53 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                 alt={project.name}
               />
             </div>
-            <h1 className="text-[38px] font-normal text-white">
+            <p className="text-[20px] md:text-[38px] font-normal text-white h-[24px] md:h-[44px]">
               {project.name}
-            </h1>
+            </p>
           </div>
 
           <CustomButton
             variant="default"
-            className="bg-blue-600 hover:bg-blue-700 min-w-[90px] flex"
+            className="bg-[#2470ff] hover:bg-blue-700 h-[26px] w-[95px] flex items-center rounded-[4px] pl-[8px] pt-[6px]"
           >
-            <span className="text-xs">Launch App</span>{" "}
-            <ArrowRight className="ml-2 h-4 w-4 rotate-315" />
+            <div className="text-[11px]">Launch App</div>{" "}
+            <ArrowRight className="ml-2 h-3 w-3 rotate-315" />
           </CustomButton>
         </div>
 
         {/* Project Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Project Screenshots - Moves first on mobile */}
+          <div className="space-y-4 order-first lg:order-last">
+            <div className="bg-transparent rounded-lg overflow-hidden">
+              <img
+                src="/project/aragon1.png"
+                alt={`${project.name} interface`}
+                className="w-full h-auto"
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <div className="bg-transparent rounded-lg overflow-hidden">
+                <img
+                  src="/project/aragon1.png"
+                  alt={`${project.name} interface detail`}
+                  className="w-[170px] h-[108px] cursor-pointer"
+                />
+              </div>
+              <div className="bg-transparent rounded-lg overflow-hidden">
+                <img
+                  src="/project/aragon2.png"
+                  alt={`${project.name} interface detail`}
+                  className="w-[170px] h-[108px] cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Project Description */}
           <div className="space-y-8 bg-[#202426] p-10 rounded-md">
-            <p className="text-muted-foreground text-[14px]">
+            <p className="text-[#ffffff80] text-[14px]">
               {project.description}
             </p>
 
@@ -58,7 +87,7 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
               <h2 className="text-[16px] font-semibold text-[#fffffff2]">
                 Overview
               </h2>
-              <p className="text-muted-foreground text-[14px]">
+              <p className="text-[#ffffff80] text-[14px]">
                 {project.name} was founded in 2016 with the belief that the fate
                 of humanity will be decided at the frontier of technological
                 innovation. {project.name} launched the first DAO Framework in
@@ -85,38 +114,10 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
               </p>
             </div>
           </div>
-
-          <div className="space-y-4">
-            {/* Project Screenshots */}
-            <div className="bg-transparent rounded-lg overflow-hidden">
-              <img
-                src="/project/aragon1.png"
-                alt={`${project.name} interface`}
-                className="w-full h-auto"
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <div className="bg-transparent rounded-lg overflow-hidden">
-                <img
-                  src="/project/aragon1.png"
-                  alt={`${project.name} interface detail`}
-                  className="w-[170px] h-[108px] cursor-pointer"
-                />
-              </div>
-              <div className="bg-transparent rounded-lg overflow-hidden">
-                <img
-                  src="/project/aragon2.png"
-                  alt={`${project.name} interface detail`}
-                  className="w-[170px] h-[108px] cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Links Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-[#202426] rounded-lg p-5">
             <h3 className="text-[13px] font-medium text-muted-foreground mb-3 flex items-center gap-2">
               <URL className="h-3 w-3 text-blue-700" /> URL

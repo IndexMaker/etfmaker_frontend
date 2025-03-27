@@ -1,9 +1,9 @@
 import React from "react";
 
-export default function RightArrow({ className = "" }) {
+export default function RightArrow({ className = "", width = '8px', height = '8px' }) {
   return (
     <svg
-      style={{width: '8px', height: '8px'}}
+      style={{width, height}}
       viewBox="0 0 12 11"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

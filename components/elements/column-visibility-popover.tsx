@@ -42,13 +42,13 @@ export function ColumnVisibilityPopover({
         align="start"
         sideOffset={5}
       >
-        <div className="p-3 border-b border-zinc-700">
+        <div className="p-0 border-b border-zinc-700">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search for properties"
-              className="pl-8 bg-[#202426] border-zinc-700 text-white"
+              className="pl-8 py-[10px] !shadow-none bg-[#202426] border-zinc-700 text-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -59,16 +59,16 @@ export function ColumnVisibilityPopover({
             {filteredColumns.map((column) => (
               <div
                 key={column.id}
-                className="flex items-center justify-between py-2 px-3 hover:bg-[#afafaf1a] rounded-sm"
+                className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-[#afafaf1a] rounded-sm"
               >
-                <span className="text-sm">{column.title}</span>
+                <span className="text-[12px]">{column.title}</span>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() =>
                     onColumnVisibilityChange(column.id, !column.visible)
                   }
-                  className="hover:bg-zinc-700 h-8 w-8"
+                  className="hover:bg-transparent hover:text-white text-[#ffffffc2] h-8 w-8"
                 >
                   {column.visible ? (
                     <Eye className="h-4 w-4" />

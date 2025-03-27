@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Moon,
   Settings,
+  Sun,
   TrendingUp,
   X,
 } from "lucide-react";
@@ -23,6 +24,15 @@ import { usePathname } from "next/navigation";
 import DARK from "../../public/logo/dark.png";
 import LIGHT from "../../public/logo/light.png";
 import Image from "next/image";
+import RightArrow from "../icons/right-arrow";
+import EcosystemSvg from "../icons/ecosystem";
+import AnalyticsSvg from "../icons/analytics";
+import Morpho from "../icons/morpho";
+import MorphoSvg from "../icons/morphoSvg";
+import MorphoDoc from "../icons/morphoDoc";
+import Feedback from "../icons/feedback";
+import TOS from "../icons/tos";
+import Blockchain from "../icons/blockchain";
 
 interface SidebarProps {
   open: boolean;
@@ -65,7 +75,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-[#202426] backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 md:hidden"
           onClick={() => setOpen(false)}
         />
       )}
@@ -81,27 +91,29 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         {/* Logo */}
         <div
           className={cn(
-            "flex h-[50px] items-center",
-            collapsed ? "justify-center" : "px-4"
+            "flex h-[52px] items-center",
+            collapsed ? "justify-center" : "px-5"
           )}
         >
           <Link href="/" className="flex items-center">
             {collapsed ? (
-              <Image
-                src={DARK}
-                alt={"LOGO"}
-                width={30}
-                height={12}
-                className="object-none text-primary"
-              />
+              //   <Image
+              //     src={DARK}
+              //     alt={"LOGO"}
+              //     width={30}
+              //     height={12}
+              //     className="object-none text-primary"
+              //   />
+              <Blockchain className="w-6 h-6" />
             ) : (
-              <Image
-                src={DARK}
-                alt={"LOGO"}
-                width={100}
-                height={24}
-                className="text-primary"
-              />
+              //   <Image
+              //     src={DARK}
+              //     alt={"LOGO"}
+              //     width={90}
+              //     height={24}
+              //     className="text-primary"
+              //   />
+              <Blockchain className="w-6 h-6" />
             )}
           </Link>
           <Button
@@ -110,7 +122,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             className="absolute right-2 top-3 md:hidden"
             onClick={() => setOpen(false)}
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6 text-white" />
             <span className="sr-only">Close sidebar</span>
           </Button>
         </div>
@@ -120,13 +132,13 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
           <nav
             className={cn(
               "space-y-1 text-xs font-bold",
-              collapsed ? "px-0" : "px-2"
+              collapsed ? "px-0" : "px-[10px]"
             )}
           >
             <NavItem
               href="/"
               active={isRouteActive("/")}
-              className="text-[13px] text-[#ffffffcc] font-semibold"
+              className="text-[13px] text-[#ffffffcc] py-[6px] px-[10px] h-[32px]"
               icon={TrendingUp}
               collapsed={collapsed}
             >
@@ -135,9 +147,10 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             <NavItem
               href="/ecosystem"
               active={isRouteActive("/ecosystem")}
-              className="text-[13px] text-[#ffffffcc] font-semibold"
-              icon={Settings}
+              className="text-[13px] text-[#ffffffcc] py-[6px] px-[10px] h-[32px]"
+              icon={EcosystemSvg}
               collapsed={collapsed}
+              iconClassName={"p-[1px]"}
             >
               Ecosystem
             </NavItem>
@@ -149,67 +162,74 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               collapsed ? "hidden" : "px-0"
             )}
           >
-            <div className={cn("space-y-1", collapsed ? "px-0" : "px-2")}>
+            <div className={cn("space-y-1", collapsed ? "px-0" : "px-[14px]")}>
               <NavItem
                 href="/analytics"
                 active={isRouteActive("/analytics")}
-                className="text-zinc-400"
-                icon={BarChart2}
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
+                icon={AnalyticsSvg}
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Analytics
               </NavItem>
               <NavItem
                 href="https://app.morpho.org/"
-                icon={Settings}
+                icon={MorphoSvg}
                 external
-                className="text-zinc-400"
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Morpho App V2
               </NavItem>
               <NavItem
                 href="https://delegate.morpho.org/"
-                icon={ExternalLink}
+                icon={MorphoSvg}
                 external
-                className="text-zinc-400"
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Delegate
               </NavItem>
               <NavItem
                 href="https://docs.morpho.org/"
-                icon={FileText}
+                icon={MorphoDoc}
                 external
-                className="text-zinc-400"
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Morpho Docs
               </NavItem>
               <NavItem
                 href="https://optimizers.morpho.org/"
-                icon={Settings}
+                icon={MorphoSvg}
                 external
-                className="text-zinc-400"
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Morpho Optimizers
               </NavItem>
               <NavItem
                 href="https://docs.google.com/forms/d/e/1FAIpQLSc3ZpfvlcBmMgCDfg6ahM6cKNm003bbns5Ao6QfXJNfcfpATw/viewform?embedded=true"
-                icon={MessageSquare}
+                icon={Feedback}
                 external
-                className="text-zinc-400"
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Feedback
               </NavItem>
               <NavItem
                 href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf"
-                icon={HelpCircle}
+                icon={TOS}
                 external
-                className="text-zinc-400"
+                className="text-[#ffffff80] h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                iconClassName="mr-[2px]"
               >
                 Terms of Use
               </NavItem>
@@ -220,8 +240,10 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         {/* Theme toggle and collapse/expand button */}
         <div
           className={cn(
-            "flex h-12 items-center text-zinc-400 hover:text-white",
-            collapsed ? "justify-center" : "px-4"
+            "flex h-16 items-center text-zinc-400 hover:text-white",
+            collapsed
+              ? "justify-center"
+              : "pt-[24px] pr-[10px] pb-[16px] pl-[16px]"
           )}
         >
           {collapsed ? (
@@ -229,7 +251,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               variant="ghost"
               size="icon"
               onClick={() => setCollapsed(false)}
-              className="hover:bg-transparent cursor-pointer hover:text-white"
+              className="hover:bg-transparent cursor-pointer hover:text-white h-4 w-4 p-1"
             >
               <div>
                 <svg
@@ -250,12 +272,12 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               <span className="sr-only">Expand sidebar</span>
             </Button>
           ) : (
-            <div className="flex justify-start">
+            <div className="flex justify-start items-center p-1">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setCollapsed(true)}
-                className="hover:bg-transparent float-right cursor-pointer hover:text-white ml-auto"
+                className="hover:bg-transparent float-right cursor-pointer hover:text-white h-4 w-4"
               >
                 <div>
                   <svg
@@ -279,9 +301,9 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="hover:bg-transparent float-right cursor-pointer hover:text-white ml-auto"
+                className="hover:bg-transparent float-right cursor-pointer hover:text-white pl-1"
               >
-                <Moon className="h-5 w-5" />
+                <Sun className="h-5 w-5" />
                 <span className="sr-only">Toggle theme</span>
               </Button>
             </div>
@@ -300,6 +322,7 @@ interface NavItemProps {
   external?: boolean;
   collapsed?: boolean;
   className?: string;
+  iconClassName?: string;
 }
 
 function NavItem({
@@ -310,12 +333,13 @@ function NavItem({
   external,
   collapsed,
   className,
+  iconClassName,
 }: NavItemProps) {
   return (
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 rounded-sm py-[6px] font-medium transition-colors",
+        "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors ",
         collapsed ? "justify-center px-0" : "px-[10px]",
         className,
         active
@@ -325,11 +349,21 @@ function NavItem({
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
     >
-      <Icon className="h-4 w-4" />
+      <Icon
+        className={`h-4 w-4 ${active ? `text-[#2470ff]` : ``} ${
+          iconClassName || ""
+        }`}
+      />
       {!collapsed && (
         <>
-          <span>{children}</span>
-          {external && <ExternalLink className="ml-auto h-4 w-4 opacity-70" />}
+          <span className="">{children}</span>
+          {external && (
+            <RightArrow
+              className="ml-auto rotate-135 p-[2px]"
+              width="17px"
+              height="17px"
+            />
+          )}
         </>
       )}
     </Link>

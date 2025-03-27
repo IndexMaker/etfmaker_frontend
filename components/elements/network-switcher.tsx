@@ -39,9 +39,9 @@ export function NetworkSwitcher() {
       <DropdownMenuTrigger asChild className="px-0">
         <Button
           variant="outline"
-          className="flex rounded-[3px] cursor-pointer text-xs line-[16px] items-center gap-2 bg-[#fafafa1a] px-[5px] py-[3px] max-h-[26px] border-none text-white hover:text-white hover:bg-[#fafafa1a] hover:border-none shadow-none"
+          className="flex rounded-[4px] cursor-pointer text-xs line-[16px] items-center bg-[#fafafa1a] w-[46px] has-[>svg]:px-1 m-auto max-h-[26px] border-none text-white hover:text-white hover:bg-[#fafafa1a] gap-1 hover:border-none shadow-none"
         >
-          <span className="flex items-center gap-2">
+          <span className="flex items-center">
             <span>{selectedNetwork.icon}</span>
           </span>
           <ChevronDown className="h-4 w-4 opacity-50" />

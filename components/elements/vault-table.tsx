@@ -18,11 +18,12 @@ import {
 } from "@/components/ui/tooltip";
 import InstantAPY from "../icons/instantApy";
 import Image from "next/image";
-import vaults from "@/lib/data";
+import { vaults } from "@/lib/data";
 import CustomTooltip from "./custom-tooltip";
 import { useState } from "react";
 import RightArrow from "../icons/right-arrow";
 import LeftArrow from "../icons/left-arrow";
+import { useRouter } from "next/navigation";
 
 interface VaultTableProps {
   visibleColumns: { id: string; title: string; visible: boolean }[];
@@ -31,39 +32,44 @@ interface VaultTableProps {
 export function VaultTable({ visibleColumns }: VaultTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-
+  const router = useRouter();
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
+
+  const assetDetail = (vault: any) => {
+    router.push("./vault/" + vault?.id);
+  };
   return (
     <TooltipProvider>
-      <div className="rounded-sm">
-        <Table className="text-white text-xs bg-[#202426]">
+      <div className="">
+        <Table className="text-white text-xs bg-[#202426] rounded-[8px]">
           <TableHeader className="text-white border-[#afafaf1a]">
             <TableRow className="text-white hover:bg-[#fafafa1a] border-[#afafaf1a]">
               {visibleColumns
                 .filter((col) => col.visible)
                 .map((col) => (
-                  <TableHead key={col.id} className="text-[#ffffffcc]">
+                  <TableHead key={col.id} className="text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]">
                     {col.title}
                   </TableHead>
                 ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentVaults.map((vault) => (
+            {currentVaults.map((vault, index) => (
               <TableRow
                 key={vault.id}
-                className="hover:bg-[#fafafa1a] border-[#afafaf1a] h-[54px] text-[13px]"
+                className="hover:bg-[#fafafa1a] border-[#afafaf1a] h-[54px] text-[13px] cursor-pointer"
+                onClick={() => assetDetail(vault)}
               >
                 {visibleColumns.map(
                   (col) =>
                     col.visible && (
-                      <TableCell key={col.id}>
+                      <TableCell key={col.id} className="pl-5 pr-18 text-[#fffffff2]">
                         {col.id === "vaultName" && (
                           <>
-                            <div className="flex items-center gap-2 pl-2">
+                            <div className="flex items-center gap-2 pl-[1.5px]">
                               <Image
                                 src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
                                 alt={vault.token}
@@ -98,13 +104,13 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
                               width={17}
                               height={17}
                             />
-                            <span>{vault.token}</span>
+                            <span className="text-[#fffffff2]">{vault.token}</span>
                           </div>
                         )}
                         {col.id === "totalSupply" && (
                           <div className="flex items-center">
                             <div>{vault.totalSupply}</div>
-                            <div className="text-white p-1 ml-2 bg-[#afafaf1a] text-xs">
+                            <div className="text-[#fffffff2] p-1 ml-2 bg-[#afafaf1a] text-xs">
                               {vault.totalSupplyUsd}
                             </div>
                           </div>
@@ -112,7 +118,7 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
                         {col.id === "instantApy" && (
                           <div className="flex items-center gap-1 cursor-pointer">
                             {vault.instantApy}
-                            {vault.id >= 2 && (
+                            {index >= 2 && (
                               <CustomTooltip
                                 key={"instantApy"}
                                 content={

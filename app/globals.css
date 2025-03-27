@@ -12,7 +12,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-custom: "FK Grotesk", sans-serif;
+  --font-custom: FK Grotesk, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -116,7 +116,33 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+@font-face {
+  font-family: 'FK Grotesk';
+  src: url('/fonts/FKGroteskNeueTrial-Regular-BF6576818c3af74.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
 
+@font-face {
+  font-family: 'FK Grotesk';
+  src: url('/fonts/FKGroteskNeueTrial-Bold-BF6576818bd3700.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -124,7 +150,15 @@
   body {
     @apply bg-background text-foreground;
   }
+  html {
+    overflow: hidden;
+  }
   body, html {
+    /* font-family: "FK Grotesk", sans-serif; */
     font-family: Inter, sans-serif;
+  }
+
+  .font-custom {
+    font-family: FK Grotesk, sans-serif;
   }
 }
