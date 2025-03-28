@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { getTranslation } from "@/lib/i18n"
 
 type LanguageContextType = {
   language: string
@@ -27,7 +28,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Translation function
   const t = (key: string) => {
-    return ""
+    return getTranslation(language, key)
   }
 
   return <LanguageContext.Provider value={{ language, setLanguage, t }}>{children}</LanguageContext.Provider>

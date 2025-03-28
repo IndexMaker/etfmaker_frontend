@@ -11,33 +11,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { VaultAllocation } from "@/lib/data";
 import { Button } from "../ui/button";
 import LeftArrow from "../icons/left-arrow";
 import RightArrow from "../icons/right-arrow";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@radix-ui/react-tooltip";
-import Info from "../icons/info";
+import Image from "next/image";
+import { Activity, transactionTypes } from "@/lib/data";
 
-interface VaultAllocationBreakdownProps {
-  allocations: VaultAllocation[];
+interface VaultReAllocationProps {
+  activities: Activity[];
   visibleColumns: { id: string; name: string; visible: boolean }[];
 }
-
-export function VaultAllocationBreakdown({
-  allocations,
+const allActivityColumns = [
+  { id: "dateTime", name: "Date & Time", visible: true },
+  { id: "wallet", name: "User", visible: true },
+  { id: "hash", name: "Hash", visible: true },
+  { id: "transactionType", name: "Transaction Type", visible: true },
+  { id: "amount", name: "Amount", visible: true },
+];
+export function VaultActivity({
+  activities,
   visibleColumns,
-}: VaultAllocationBreakdownProps) {
+}: VaultReAllocationProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVaults = allocations.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(allocations.length / itemsPerPage);
+  const currentActivities = activities.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(activities.length / itemsPerPage);
 
   // Helper function to render collateral icon
   const renderCollateralIcon = (icon?: string) => {
@@ -51,76 +51,54 @@ export function VaultAllocationBreakdown({
   };
 
   // Helper function to render cell content based on column ID
-  const renderCellContent = (allocation: VaultAllocation, columnId: string) => {
+  const renderCellContent = (activity: Activity, columnId: string) => {
     switch (columnId) {
-      case "percentage":
-        return allocation.percentage;
-      case "vaultSupply":
+      case "dateTime":
+        return activity.dateTime;
+      case "wallet":
         return (
-          <TooltipProvider>
-            <div className="flex items-center gap-2">
-              <div>{allocation.vaultSupply.amount}</div>
-              <div className="text-[11px] bg-[#fafafa1a] text-[#ffffffcc] px-[2px] py-1 rounded-[4px]">
-                {allocation.vaultSupply.usdValue}
-              </div>
-              {parseFloat(allocation.percentage) < 0.1 ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="icon" className="h-4 w-4 text-[#fffffff2] rounded-none bg">
-                      <Info className="h-3 w-3 text-white" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs p-2">
-                      <span className="font-bold text-[12px] text-white">
-                        Market has low total supply.
-                        <a
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          className="font-normal text-[#FFFFFFF2] text-[11px]"
-                          href="https://docs.morpho.org/interface/warnings/#what-are-the-warnings-on-the-morpho-interface"
-                        >
-                          Learn more →
-                        </a>
-                      </span>
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <></>
-              )}
+          <div className="flex items-center gap-2">
+            <img
+              src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0ib3B0aW1pemVTcGVlZCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48cGF0aCBmaWxsPSJoc2woMTM2IDk4JSAzOSUpIiBkPSJNMCwwSDhWOEgweiIvPjxwYXRoIGZpbGw9ImhzbCgzNTEgNzklIDM4JSkiIGQ9Ik0xLDBoMXYxaC0xek02LDBoMXYxaC0xek0yLDBoMXYxaC0xek01LDBoMXYxaC0xek0zLDBoMXYxaC0xek00LDBoMXYxaC0xek0xLDJoMXYxaC0xek02LDJoMXYxaC0xek0xLDNoMXYxaC0xek02LDNoMXYxaC0xek0yLDNoMXYxaC0xek01LDNoMXYxaC0xek0zLDNoMXYxaC0xek00LDNoMXYxaC0xek0xLDRoMXYxaC0xek02LDRoMXYxaC0xek0zLDRoMXYxaC0xek00LDRoMXYxaC0xek0xLDVoMXYxaC0xek02LDVoMXYxaC0xek0yLDVoMXYxaC0xek01LDVoMXYxaC0xek0zLDZoMXYxaC0xek00LDZoMXYxaC0xek0xLDdoMXYxaC0xek02LDdoMXYxaC0xeiIvPjxwYXRoIGZpbGw9ImhzbCgyNDMgNTAlIDcyJSkiIGQ9Ik0yLDFoMXYxaC0xek01LDFoMXYxaC0xek0wLDJoMXYxaC0xek03LDJoMXYxaC0xek0yLDJoMXYxaC0xek01LDJoMXYxaC0xek0zLDVoMXYxaC0xek00LDVoMXYxaC0xek0xLDZoMXYxaC0xek02LDZoMXYxaC0xeiIvPjwvc3ZnPg=="
+              className="w-[17px] h-[17px] rounded-full"
+            />
+            <div>{activity.wallet}</div>
+            <div>
+              <RightArrow
+                className="rotate-135 text-[#FFFFFF99]"
+                width="13px"
+                height="13px"
+              />
             </div>
-          </TooltipProvider>
-        );
-      case "collateral":
-        return (
-          <div className="flex items-center">
-            {renderCollateralIcon(allocation.collateral.icon)}
-            <span>{allocation.collateral.name}</span>
           </div>
         );
-      case "liquidationLTV":
-        return allocation.liquidationLTV;
-      case "netAPY":
-        return allocation.netAPY;
-      case "oracle":
-        return allocation.oracle || "—";
-      case "supplyCap":
-        return allocation.supplyCap || "—";
-      case "capPercentage":
-        return allocation.capPercentage || "—";
-      case "supplyAPY":
-        return allocation.supplyAPY || "—";
-      case "rewards":
-        return allocation.rewards || "—";
-      case "totalCollateral":
-        return allocation.totalCollateral || "—";
-      case "utilization":
-        return allocation.utilization || "—";
-      case "rateAtUTarget":
-        return allocation.rateAtUTarget || "—";
-      case "marketId":
-        return allocation.marketId || "—";
+      case "hash":
+        return (
+          <div className="flex items-center gap-2">
+            <div>{activity.hash}</div>
+            <RightArrow
+              className="rotate-135 text-[#FFFFFF99]"
+              width="13px"
+              height="13px"
+            />
+          </div>
+        );
+      case "transactionType":
+        return (
+          transactionTypes.filter((type) => type.id === activity.transactionType)[0]
+            ?.name || activity.transactionType
+        );
+      case "amount":
+        return (
+          <div className="flex items-center gap-2">
+            <div>
+              {activity.amount.amount.toLocaleString("en-US")} {activity.amount.currency}
+            </div>
+            <div className="px-[2px] py-1 rounded-[4px] bg-[#fafafa1a] text-white text-[11px] flex items-center">
+              {activity.amount.amountSummary}
+            </div>
+          </div>
+        );
       default:
         return "—";
     }
@@ -133,9 +111,10 @@ export function VaultAllocationBreakdown({
           <Table className="rouneded-[16px]">
             <TableHeader className="bg-[#202426]">
               <TableRow className="hover:bg-transparent border-[#afafaf1a] h-[44px]">
-                {visibleColumns
-                  .filter((column) => column.visible)
-                  .map((column) => (
+                {allActivityColumns.map((column) => {
+                  return visibleColumns.filter(
+                    (_column) => _column.id === column.id && _column.visible
+                  ).length > 0 ? (
                     <TableHead
                       key={column.id}
                       className={cn(
@@ -163,32 +142,39 @@ export function VaultAllocationBreakdown({
                         )}
                       </div>
                     </TableHead>
-                  ))}
+                  ) : (
+                    <></>
+                  );
+                })}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentVaults.map((allocation) => (
+              {currentActivities.map((activity) => (
                 <TableRow
-                  key={allocation.id}
+                  key={activity.id}
                   className="border-[#afafaf1a] hover:bg-[#202426]/50 h-[54px] text-[13px]"
                 >
-                  {visibleColumns
-                    .filter((column) => column.visible)
-                    .map((column, index) => (
+                  {allActivityColumns.map((column, index) => {
+                    return visibleColumns.filter(
+                      (_column) => _column.id === column.id && _column.visible
+                    ).length > 0 ? (
                       <TableCell
                         className="pl-[20px] text-[#fffffff2] pr-18"
-                        key={`${allocation.id}-${index}`}
+                        key={`${activity.id}-${index}`}
                       >
-                        {renderCellContent(allocation, column.id)}
+                        {renderCellContent(activity, column.id)}
                       </TableCell>
-                    ))}
+                    ) : (
+                      <></>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-      <div className="flex justify-center items-center mt-4 text-white text-sx">
+      <div className="flex justify-center items-center mt-6 text-white text-sx">
         <Button
           className="text-xs text-[#ffffff80] p-0 h-4"
           disabled={currentPage === 1}

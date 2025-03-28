@@ -694,3 +694,305 @@ export const vaultAllocations: VaultAllocation[] = [
     marketId: "0x8e1f...b23a",
   },
 ];
+
+export type ReAllocation = {
+  id: string;
+  timestamp: string;
+  user: string;
+  nash: string;
+  amount: number;
+  currency: string;
+  type: "Withdraw" | "Supply";
+  market: string;
+  letv?: number;
+};
+
+export const reallocations: ReAllocation[] = [
+  {
+    id: "tx-1",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 7072894.47,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ IT+USDE-29MAY2025 / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-2",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 10060000.0,
+    currency: "DM",
+    type: "Supply",
+    market: "🌬️ IT+USDe-31UA2025 / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-3",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 293085.97,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ USDe / DM",
+    letv: 89.85,
+  },
+  {
+    id: "tx-4",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 37970287.26,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ IT+USDe-27MA20225 / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-5",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 1008372.67,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ USDe / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-6",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 50000000.0,
+    currency: "DM",
+    type: "Supply",
+    market: "🌬️ IT+USDE-28MAY2025 / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-7",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 24752838.05,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ UGLI / DM",
+    letv: 90,
+  },
+  {
+    id: "tx-8",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 475978.81,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ USDe / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-9",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 40975054.48,
+    currency: "DM",
+    type: "Withdraw",
+    market: "🌬️ IT+USDE-27MA20225 / DM",
+    letv: 91.5,
+  },
+  {
+    id: "tx-10",
+    timestamp: "2 days ago",
+    user: "0x298b...dFb5",
+    nash: "0xfb33...31ca",
+    amount: 51077925.31,
+    currency: "DM",
+    type: "Supply",
+    market: "🌬️ UGLI / DM",
+    letv: 90,
+  },
+];
+
+export type SupplyPosition = {
+  id: string;
+  user: string;
+  supply: string;
+  supplySummary: string;
+  currency: string;
+  share: number;
+};
+
+export const supplyPositions: SupplyPosition[] = [
+  {
+    id: "1",
+    user: "0x298b...dFb5",
+    supply: "525,078,765.05",
+    supplySummary: "$524.98M",
+    currency: "DAI",
+    share: 100,
+  },
+];
+
+export type Activity = {
+  id: string;
+  dateTime: string;
+  wallet: string;
+  hash: string;
+  transactionType: string;
+  amount: {
+    amount: number;
+    currency: string;
+    amountSummary: string;
+  };
+};
+export const transactionTypes = [
+  {
+    id: "all",
+    name: "All transaction types",
+  },
+  {
+    id: "deposit",
+    name: "Vault Deposit",
+  },
+  {
+    id: "withdraw",
+    name: "Vault Withdraw",
+  },
+  {
+    id: "free",
+    name: "Vault Free",
+  },
+  {
+    id: "transfer",
+    name: "Vault Transfer",
+  },
+];
+export const userActivities: Activity[] = [
+  {
+    id: '1',
+    dateTime: "2 days ago",
+    wallet: "0×9C25...7f7E",
+    hash: "0xfb33...31ca",
+    transactionType: "withdraw",
+    amount: {
+      amount: 25610817.8,
+      currency: "DAI",
+      amountSummary: "$25.64M",
+    },
+  },
+  {
+    id: '2',
+    dateTime: "last week",
+    wallet: "0×9C25...7f7E",
+    hash: "0×9dfe...6b72",
+    transactionType: "free",
+    amount: {
+      amount: 524503.44,
+      currency: "DAI",
+      amountSummary: "$524.88k",
+    },
+  },
+  {
+    id: '3',
+    dateTime: "2 weeks ago",
+    wallet: "0×9C25...7f7E",
+    hash: "0×8633...a84c",
+    transactionType: "withdraw",
+    amount: {
+      amount: 50862402.68,
+      currency: "DAI",
+      amountSummary: "$50.79M",
+    },
+  },
+  {
+    id: '4',
+    dateTime: "3 weeks ago",
+    wallet: "0×9C25...7f7E",
+    hash: "0×97ef...db97",
+    transactionType: "transfer",
+    amount: {
+      amount: 25961392.19,
+      currency: "DAI",
+      amountSummary: "$25.95M",
+    },
+  },
+  {
+    id: '5',
+    dateTime: "4 weeks ago",
+    wallet: "0×9C25...7f7E",
+    hash: "0xaed0...e95d",
+    transactionType: "deposit",
+    amount: {
+      amount: 24802065.11,
+      currency: "DAI",
+      amountSummary: "$24.8M",
+    },
+  },
+  {
+    id: '6',
+    dateTime: "4 weeks ago",
+    wallet: "0×9C25...7f7E",
+    hash: "0×9ac3...a50f",
+    transactionType: "free",
+    amount: {
+      amount: 1224726.63,
+      currency: "DAI",
+      amountSummary: "$1.22M",
+    },
+  },
+  {
+    id: '7',
+    dateTime: "last month",
+    wallet: "0×9C25...7f7E",
+    hash: "0×7817...a01d",
+    transactionType: "withdraw",
+    amount: {
+      amount: 1620592.95,
+      currency: "DAI",
+      amountSummary: "$1.61M",
+    },
+  },
+  {
+    id: '8', 
+    dateTime: "last month",
+    wallet: "0×9C25...7f7E",
+    hash: "0xe7d2...f87a",
+    transactionType: "deposit",
+    amount: {
+      amount: 49783280.0,
+      currency: "DAI",
+      amountSummary: "$49.77M",
+    },
+  },
+  {
+    id: '9',
+    dateTime: "last month",
+    wallet: "0×9C25...7f7E",
+    hash: "0xb783...4b58",
+    transactionType: "withdraw",
+    amount: {
+      amount: 1549300.1,
+      currency: "DAI",
+      amountSummary: "$1.54M",
+    },
+  },
+  {
+    id: '10', 
+    dateTime: "2 months ago",
+    wallet: "0×9C25...7f7E",
+    hash: "0×7023...45cd",
+    transactionType: "transfer",
+    amount: {
+      amount: 50527858.48,
+      currency: "DAI",
+      amountSummary: "$50.52M",
+    },
+  },
+];
