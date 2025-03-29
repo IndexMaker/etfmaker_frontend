@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Dashboard from "../Dashboard/dashboard";
 import { Project } from "@/lib/data";
@@ -52,7 +52,7 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
           {/* Project Screenshots - Moves first on mobile */}
           <div className="space-y-4 order-first lg:order-last">
             <div className="bg-transparent rounded-lg overflow-hidden">
-              <img
+              <Image
                 src="/project/aragon1.png"
                 alt={`${project.name} interface`}
                 className="w-full h-auto"
@@ -61,14 +61,14 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
 
             <div className="flex gap-4">
               <div className="bg-transparent rounded-lg overflow-hidden">
-                <img
+                <Image
                   src="/project/aragon1.png"
                   alt={`${project.name} interface detail`}
                   className="w-[170px] h-[108px] cursor-pointer"
                 />
               </div>
               <div className="bg-transparent rounded-lg overflow-hidden">
-                <img
+                <Image
                   src="/project/aragon2.png"
                   alt={`${project.name} interface detail`}
                   className="w-[170px] h-[108px] cursor-pointer"
@@ -91,7 +91,7 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                 {project.name} was founded in 2016 with the belief that the fate
                 of humanity will be decided at the frontier of technological
                 innovation. {project.name} launched the first DAO Framework in
-                2017 which secures over $40 billion in TVL. {project.name}'s
+                2017 which secures over $40 billion in TVL. {project.name}&lsquo;s
                 tech stack allows anyone to launch a DAO, enabling organizations
                 to securely govern their protocols and assets onchain.
               </p>
@@ -108,7 +108,7 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                 example, Steakhouse Financial secures vaults for their
                 depositors with {project.name} Guardian DAOs. Second, any DAO or
                 multisig on {project.name} can now seamlessly use Morpho using{" "}
-                {project.name}'s DappConnect, which enables onchain
+                {project.name}&lsquo;s DappConnect, which enables onchain
                 organizations to create actions directly through a Dapps user
                 interface - no code required.
               </p>

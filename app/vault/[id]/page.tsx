@@ -1,20 +1,19 @@
-import { notFound } from "next/navigation"
-import { getVaultById } from "@/lib/data"
-import { VaultDetailPage } from "@/components/views/vault/vault-detail"
+"use client";
+import { notFound, useParams } from "next/navigation";
+import { getVaultById } from "@/lib/data";
+import { VaultDetailPage } from "@/components/views/vault/vault-detail";
 
-interface VaultPageProps {
-  params: {
-    id: string
+export default function VaultPage() {
+  const params = useParams();
+  const vault_id = params.id?.toString();
+  if (!vault_id) {
+    notFound();
   }
-}
-
-export default function VaultPage({ params }: VaultPageProps) {
-  const vault = getVaultById(params.id)
+  const vault = getVaultById(vault_id);
 
   if (!vault) {
-    notFound()
+    notFound();
   }
 
-  return <VaultDetailPage vault={vault} />
+  return <VaultDetailPage vault={vault} />;
 }
-

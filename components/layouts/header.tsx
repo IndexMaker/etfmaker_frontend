@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Maximize2, Menu } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NetworkSwitcher } from "../elements/network-switcher";
 import { CustomButton } from "../ui/custom-button";

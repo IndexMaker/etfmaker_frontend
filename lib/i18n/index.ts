@@ -1,14 +1,30 @@
 // Define the supported languages
-export const languages: any[] = [
+type Language = {
+  code: string;
+  name: string;
+  flag: string;
+};
+export const languages: Language[] = [
   { code: "en", name: "English", flag: "🇺🇸" },
   { code: "es", name: "Español", flag: "🇪🇸" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
   { code: "de", name: "Deutsch", flag: "🇩🇪" },
   { code: "ru", name: "Русский", flag: "🇷🇺" },
 ];
+export type TranslationKeys = {
+  common: Record<string, string>;
+  table: Record<string, string>;
+};
 
+type Translations = {
+  'en': TranslationKeys;
+  'es': TranslationKeys;
+  'fr': TranslationKeys;
+  'de': TranslationKeys;
+  'ru': TranslationKeys;
+};
 // Define the translations
-export const translations = {
+export const translations: Translations = {
   en: {
     common: {
       earn: "Earn",
@@ -252,14 +268,17 @@ export const translations = {
 };
 
 // Get translation for a key
-export function getTranslation(language: string, key: string) {
+export function getTranslation(
+  language: string,
+  key: string
+): string {
   const keys = key.split(".");
-  let result: any = translations[language as keyof typeof translations];
+  let result: unknown = translations[language as keyof Translations];
 
   for (const k of keys) {
-    if (!result) return key;
-    result = result[k as keyof typeof result];
+    if (typeof result !== "object" || result === null) return key;
+    result = (result as Record<string, unknown>)[k];
   }
 
-  return result || key;
+  return typeof result === "string" ? result : key;
 }

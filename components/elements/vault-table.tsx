@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import InstantAPY from "../icons/instantApy";
 import Image from "next/image";
-import { vaults } from "@/lib/data";
+import { VaultInfo, vaults } from "@/lib/data";
 import CustomTooltip from "./custom-tooltip";
 import { useState } from "react";
 import RightArrow from "../icons/right-arrow";
@@ -38,7 +38,7 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
 
-  const assetDetail = (vault: any) => {
+  const assetDetail = (vault: VaultInfo) => {
     router.push("./vault/" + vault?.id);
   };
   return (
@@ -50,14 +50,17 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
               {visibleColumns
                 .filter((col) => col.visible)
                 .map((col) => (
-                  <TableHead key={col.id} className="text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]">
+                  <TableHead
+                    key={col.id}
+                    className="text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                  >
                     {col.title}
                   </TableHead>
                 ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentVaults.map((vault, index) => (
+            {currentVaults.map((vault: VaultInfo, index) => (
               <TableRow
                 key={vault.id}
                 className="hover:bg-[#fafafa1a] border-[#afafaf1a] h-[54px] text-[13px] cursor-pointer"
@@ -66,7 +69,10 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
                 {visibleColumns.map(
                   (col) =>
                     col.visible && (
-                      <TableCell key={col.id} className="pl-5 pr-18 text-[#fffffff2]">
+                      <TableCell
+                        key={col.id}
+                        className="pl-5 pr-18 text-[#fffffff2]"
+                      >
                         {col.id === "vaultName" && (
                           <>
                             <div className="flex items-center gap-2 pl-[1.5px]">
@@ -104,7 +110,9 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
                               width={17}
                               height={17}
                             />
-                            <span className="text-[#fffffff2]">{vault.token}</span>
+                            <span className="text-[#fffffff2]">
+                              {vault.token}
+                            </span>
                           </div>
                         )}
                         {col.id === "totalSupply" && (

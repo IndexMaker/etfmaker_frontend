@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, BaseSyntheticEvent } from "react"
 import { FileUp, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -147,7 +147,7 @@ export function DocumentUploader({ vaultId, onComplete }: DocumentUploaderProps)
             <Textarea
               id="description"
               value={description}
-              onChange={(e: any) => setDescription(e.target.value)}
+              onChange={(e: BaseSyntheticEvent) => setDescription(e.target.value)}
               placeholder="Brief description of the document"
               className="bg-zinc-800 border-zinc-700 text-white resize-none h-20"
             />

@@ -2,8 +2,7 @@
 
 import type React from "react";
 
-import { ArrowUpRight, BarChart3, DollarSign, LineChart } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowUpRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import Dashboard from "../Dashboard/dashboard";
 import { CustomButton } from "@/components/ui/custom-button";

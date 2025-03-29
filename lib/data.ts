@@ -1,6 +1,23 @@
 import type { Vault } from "./types/vault";
 
-export const vaults = [
+export type VaultInfo = {
+  id: string;
+  name: string;
+  icon: string;
+  token: string;
+  tokenIcon: string;
+  totalSupply: string;
+  totalSupplyUsd: string;
+  instantApy: string;
+  vaultApy: string;
+  curator: string;
+  curatorIcon: string;
+  collateral: string[]; // Array of strings (icons)
+  rewards: string;
+  performanceFee: string;
+};
+
+export const vaults: VaultInfo[] = [
   {
     id: "spark-dai",
     name: "Spark DAI Vault",
@@ -34,7 +51,7 @@ export const vaults = [
     performanceFee: "10%",
   },
   {
-    id: 3,
+    id: '3',
     name: "Steakhouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -50,7 +67,7 @@ export const vaults = [
     performanceFee: "5%",
   },
   {
-    id: 4,
+    id: '4',
     name: "Smokehouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -66,7 +83,7 @@ export const vaults = [
     performanceFee: "5%",
   },
   {
-    id: 5,
+    id: '5',
     name: "Steakhouse RUSD",
     icon: "🟠",
     token: "rUSD",
@@ -82,7 +99,7 @@ export const vaults = [
     performanceFee: "5%",
   },
   {
-    id: 6,
+    id: '6',
     name: "Gauntlet USDC Core",
     icon: "🔵",
     token: "USDC",
@@ -98,7 +115,7 @@ export const vaults = [
     performanceFee: "10%",
   },
   {
-    id: 7,
+    id: '7',
     name: "Hakutora USDC",
     icon: "🔵",
     token: "USDC",
@@ -114,7 +131,7 @@ export const vaults = [
     performanceFee: "0%",
   },
   {
-    id: 8,
+    id: '8',
     name: "Gauntlet WETH Prime",
     icon: "🟣",
     token: "WETH",
@@ -130,7 +147,7 @@ export const vaults = [
     performanceFee: "10%",
   },
   {
-    id: 9,
+    id: '9',
     name: "Steakhouse USDT",
     icon: "🟢",
     token: "USDT",
@@ -146,7 +163,7 @@ export const vaults = [
     performanceFee: "5%",
   },
   {
-    id: 10,
+    id: '10',
     name: "Gauntlet LBTC Core",
     icon: "🟡",
     token: "LBTC",
@@ -876,7 +893,7 @@ export const transactionTypes = [
 ];
 export const userActivities: Activity[] = [
   {
-    id: '1',
+    id: "1",
     dateTime: "2 days ago",
     wallet: "0×9C25...7f7E",
     hash: "0xfb33...31ca",
@@ -888,7 +905,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '2',
+    id: "2",
     dateTime: "last week",
     wallet: "0×9C25...7f7E",
     hash: "0×9dfe...6b72",
@@ -900,7 +917,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '3',
+    id: "3",
     dateTime: "2 weeks ago",
     wallet: "0×9C25...7f7E",
     hash: "0×8633...a84c",
@@ -912,7 +929,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '4',
+    id: "4",
     dateTime: "3 weeks ago",
     wallet: "0×9C25...7f7E",
     hash: "0×97ef...db97",
@@ -924,7 +941,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '5',
+    id: "5",
     dateTime: "4 weeks ago",
     wallet: "0×9C25...7f7E",
     hash: "0xaed0...e95d",
@@ -936,7 +953,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '6',
+    id: "6",
     dateTime: "4 weeks ago",
     wallet: "0×9C25...7f7E",
     hash: "0×9ac3...a50f",
@@ -948,7 +965,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '7',
+    id: "7",
     dateTime: "last month",
     wallet: "0×9C25...7f7E",
     hash: "0×7817...a01d",
@@ -960,7 +977,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '8', 
+    id: "8",
     dateTime: "last month",
     wallet: "0×9C25...7f7E",
     hash: "0xe7d2...f87a",
@@ -972,7 +989,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '9',
+    id: "9",
     dateTime: "last month",
     wallet: "0×9C25...7f7E",
     hash: "0xb783...4b58",
@@ -984,7 +1001,7 @@ export const userActivities: Activity[] = [
     },
   },
   {
-    id: '10', 
+    id: "10",
     dateTime: "2 months ago",
     wallet: "0×9C25...7f7E",
     hash: "0×7023...45cd",

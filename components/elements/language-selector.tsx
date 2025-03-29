@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLanguage } from "@/contexts/language-context";
 import { languages } from "@/lib/i18n";
-import Image from "next/image";
 
 export function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
@@ -31,13 +30,6 @@ export function LanguageSelector() {
           className="bg-[#202426] border-zinc-700 h-[26px] rounded-[4px] hover:bg-none text-white"
         >
           <Globe className="h-4 w-4 mr-2" />
-          {/* <Image
-            src={`https://www.countryflags.io/${selectedLanguage.code}/flat/64.png`}
-            width={16}
-            height={16}
-            alt={selectedLanguage.name}
-          /> */}
-
           <span className="mr-1">{selectedLanguage.flag}</span>
           <span className="hidden sm:inline">{selectedLanguage.name}</span>
           <ChevronDown className="h-4 w-4 ml-1 opacity-50" />

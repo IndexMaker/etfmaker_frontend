@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -12,8 +11,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { SupplyPosition } from "@/lib/data";
-import { Button } from "../ui/button";
-import LeftArrow from "../icons/left-arrow";
 import RightArrow from "../icons/right-arrow";
 import Image from "next/image";
 
@@ -26,36 +23,18 @@ const allColumns = [
   { id: "share", name: "Share", visible: true },
 ];
 export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentVaults = supplyPositions.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(supplyPositions.length / itemsPerPage);
-
-  // Helper function to render collateral icon
-  const renderCollateralIcon = (icon?: string) => {
-    let bgColor = "bg-gray-500";
-
-    if (icon === "green") bgColor = "bg-green-500";
-    if (icon === "yellow") bgColor = "bg-yellow-500";
-    if (icon === "red") bgColor = "bg-red-500";
-
-    return <div className={`w-3 h-3 rounded-full ${bgColor} mr-2`}></div>;
-  };
-
   // Helper function to render cell content based on column ID
   const renderCellContent = (supply: SupplyPosition, columnId: string) => {
     switch (columnId) {
       case "user":
         return (
           <div className="flex items-center gap-2">
-            <img
+            <Image
               src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0ib3B0aW1pemVTcGVlZCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48cGF0aCBmaWxsPSJoc2woMTM2IDk4JSAzOSUpIiBkPSJNMCwwSDhWOEgweiIvPjxwYXRoIGZpbGw9ImhzbCgzNTEgNzklIDM4JSkiIGQ9Ik0xLDBoMXYxaC0xek02LDBoMXYxaC0xek0yLDBoMXYxaC0xek01LDBoMXYxaC0xek0zLDBoMXYxaC0xek00LDBoMXYxaC0xek0xLDJoMXYxaC0xek02LDJoMXYxaC0xek0xLDNoMXYxaC0xek02LDNoMXYxaC0xek0yLDNoMXYxaC0xek01LDNoMXYxaC0xek0zLDNoMXYxaC0xek00LDNoMXYxaC0xek0xLDRoMXYxaC0xek02LDRoMXYxaC0xek0zLDRoMXYxaC0xek00LDRoMXYxaC0xek0xLDVoMXYxaC0xek02LDVoMXYxaC0xek0yLDVoMXYxaC0xek01LDVoMXYxaC0xek0zLDZoMXYxaC0xek00LDZoMXYxaC0xek0xLDdoMXYxaC0xek02LDdoMXYxaC0xeiIvPjxwYXRoIGZpbGw9ImhzbCgyNDMgNTAlIDcyJSkiIGQ9Ik0yLDFoMXYxaC0xek01LDFoMXYxaC0xek0wLDJoMXYxaC0xek03LDJoMXYxaC0xek0yLDJoMXYxaC0xek01LDJoMXYxaC0xek0zLDVoMXYxaC0xek00LDVoMXYxaC0xek0xLDZoMXYxaC0xek02LDZoMXYxaC0xeiIvPjwvc3ZnPg=="
               className="w-[17px] h-[17px] rounded-full"
+              width={17}
+              height={17}
+              alt="user"
             />
             <div>{supply.user}</div>
             <div>
@@ -109,7 +88,7 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentVaults.map((allocation) => (
+              {supplyPositions.map((allocation) => (
                 <TableRow
                   key={allocation.id}
                   className="border-[#afafaf1a] hover:bg-[#202426]/50 h-[54px] text-[13px]"
