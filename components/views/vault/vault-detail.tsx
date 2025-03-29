@@ -134,10 +134,10 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
   return (
     <Dashboard>
-      <div className="lg:pl-[86px] lg:pr-[86px] lg:mt-9">
+      <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-40">
         {/* Vault Header */}
-        <div className="flex flex-col lg:flex-row gap-16 ">
-          <div className="flex flex-col lg:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0">
+        <div className="flex flex-col xl:flex-row gap-16 ">
+          <div className="flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0">
             <div className="h-[100px] w-[100px] rounded-full overflow-hidden bg-transparent p-[6.6px] flex items-center justify-center">
               {vault.icon ? (
                 <Image
@@ -152,10 +152,10 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               )}
             </div>
             <div className="flex gap-6 flex-col">
-              <h1 className="text-[38px] min-w-[400px] h-[44px] text-white text-center lg:text-left">
+              <h1 className="text-[38px] min-w-[400px] h-[44px] text-white text-center xl:text-left">
                 {vault.name}
               </h1>
-              <div className="flex items-center gap-4 mt-2 justify-center lg:justify-start">
+              <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
                 <div className="flex items-center gap-2">
                   <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
                     {vault.token.icon ? (
