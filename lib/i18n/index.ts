@@ -17,11 +17,11 @@ export type TranslationKeys = {
 };
 
 type Translations = {
-  'en': TranslationKeys;
-  'es': TranslationKeys;
-  'fr': TranslationKeys;
-  'de': TranslationKeys;
-  'ru': TranslationKeys;
+  en: TranslationKeys;
+  es: TranslationKeys;
+  fr: TranslationKeys;
+  de: TranslationKeys;
+  ru: TranslationKeys;
 };
 // Define the translations
 export const translations: Translations = {
@@ -38,12 +38,14 @@ export const translations: Translations = {
       termsOfUse: "Terms of Use",
       connectWallet: "Connect Wallet",
       searchVaults: "Search vaults...",
+      searchProperties: "Search for properties...",
       editProperties: "Edit properties",
       howDoesItWork: "How does it work?",
       depositInVault: "Deposit in a vault",
       totalDeposits: "Total Deposits",
       totalBorrow: "Total Borrow",
       projectsOnMorpho: "Projects building on Morpho",
+      visit: "Visit",
       launchApp: "Launch App",
       overview: "Overview",
       morphoIntegration: "Morpho integration",
@@ -59,18 +61,29 @@ export const translations: Translations = {
       marketsCreated: "Markets created",
       morphoVaults: "Morpho Vaults",
       averageAPYImprovement: "Average APY Improvement",
+      vaultInfo: "Vault Info",
+      vaultAllocationBreakdown: "Vault Allocation Breakdown",
+      vaultAllocationBreakdownNote:
+        "The table below shows a breakdown of the market exposures of the vault. For example, the Supply APY represents the amount of interest earned by the vault for supplying liquidity to the market.",
+      vaultReallocations: "Vault Reallocations",
+      userActivity: "User Activity",
+      supplyPositions: "Supply Positions",
     },
     table: {
       vaultName: "Vault Name",
       token: "Token",
       totalSupply: "Total Supply",
       netAPY: "Net APY",
-      supplyAPY: "Supply APY",
+      instantAPY: "Instant APY",
+      supplyAPY: "Vault APY",
       curator: "Curator",
       collateral: "Collateral",
       rewards: "Rewards",
       performanceFee: "Performance Fee",
       utilization: "Utilization",
+      vaultAddress: "Vault Address",
+      liqudity: "Liquidity",
+      guardianAddress: "Guardian Address",
     },
   },
   es: {
@@ -86,12 +99,14 @@ export const translations: Translations = {
       termsOfUse: "Términos de Uso",
       connectWallet: "Conectar Billetera",
       searchVaults: "Buscar bóvedas...",
+      searchProperties: "Buscar propiedades...",
       editProperties: "Editar propiedades",
       howDoesItWork: "¿Cómo funciona?",
       depositInVault: "Depositar en bóveda",
       totalDeposits: "Depósitos Totales",
       totalBorrow: "Préstamo Total",
       projectsOnMorpho: "Proyectos construyendo en Morpho",
+      visit: "Visitar",
       launchApp: "Iniciar App",
       overview: "Visión general",
       morphoIntegration: "Integración Morpho",
@@ -107,18 +122,29 @@ export const translations: Translations = {
       marketsCreated: "Mercados creados",
       morphoVaults: "Bóvedas Morpho",
       averageAPYImprovement: "Mejora Promedio de APY",
+      vaultInfo: "Información de Bóveda",
+      vaultAllocationBreakdown: "Desglose de Asignación de Bóveda",
+      vaultAllocationBreakdownNote:
+        "La tabla a continuación muestra un desglose de las exposiciones al mercado de la bóveda. Por ejemplo, el APY de Suministro representa la cantidad de interés ganado por la bóveda por suministrar liquidez al mercado.",
+      vaultReallocations: "Reasignaciones de Bóveda",
     },
     table: {
       vaultName: "Nombre de Bóveda",
       token: "Token",
       totalSupply: "Suministro Total",
       netAPY: "APY Neto",
-      supplyAPY: "APY de Suministro",
+      instantAPY: "APY Instantáneo",
+      supplyAPY: "APY de Bóveda",
       curator: "Curador",
       collateral: "Colateral",
       rewards: "Recompensas",
       performanceFee: "Comisión de Rendimiento",
       utilization: "Utilización",
+      vaultAddress: "Dirección de Bóveda",
+      liquidity: "Liquidez",
+      guardianAddress: "Dirección del Guardián",
+      supplyPositions: "Posiciones de Suministro",
+      userActivity: "Actividad del Usuario",
     },
   },
   fr: {
@@ -134,12 +160,14 @@ export const translations: Translations = {
       termsOfUse: "Conditions d'Utilisation",
       connectWallet: "Connecter Portefeuille",
       searchVaults: "Rechercher coffres...",
+      searchProperties: "Rechercher des propriétés...",
       editProperties: "Modifier propriétés",
       howDoesItWork: "Comment ça marche?",
       depositInVault: "Déposer dans un coffre",
       totalDeposits: "Dépôts Totaux",
       totalBorrow: "Emprunt Total",
       projectsOnMorpho: "Projets construisant sur Morpho",
+      visit: "Visiter",
       launchApp: "Lancer App",
       overview: "Aperçu",
       morphoIntegration: "Intégration Morpho",
@@ -155,18 +183,29 @@ export const translations: Translations = {
       marketsCreated: "Marchés créés",
       morphoVaults: "Coffres Morpho",
       averageAPYImprovement: "Amélioration Moyenne d'APY",
+      vaultInfo: "Informations du Coffre",
+      vaultAllocationBreakdown: "Répartition de l'Allocation du Coffre",
+      vaultAllocationBreakdownNote:
+        "Le tableau ci-dessous montre une répartition des expositions du marché du coffre. Par exemple, l'APY de Fourniture représente le montant des intérêts gagnés par le coffre pour fournir de la liquidité au marché.",
+      vaultReallocations: "Réaffectations du Coffre",
+      supplyPositions: "Positions de Fourniture",
+      userActivity: "Activité de l'Utilisateur",
     },
     table: {
       vaultName: "Nom du Coffre",
       token: "Jeton",
       totalSupply: "Offre Totale",
       netAPY: "APY Net",
-      supplyAPY: "APY d'Offre",
+      instantAPY: "APY Instantané",
+      supplyAPY: "APY du Coffre",
       curator: "Curateur",
       collateral: "Collatéral",
       rewards: "Récompenses",
       performanceFee: "Frais de Performance",
       utilization: "Utilisation",
+      vaultAddress: "Adresse du Coffre",
+      liquidity: "Liquidité",
+      guardianAddress: "Adresse du Gardien",
     },
   },
   de: {
@@ -182,12 +221,14 @@ export const translations: Translations = {
       termsOfUse: "Nutzungsbedingungen",
       connectWallet: "Wallet verbinden",
       searchVaults: "Tresore suchen...",
+      searchProperties: "Eigenschaften suchen...",
       editProperties: "Eigenschaften bearbeiten",
       howDoesItWork: "Wie funktioniert es?",
       depositInVault: "In Tresor einzahlen",
       totalDeposits: "Gesamteinlagen",
       totalBorrow: "Gesamtausleihe",
       projectsOnMorpho: "Projekte auf Morpho",
+      visit: "Besuchen",
       launchApp: "App starten",
       overview: "Überblick",
       morphoIntegration: "Morpho Integration",
@@ -203,18 +244,29 @@ export const translations: Translations = {
       marketsCreated: "Erstellte Märkte",
       morphoVaults: "Morpho Tresore",
       averageAPYImprovement: "Durchschnittliche APY-Verbesserung",
+      vaultInfo: "Tresor-Informationen",
+      vaultAllocationBreakdown: "Aufschlüsselung der Tresorzuteilung",
+      vaultAllocationBreakdownNote:
+        "Die folgende Tabelle zeigt eine Aufschlüsselung der Marktexpositionen des Tresors. Zum Beispiel stellt das Supply-APY den Betrag der Zinsen dar, die der Tresor durch die Bereitstellung von Liquidität für den Markt verdient.",
+      vaultReallocations: "Tresor-Neuverteilungen",
+      supplyPositions: "Versorgungspositionen",
+      userActivity: "Nutzeraktivität",
     },
     table: {
       vaultName: "Tresorname",
       token: "Token",
       totalSupply: "Gesamtangebot",
       netAPY: "Netto-APY",
-      supplyAPY: "Angebots-APY",
+      instantAPY: "Sofort-APY",
+      supplyAPY: "Tresor-APY",
       curator: "Kurator",
       collateral: "Sicherheit",
       rewards: "Belohnungen",
       performanceFee: "Leistungsgebühr",
       utilization: "Auslastung",
+      vaultAddress: "Tresor-Adresse",
+      liquidity: "Liquidität",
+      guardianAddress: "Wächter-Adresse",
     },
   },
   ru: {
@@ -230,12 +282,14 @@ export const translations: Translations = {
       termsOfUse: "Условия использования",
       connectWallet: "Подключить кошелек",
       searchVaults: "Поиск хранилищ...",
+      searchProperties: "Поиск свойств...",
       editProperties: "Редактировать свойства",
       howDoesItWork: "Как это работает?",
       depositInVault: "Депозит в хранилище",
       totalDeposits: "Всего депозитов",
       totalBorrow: "Всего заимствований",
       projectsOnMorpho: "Проекты на Morpho",
+      visit: "Посетить",
       launchApp: "Запустить приложение",
       overview: "Обзор",
       morphoIntegration: "Интеграция Morpho",
@@ -251,27 +305,35 @@ export const translations: Translations = {
       marketsCreated: "Созданные рынки",
       morphoVaults: "Хранилища Morpho",
       averageAPYImprovement: "Среднее улучшение APY",
+      vaultInfo: "Информация о хранилище",
+      vaultAllocationBreakdown: "Разбивка распределения хранилища",
+      vaultAllocationBreakdownNote:
+        "Таблица ниже показывает распределение рыночных рисков хранилища. Например, APY от предоставления показывает сумму процентов, полученную хранилищем за предоставление ликвидности на рынок.",
+      vaultReallocations: "Перераспределения хранилища",
+      supplyPositions: "Позиции по поставке",
+      userActivity: "Деятельность пользователя",
     },
     table: {
       vaultName: "Название хранилища",
       token: "Токен",
       totalSupply: "Общее предложение",
       netAPY: "Чистый APY",
-      supplyAPY: "APY предложения",
+      instantAPY: "Мгновенный APY",
+      supplyAPY: "APY хранилища",
       curator: "Куратор",
       collateral: "Обеспечение",
       rewards: "Награды",
       performanceFee: "Комиссия за производительность",
       utilization: "Использование",
+      vaultAddress: "Адрес хранилища",
+      liquidity: "Ликвидность",
+      guardianAddress: "Адрес Стража",
     },
   },
 };
 
 // Get translation for a key
-export function getTranslation(
-  language: string,
-  key: string
-): string {
+export function getTranslation(language: string, key: string): string {
   const keys = key.split(".");
   let result: unknown = translations[language as keyof Translations];
 

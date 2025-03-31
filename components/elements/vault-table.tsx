@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, BarChart2, Info } from "lucide-react";
+import { Copy, BarChart2, Info, ArrowUp, ArrowDown } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,18 +18,34 @@ import {
 } from "@/components/ui/tooltip";
 import InstantAPY from "../icons/instantApy";
 import Image from "next/image";
-import { VaultInfo, vaults } from "@/lib/data";
+import { VaultInfo } from "@/lib/data";
 import CustomTooltip from "./custom-tooltip";
 import { useState } from "react";
 import RightArrow from "../icons/right-arrow";
 import LeftArrow from "../icons/left-arrow";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/language-context";
 
 interface VaultTableProps {
-  visibleColumns: { id: string; title: string; visible: boolean }[];
+  visibleColumns: {
+    id: string;
+    title: string;
+    visible: boolean;
+  }[];
+  vaults: VaultInfo[];
+  onSort?: (columnId: string, direction: "asc" | "desc") => void;
+  sortColumn?: string;
+  sortDirection?: "asc" | "desc";
 }
 
-export function VaultTable({ visibleColumns }: VaultTableProps) {
+export function VaultTable({
+  visibleColumns,
+  vaults,
+  onSort,
+  sortColumn,
+  sortDirection,
+}: VaultTableProps) {
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const router = useRouter();
@@ -38,9 +54,36 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
 
+  // Function to handle column header click for sorting
+  const handleSort = (columnId: string) => {
+    if (onSort) {
+      // If already sorting by this column, toggle direction
+      if (sortColumn === columnId) {
+        onSort(columnId, sortDirection === "asc" ? "desc" : "asc");
+      } else {
+        // Default to ascending for new sort column
+        onSort(columnId, "asc");
+      }
+    }
+  };
+
   const assetDetail = (vault: VaultInfo) => {
     router.push("./vault/" + vault?.id);
   };
+
+  // Determine if a column is sortable
+  const isSortable = (columnId: string) => {
+    // Add all sortable columns here
+    return [
+      "vaultName",
+      "totalSupply",
+      "supplyAPY",
+      "curator",
+      "rewards",
+      "performanceFee",
+    ].includes(columnId);
+  };
+
   return (
     <TooltipProvider>
       <div className="">
@@ -52,9 +95,39 @@ export function VaultTable({ visibleColumns }: VaultTableProps) {
                 .map((col) => (
                   <TableHead
                     key={col.id}
-                    className="text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                    className={
+                      isSortable(col.id)
+                        ? "cursor-pointer select-none text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                        : "text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                    }
+                    onClick={
+                      isSortable(col.id) ? () => handleSort(col.id) : undefined
+                    }
                   >
-                    {col.title}
+                    <div className="flex items-center gap-1">
+                      {
+                        <span>
+                          {col.id === "instantApy"
+                            ? t("table.netAPY")
+                            : col.id === "vaultApy"
+                            ? t("table.supplyAPY")
+                            : t("table." + col.id)}
+                        </span>
+                      }
+                      {isSortable(col.id) && (
+                        <span className="ml-1 h-3 w-3 hover:flex">
+                          {sortColumn === col.id ? (
+                            sortDirection === "asc" ? (
+                              <ArrowUp className="h-3 w-3 text-zinc-400" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3 text-zinc-400 opacity-30" />
+                            )
+                          ) : (
+                            <ArrowDown className="h-3 w-3 text-zinc-400 opacity-30 " />
+                          )}
+                        </span>
+                      )}
+                    </div>
                   </TableHead>
                 ))}
             </TableRow>

@@ -9,12 +9,14 @@ import { CustomButton } from "@/components/ui/custom-button";
 import URL from "@/components/icons/url";
 import Docs from "@/components/icons/docs";
 import Social from "@/components/icons/social";
+import { useLanguage } from "@/contexts/language-context";
 
 interface ProjectDetailPageProps {
   project: Project;
 }
 
 export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
+  const { t } = useLanguage();
   return (
     <Dashboard>
       <div className="flex gap-15 flex-col">
@@ -33,16 +35,18 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                 alt={project.name}
               />
             </div>
-            <p className="text-[20px] md:text-[38px] font-normal text-white h-[24px] md:h-[44px]">
+            <p className="text-[20px] md:text-[38px] font-normal text-white h-[24px] md:h-full">
               {project.name}
             </p>
           </div>
 
           <CustomButton
             variant="default"
-            className="bg-[#2470ff] hover:bg-blue-700 h-[26px] w-[95px] flex items-center rounded-[4px] pl-[8px] pt-[6px]"
+            className="hidden md:flex bg-[#2470ff] hover:bg-blue-700 h-[26px] w-[95px] items-center rounded-[4px] pl-[8px] pt-[6px]"
           >
-            <div className="text-[11px]">Launch App</div>{" "}
+            <div className="text-[11px] whitespace-nowrap">
+              {t("common.launchApp")}
+            </div>{" "}
             <ArrowRight className="ml-2 h-3 w-3 rotate-315" />
           </CustomButton>
         </div>
@@ -56,6 +60,8 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                 src="/project/aragon1.png"
                 alt={`${project.name} interface`}
                 className="w-full h-auto"
+                width={500}
+                height={220}
               />
             </div>
 
@@ -65,6 +71,8 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                   src="/project/aragon1.png"
                   alt={`${project.name} interface detail`}
                   className="w-[170px] h-[108px] cursor-pointer"
+                  width={170}
+                  height={108}
                 />
               </div>
               <div className="bg-transparent rounded-lg overflow-hidden">
@@ -72,6 +80,8 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
                   src="/project/aragon2.png"
                   alt={`${project.name} interface detail`}
                   className="w-[170px] h-[108px] cursor-pointer"
+                  width={170}
+                  height={108}
                 />
               </div>
             </div>
@@ -85,21 +95,22 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
 
             <div className="space-y-4">
               <h2 className="text-[16px] font-semibold text-[#fffffff2]">
-                Overview
+                {t("common.overview")}
               </h2>
               <p className="text-[#ffffff80] text-[14px]">
                 {project.name} was founded in 2016 with the belief that the fate
                 of humanity will be decided at the frontier of technological
                 innovation. {project.name} launched the first DAO Framework in
-                2017 which secures over $40 billion in TVL. {project.name}&lsquo;s
-                tech stack allows anyone to launch a DAO, enabling organizations
-                to securely govern their protocols and assets onchain.
+                2017 which secures over $40 billion in TVL. {project.name}
+                &lsquo;s tech stack allows anyone to launch a DAO, enabling
+                organizations to securely govern their protocols and assets
+                onchain.
               </p>
             </div>
 
             <div className="space-y-4">
               <h2 className="text-[16px] font-semibold text-[#fffffff2]">
-                Morpho integration
+                {t("common.morphoIntegration")}
               </h2>
               <p className="text-muted-foreground text-[14px]">
                 {project.name} is integrated with Morpho on multiple levels.
@@ -120,7 +131,7 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="bg-[#202426] rounded-lg p-5">
             <h3 className="text-[13px] font-medium text-muted-foreground mb-3 flex items-center gap-2">
-              <URL className="h-3 w-3 text-blue-700" /> URL
+              <URL className="h-3 w-3 text-blue-700" /> {t("common.url")}
             </h3>
             <Link
               href={`https://app.${project.id}.org`}
@@ -134,7 +145,8 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
 
           <div className="bg-[#202426] rounded-lg p-5">
             <h3 className="text-[13px] font-medium text-muted-foreground mb-3 flex items-center gap-2">
-              <Docs className="h-3 w-3 text-blue-700" /> Integration Docs
+              <Docs className="h-3 w-3 text-blue-700" />{" "}
+              {t("common.integrationDocs")}
             </h3>
             <Link href="#" className="text-white text-[13px] flex items-center">
               Docs <ArrowRight className="ml-1 h-3 w-3 rotate-315" />
@@ -143,7 +155,7 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
 
           <div className="bg-[#202426] rounded-lg p-5">
             <h3 className="text-[13px] font-medium text-muted-foreground mb-3 flex items-center gap-2">
-              <Social className="h-3 w-3 text-blue-700" /> Social
+              <Social className="h-3 w-3 text-blue-700" /> {t("common.social")}
             </h3>
             <div className="flex gap-4">
               <Link

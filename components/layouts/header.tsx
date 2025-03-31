@@ -8,6 +8,7 @@ import { NetworkSwitcher } from "../elements/network-switcher";
 import { CustomButton } from "../ui/custom-button";
 import Navigation from "../icons/navigation";
 import { LanguageSelector } from "../elements/language-selector";
+import { useLanguage } from "@/contexts/language-context";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -15,6 +16,7 @@ interface HeaderProps {
 }
 
 export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+  const { t } = useLanguage()
   const pathname = usePathname();
 
   // Generate breadcrumb items
@@ -32,7 +34,7 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   });
 
   return (
-    <header className="flex h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-[#15181a] px-[11px] md:px-[40px]">
+    <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-[#15181a] px-[11px] md:px-[40px]">
       <Button
         variant="ghost"
         size="icon"
@@ -75,7 +77,7 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
         <NetworkSwitcher />
 
         <CustomButton className="bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer">
-          Connect Wallet
+          {t("common.connectWallet")}
         </CustomButton>
       </div>
     </header>

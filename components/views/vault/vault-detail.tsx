@@ -43,12 +43,14 @@ import { VaultSupply } from "@/components/elements/vault-supplyposition";
 import { TransactionTypeSelector } from "@/components/elements/transaction-types";
 import { VaultActivity } from "@/components/elements/vault-activity";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/language-context";
+import { VaultLiteratureSection } from "./vault-literature";
 interface VaultDetailPageProps {
   vault: Vault;
 }
 
 export function VaultDetailPage({ vault }: VaultDetailPageProps) {
-  //   const { t } = useLanguage();
+  const { t } = useLanguage();
   const isMobile = useMediaQuery({ maxWidth: 1280 });
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -134,16 +136,16 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
   return (
     <Dashboard>
-      <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-40">
+      <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
         {/* Vault Header */}
         <div className="flex flex-col xl:flex-row gap-16 ">
-          <div className="flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0">
+          <div className="flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-[50%]">
             <div className="h-[100px] w-[100px] rounded-full overflow-hidden bg-transparent p-[6.6px] flex items-center justify-center">
               {vault.icon ? (
                 <Image
                   src={vault.icon || "/placeholder.svg"}
                   alt={vault.name}
-                  className="object-cover w-full h-full"
+                  className="object-cover w-full h-full rounded-full"
                   width={87}
                   height={87}
                 />
@@ -152,7 +154,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               )}
             </div>
             <div className="flex gap-6 flex-col">
-              <h1 className="text-[38px] min-w-[400px] h-[44px] text-white text-center xl:text-left">
+              <h1 className="text-[38px] min-w-[50%] h-[44px] text-white text-center xl:text-left">
                 {vault.name}
               </h1>
               <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
@@ -216,37 +218,37 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         {/* Vault Info */}
         <div className="pt-20">
           <h2 className="lg:text-[20px] text-[16px] mb-4 text-white font-custom">
-            Vault Info
+            {t("common.vaultInfo")}
           </h2>
           {isMobile ? (
             <div className="flex flex-col rounded-[8px] bg-[#202426] px-[10px]">
-              <InfoMobileCard title="Curator">
+              <InfoMobileCard title={t("table.curator")}>
                 <div className="flex items-center flex-row">
                   <CuratorInfo curator={vault.curator} />
                 </div>
               </InfoMobileCard>
 
-              <InfoMobileCard title="Token">
+              <InfoMobileCard title={t("table.token")}>
                 <TokenInfo token={vault.token} />
               </InfoMobileCard>
 
-              <InfoMobileCard title="Total Supply">
+              <InfoMobileCard title={t("table.totalSupply")}>
                 <TokenValue token={vault.token} value={vault.totalSupply} />
               </InfoMobileCard>
 
-              <InfoMobileCard title="Instant APY">
+              <InfoMobileCard title={t("table.instantAPY")}>
                 <div className="text-sm text-white">{vault.instantApy}</div>
               </InfoMobileCard>
 
-              <InfoMobileCard title="Performance Fee">
+              <InfoMobileCard title={t("table.performanceFee")}>
                 <div className="text-sm text-white">{vault.performanceFee}</div>
               </InfoMobileCard>
 
-              <InfoMobileCard title="Vault Address">
+              <InfoMobileCard title={t("table.vaultAddress")}>
                 <AddressInfo address={vault.vaultAddress || ""} />
               </InfoMobileCard>
 
-              <InfoMobileCard title="Liquidity">
+              <InfoMobileCard title={t("table.liquidity")}>
                 <TokenValue token={vault.token} value={vault.liquidity} />
               </InfoMobileCard>
 
@@ -257,7 +259,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
               {/* Curator */}
-              <InfoCard title="Curator">
+              <InfoCard title={t("table.curator")}>
                 <div className="flex items-center gap-2">
                   <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
                     {vault.curator.icon ? (
@@ -290,7 +292,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               </InfoCard>
 
               {/* Token */}
-              <InfoCard title="Token">
+              <InfoCard title={t("table.token")}>
                 <div className="flex items-center gap-2">
                   <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
                     {vault.token.icon ? (
@@ -329,7 +331,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               </InfoCard>
 
               {/* Total Supply */}
-              <InfoCard title="Total Supply">
+              <InfoCard title={t("table.totalSupply")}>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
@@ -358,7 +360,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               </InfoCard>
 
               {/* Instant APY */}
-              <InfoCard title="Instant APY">
+              <InfoCard title={t("table.instantAPY")}>
                 <div className="text-[15px] text-white font-normal">
                   {vault.instantApy}
                 </div>
@@ -366,7 +368,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
               {/* Performance Fee */}
               <InfoCard
-                title="Performance Fee"
+                title={t("table.performanceFee")}
                 tooltip="The fee charged on earnings by the vault curator"
               >
                 <div className="text-[15px] text-white font-normal">
@@ -375,7 +377,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               </InfoCard>
 
               {/* Vault Address */}
-              <InfoCard title="Vault Address">
+              <InfoCard title={t("table.vaultAddress")}>
                 <div className="flex items-center gap-2">
                   <span className="text-white text-[15px] font-normal">
                     {vault.vaultAddress}
@@ -393,9 +395,9 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                 </div>
               </InfoCard>
 
-              {/* Liquidity */}
+              {/* liquidity */}
               <InfoCard
-                title="Liquidity"
+                title={t("table.instantAPY")}
                 tooltip="The amount of tokens available for borrowing"
               >
                 <div className="flex items-center gap-2">
@@ -427,7 +429,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
               {/* Guardian Address */}
               <InfoCard
-                title="Guardian Address"
+                title={t("table.guardianAddress")}
                 tooltip="The blockchain address of the vault guardian"
               >
                 <div className="flex items-center gap-2">
@@ -448,6 +450,14 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               </InfoCard>
             </div>
           )}
+        </div>
+
+        {/* Vault Literature */}
+        <div className="pt-20">
+          <h2 className="lg:text-[20px] text-[16px] mb-4 text-white font-custom">
+            {t("common.vaultInfo")}
+          </h2>
+          <VaultLiteratureSection literature={vault.documents} />
         </div>
 
         {/* Documents Section */}
@@ -517,7 +527,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         <div className="pt-16">
           <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
-              <div>Vault Allocation Breakdown</div>
+              <div>{t("common.vaultAllocationBreakdown")}</div>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -531,10 +541,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs">
-                      The table below shows a breakdown of the market exposures
-                      of the vault. For example, the Supply APY represents the
-                      amount of interest earned by the vault for supplying
-                      liquidity to the market.
+                      {t("common.vaultAllocationBreakdownNote")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -547,7 +554,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   onClick={() => setSearchQuery("")}
                   className="bg-[#303436] border-zinc-700 hover:bg-zinc-800 text-white text-[11px] rounded-[4px] h-[26px] flex items-center"
                 >
-                  Edit properties
+                  {t("common.editProperties")}
                 </CustomButton>
               </PopoverTrigger>
               <PopoverContent
@@ -605,7 +612,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         <div className="pt-16">
           <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
-              <div>Vault Reallocations</div>
+              <div>{t("common.vaultReallocations")}</div>
             </div>
             <Popover>
               <PopoverTrigger asChild>
@@ -614,7 +621,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   onClick={() => setSearchQuery("")}
                   className="bg-[#303436] border-zinc-700 hover:bg-zinc-800 text-white text-[11px] rounded-[4px] h-[26px] flex items-center"
                 >
-                  Edit properties
+                  {t("common.editProperties")}
                 </CustomButton>
               </PopoverTrigger>
               <PopoverContent
@@ -675,7 +682,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         <div className="pt-16">
           <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
-              <div>Supply Positions</div>
+              <div>{t("common.supplyPositions")}</div>
             </div>
           </h1>
           <VaultSupply supplyPositions={supplyPositions} />
@@ -684,7 +691,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         <div className="pt-16">
           <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
-              <div>User Activity</div>
+              <div>{t("common.userActivity")}</div>
             </div>
             <div className="flex items-center gap-4">
               <TransactionTypeSelector />
@@ -695,7 +702,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     onClick={() => setSearchQuery("")}
                     className="bg-[#303436] border-zinc-700 hover:bg-zinc-800 text-white text-[11px] rounded-[4px] h-[26px] flex items-center"
                   >
-                    Edit properties
+                    {t("common.editProperties")}
                   </CustomButton>
                 </PopoverTrigger>
                 <PopoverContent

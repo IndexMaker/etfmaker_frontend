@@ -13,19 +13,23 @@ import Deposit from "@/components/icons/deposit";
 import Markets from "@/components/icons/market-created";
 import Morpho from "@/components/icons/morpho";
 import APY from "@/components/icons/apy";
+import { useLanguage } from "@/contexts/language-context";
 
 export function AnalyticsPage() {
+  const { t } = useLanguage();
   return (
     <Dashboard>
       <div className="">
         <div className="text-[38px] h-[44px] font-normal tracking-tight text-white flex items-center">
-          Analytics
+          {t("common.analytics")}
         </div>
 
         {/* Total Morpho Section */}
         <div className="space-y-4 pt-16">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
-            <h2 className="text-[16px] font-normal text-white">Total Morpho</h2>
+            <h2 className="text-[16px] font-normal text-white">
+              {t("common.totalMorpho")}
+            </h2>
             <div className="flex gap-2">
               <AnalyticsLink
                 name="DefiLlama"
@@ -47,17 +51,17 @@ export function AnalyticsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 md:gap-4 gap-3">
             <MetricCard
-              title="Total Deposits"
+              title={t("common.totalDeposits")}
               value="$4.87B"
               icon={<Deposit className="h-3 w-3 text-blue-400" />}
             />
             <MetricCard
-              title="Total Borrowed"
+              title={t("common.totalBorrow")}
               value="$1.80B"
               icon={<Borrow className="h-3 w-3 text-blue-400" />}
             />
             <MetricCard
-              title="TVL"
+              title={t("common.tvl")}
               value="$3.06B"
               icon={<TVL className="h-3 w-3 text-blue-400" />}
             />
@@ -68,7 +72,7 @@ export function AnalyticsPage() {
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-white">
-              Morpho - Mainnet
+              {t("common.morphoMainnet")}
             </h2>
             <div className="flex gap-2 flex-wrap">
               <AnalyticsLink
@@ -91,27 +95,27 @@ export function AnalyticsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <SMMetricCard
-              title="Total Deposits"
+              title={t("common.totalDeposits")}
               value="$4.01B"
               icon={<Deposit className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Total Borrowed"
+              title={t("common.totalBorrow")}
               value="$1.51B"
               icon={<Borrow className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="TVL"
+              title={t("common.tvl")}
               value="$2.50B"
               icon={<TVL className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Markets created"
+              title={t("common.marketsCreated")}
               value="463"
               icon={<Markets className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Morpho Vaults"
+              title={t("common.morphoVaults")}
               value="153"
               icon={<Morpho className="h-3 w-3 text-blue-400" />}
             />
@@ -122,33 +126,33 @@ export function AnalyticsPage() {
         <div className="space-y-4 pt-12">
           <div className="flex items-center justify-between">
             <h2 className="text-[16px] font-normal text-white">
-              Morpho - Base
+              {t("common.morphoBase")}
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <SMMetricCard
-              title="Total Deposits"
+              title={t("common.totalDeposits")}
               value="$794.46M"
               icon={<Deposit className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Total Borrowed"
+              title={t("common.totalBorrow")}
               value="$270.75M"
               icon={<Borrow className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="TVL"
+              title={t("common.tvl")}
               value="$523.70M"
               icon={<TVL className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Markets created"
+              title={t("common.marketsCreated")}
               value="254"
               icon={<Markets className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Morpho Vaults"
+              title={t("common.morphoVaults")}
               value="145"
               icon={<Morpho className="h-3 w-3 text-blue-400" />}
             />
@@ -159,11 +163,11 @@ export function AnalyticsPage() {
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-white">
-              Morpho Optimizer
+              {t("common.morphoOptimizer")}
             </h2>
             <div className="flex gap-2 flex-wrap">
               <AnalyticsLink
-                name="Morpho Optimizers"
+                name={"Morpho Optimizers"}
                 icon="morpho"
                 url="https://optimizers.morpho.org/"
               />
@@ -182,22 +186,22 @@ export function AnalyticsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <SMMetricCard
-              title="Total Deposits"
+              title={t("common.totalDeposits")}
               value="$192.13M"
               icon={<Deposit className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Total Borrowed"
+              title={t("common.totalBorrow")}
               value="$33.59M"
               icon={<Borrow className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="TVL"
+              title={t("common.tvl")}
               value="$158.54M"
               icon={<TVL className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title="Average APY Improvement"
+              title={t("common.averageAPYImprovement")}
               value="0.08%"
               icon={<APY className="h-3 w-3 text-blue-400" />}
             />

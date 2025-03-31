@@ -117,29 +117,31 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 @font-face {
-  font-family: 'FK Grotesk';
-  src: url('/fonts/FKGroteskNeueTrial-Regular-BF6576818c3af74.otf') format('opentype');
+  font-family: "FK Grotesk";
+  src: url("/fonts/FKGroteskNeueTrial-Regular-BF6576818c3af74.otf")
+    format("opentype");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'FK Grotesk';
-  src: url('/fonts/FKGroteskNeueTrial-Bold-BF6576818bd3700.otf') format('opentype');
+  font-family: "FK Grotesk";
+  src: url("/fonts/FKGroteskNeueTrial-Bold-BF6576818bd3700.otf")
+    format("opentype");
   font-weight: bold;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Regular.otf') format('opentype');
+  font-family: "Inter";
+  src: url("/fonts/Inter-Regular.otf") format("opentype");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Bold.otf') format('opentype');
+  font-family: "Inter";
+  src: url("/fonts/Inter-Bold.otf") format("opentype");
   font-weight: bold;
   font-style: normal;
 }
@@ -153,12 +155,31 @@
   html {
     overflow: hidden;
   }
-  body, html {
+  body,
+  html {
     /* font-family: "FK Grotesk", sans-serif; */
     font-family: Inter, sans-serif;
   }
 
   .font-custom {
     font-family: FK Grotesk, sans-serif;
+  }
+}
+@media (min-width: 1920px) {
+  .custom-3xl-padding {
+    padding-left: 200px;
+    padding-right: 200px;
+  }
+}
+/* 
+@media (width >= 1920px) {
+  .custom-3xl-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+} */
+
+@media (width >= 270px) {
+  .custom-3xl-grid {
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   }
 }

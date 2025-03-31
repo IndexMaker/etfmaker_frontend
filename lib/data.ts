@@ -51,7 +51,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: '3',
+    id: "3",
     name: "Steakhouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -67,7 +67,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: '4',
+    id: "4",
     name: "Smokehouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -83,7 +83,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: '5',
+    id: "5",
     name: "Steakhouse RUSD",
     icon: "🟠",
     token: "rUSD",
@@ -99,7 +99,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: '6',
+    id: "6",
     name: "Gauntlet USDC Core",
     icon: "🔵",
     token: "USDC",
@@ -115,7 +115,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: '7',
+    id: "7",
     name: "Hakutora USDC",
     icon: "🔵",
     token: "USDC",
@@ -131,7 +131,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "0%",
   },
   {
-    id: '8',
+    id: "8",
     name: "Gauntlet WETH Prime",
     icon: "🟣",
     token: "WETH",
@@ -147,7 +147,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: '9',
+    id: "9",
     name: "Steakhouse USDT",
     icon: "🟢",
     token: "USDT",
@@ -163,7 +163,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: '10',
+    id: "10",
     name: "Gauntlet LBTC Core",
     icon: "🟡",
     token: "LBTC",
@@ -212,7 +212,7 @@ export const mockup_vaults: Vault[] = [
     documents: [
       {
         id: "whitepaper",
-        name: "Whitepaper",
+        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
         url: "#",
         description: "Technical details about the Spark DAI vault",
       },
@@ -229,7 +229,7 @@ export const mockup_vaults: Vault[] = [
     name: "MEV Capital Usual USDC",
     description:
       "MEV Capital's USDC vault optimizes yield through strategic market positioning and MEV capture techniques.",
-    icon: "https://cdn.morpho.org/assets/logos/usual.svg",
+    icon: "https://cdn.morpho.org/v2/assets/images/usual.svg",
     token: {
       symbol: "USDC",
       icon: "https://cdn.morpho.org/assets/logos/usdc.svg",
@@ -237,7 +237,7 @@ export const mockup_vaults: Vault[] = [
     },
     curator: {
       name: "MEV Capital",
-      icon: "https://cdn.morpho.org/assets/logos/mevcapital.png",
+      icon: "https://cdn.morpho.org/v2/assets/images/mevcapital.png",
       url: "https://mev.capital",
     },
     totalSupply: {

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CustomButton } from "../ui/custom-button";
+import { useLanguage } from "@/contexts/language-context";
 
 interface ColumnVisibilityPopoverProps {
   columns: { id: string; title: string; visible: boolean }[];
@@ -21,6 +22,7 @@ export function ColumnVisibilityPopover({
   columns,
   onColumnVisibilityChange,
 }: ColumnVisibilityPopoverProps) {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredColumns = columns.filter((column) =>
@@ -34,7 +36,7 @@ export function ColumnVisibilityPopover({
           variant="secondary"
           className="text-xs py-[5px] px-[8px] rounded-[2px]"
         >
-          Edit properties
+          {t("common.editProperties")}
         </CustomButton>
       </PopoverTrigger>
       <PopoverContent
@@ -47,7 +49,7 @@ export function ColumnVisibilityPopover({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search for properties"
+              placeholder={t("common.searchProperties")}
               className="pl-8 py-[10px] !shadow-none bg-[#202426] border-zinc-700 text-white"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -61,7 +63,15 @@ export function ColumnVisibilityPopover({
                 key={column.id}
                 className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-[#afafaf1a] rounded-sm"
               >
-                <span className="text-[12px]">{column.title}</span>
+                <span className="text-[12px]">
+                  <span>
+                    {column.id === "instantApy"
+                      ? t("table.netAPY")
+                      : column.id === "vaultApy"
+                      ? t("table.supplyAPY")
+                      : t("table." + column.id)}
+                  </span>
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"

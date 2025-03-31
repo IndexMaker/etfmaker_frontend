@@ -4,11 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Sun,
-  TrendingUp,
-  X,
-} from "lucide-react";
+import { Sun, TrendingUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -20,12 +16,14 @@ import MorphoDoc from "../icons/morphoDoc";
 import Feedback from "../icons/feedback";
 import TOS from "../icons/tos";
 import Blockchain from "../icons/blockchain";
+import { useLanguage } from "@/contexts/language-context";
 interface SidebarProps {
   open: boolean;
   setOpen: (open: boolean) => void;
 }
 
 export function Sidebar({ open, setOpen }: SidebarProps) {
+  const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   // Function to check if a route is active
@@ -69,7 +67,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed text-xs font-bold inset-y-0 left-0 z-50 flex flex-col bg-[#202426] transition-all duration-300 ease-in-out lg:relative lg:z-0",
+          "fixed text-xs font-bold inset-y-0 left-0 z-50 flex flex-col bg-[#202426]  lg:relative lg:z-0",
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           collapsed ? "w-[52px] px-[10px]" : "w-[250px]"
         )}
@@ -128,7 +126,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               icon={TrendingUp}
               collapsed={collapsed}
             >
-              Earn
+              {t("common.earn")}
             </NavItem>
             <NavItem
               href="/ecosystem"
@@ -138,7 +136,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               collapsed={collapsed}
               iconClassName={"p-[1px]"}
             >
-              Ecosystem
+              {t("common.ecosystem")}
             </NavItem>
           </nav>
 
@@ -157,7 +155,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Analytics
+                {t("common.analytics")}
               </NavItem>
               <NavItem
                 href="https://app.morpho.org/"
@@ -167,7 +165,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Morpho App V2
+                {t("common.morphoAppV2")}
               </NavItem>
               <NavItem
                 href="https://delegate.morpho.org/"
@@ -177,7 +175,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Delegate
+                {t("common.delegate")}
               </NavItem>
               <NavItem
                 href="https://docs.morpho.org/"
@@ -187,7 +185,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Morpho Docs
+                {t("common.morphoDocs")}
               </NavItem>
               <NavItem
                 href="https://optimizers.morpho.org/"
@@ -197,7 +195,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Morpho Optimizers
+                {t("common.morphoOptimizers")}
               </NavItem>
               <NavItem
                 href="https://docs.google.com/forms/d/e/1FAIpQLSc3ZpfvlcBmMgCDfg6ahM6cKNm003bbns5Ao6QfXJNfcfpATw/viewform?embedded=true"
@@ -207,7 +205,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Feedback
+                {t("common.feedback")}
               </NavItem>
               <NavItem
                 href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf"
@@ -217,7 +215,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                Terms of Use
+                {t("common.termsOfUse")}
               </NavItem>
             </div>
           </div>
