@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Blockchain({ className = "" }) {
+export default function Blockchain({ className = "", color = '#D0CECE' }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -8,7 +8,7 @@ export default function Blockchain({ className = "" }) {
       y="0px"
       width="100"
       height="100"
-      fill={'#D0CECE'}
+      fill={color}
       viewBox="0 0 50 50"
       className={className}
     >

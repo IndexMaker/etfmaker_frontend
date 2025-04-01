@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { SupplyPosition } from "@/lib/data";
 import RightArrow from "../icons/right-arrow";
 import Image from "next/image";
+import { useLanguage } from "@/contexts/language-context";
 
 interface VaultSupplyProps {
   supplyPositions: SupplyPosition[];
@@ -23,6 +24,7 @@ const allColumns = [
   { id: "share", name: "Share", visible: true },
 ];
 export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
+  const { t } = useLanguage();
   // Helper function to render cell content based on column ID
   const renderCellContent = (supply: SupplyPosition, columnId: string) => {
     switch (columnId) {
@@ -70,19 +72,19 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
 
   return (
     <>
-      <Card className="bg-[#202426] border-none rounded-[8px] mt-4 py-0 rouneded-[8px]">
+      <Card className="bg-foreground border-none rounded-[8px] mt-4 py-0 rouneded-[8px]">
         <CardContent className="p-0 overflow-x-auto rouneded-[8px]">
           <Table className="rouneded-[16px]">
-            <TableHeader className="bg-[#202426]">
+            <TableHeader className="bg-foreground">
               <TableRow className="hover:bg-transparent border-[#afafaf1a] h-[44px]">
                 {allColumns.map((column) => (
                   <TableHead
                     key={column.id}
                     className={cn(
-                      "text-[#ffffffcc] text-[13px] pl-[20px] pr-[72px]"
+                      "text-secondary text-[13px] pl-[20px] pr-[72px]"
                     )}
                   >
-                    {column.name}
+                    {t("table." + column.id)}
                   </TableHead>
                 ))}
               </TableRow>
@@ -91,11 +93,11 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
               {supplyPositions.map((allocation) => (
                 <TableRow
                   key={allocation.id}
-                  className="border-[#afafaf1a] hover:bg-[#202426]/50 h-[54px] text-[13px]"
+                  className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
                 >
                   {allColumns.map((column, index) => (
                     <TableCell
-                      className="pl-[20px] text-[#fffffff2] pr-18"
+                      className="pl-[20px] text-card pr-18"
                       key={`${allocation.id}-${index}`}
                     >
                       {renderCellContent(allocation, column.id)}

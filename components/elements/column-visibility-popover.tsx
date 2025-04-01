@@ -34,14 +34,14 @@ export function ColumnVisibilityPopover({
       <PopoverTrigger asChild>
         <CustomButton
           variant="secondary"
-          className="text-xs py-[5px] px-[8px] rounded-[2px]"
+          className="text-[11px] py-[5px] px-[8px] rounded-[2px]"
         >
           {t("common.editProperties")}
         </CustomButton>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[300px] p-0 bg-[#202426] border-zinc-700 text-white"
-        align="start"
+        className="w-[300px] p-0 bg-foreground text-card"
+        align="end"
         sideOffset={5}
       >
         <div className="p-0 border-b border-zinc-700">
@@ -50,7 +50,7 @@ export function ColumnVisibilityPopover({
             <Input
               type="search"
               placeholder={t("common.searchProperties")}
-              className="pl-8 py-[10px] !shadow-none bg-[#202426] border-zinc-700 text-white"
+              className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -61,7 +61,7 @@ export function ColumnVisibilityPopover({
             {filteredColumns.map((column) => (
               <div
                 key={column.id}
-                className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-[#afafaf1a] rounded-sm"
+                className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
               >
                 <span className="text-[12px]">
                   <span>
@@ -78,12 +78,12 @@ export function ColumnVisibilityPopover({
                   onClick={() =>
                     onColumnVisibilityChange(column.id, !column.visible)
                   }
-                  className="hover:bg-transparent hover:text-white text-[#ffffffc2] h-8 w-8"
+                  className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                 >
                   {column.visible ? (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-card" />
                   ) : (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4 text-card" />
                   )}
                 </Button>
               </div>

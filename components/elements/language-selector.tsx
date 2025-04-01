@@ -27,7 +27,7 @@ export function LanguageSelector() {
         <Button
           variant="outline"
           size="sm"
-          className="bg-[#202426] border-zinc-700 h-[26px] rounded-[4px] hover:bg-none text-white"
+          className="bg-foreground h-[26px] rounded-[4px] text-secondary"
         >
           <Globe className="h-4 w-4 mr-2" />
           <span className="mr-1">{selectedLanguage.flag}</span>
@@ -37,7 +37,7 @@ export function LanguageSelector() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="bg-[#202426] border-zinc-700 text-white"
+        className="bg-background text-secondary"
       >
         {languages.map((lang) => (
           <DropdownMenuItem

@@ -27,18 +27,19 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
 
   const breadcrumbItems = pathSegments.map((segment, index) => {
     const path = `../${pathSegments.slice(0, index + 1).join("/")}`;
+    const _segment = t('common.' + segment)
     return {
-      name: segment.charAt(0).toUpperCase() + segment.slice(1), // Capitalize first letter
+      name: _segment.charAt(0).toUpperCase() + segment.slice(1), // Capitalize first letter
       href: path,
     };
   });
 
   return (
-    <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-[#15181a] px-[11px] md:px-[40px]">
+    <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-background px-[11px] lg:px-[40px]">
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden"
+        className="lg:hidden"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
         <Navigation className="h-6 w-6 text-white" />
@@ -52,14 +53,14 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
             {breadcrumbItems.map((item, index) => (
               <li key={item.href} className="flex items-center">
                 {index === breadcrumbItems.length - 1 ? (
-                  <span className="text-[#ffffff80] text-semibold text-[13px]">{item.name}</span>
+                  <span className="text-muted text-semibold text-[13px]">{item.name}</span>
                 ) : (
                   <Link
                     href={item.href}
-                    className="text-[#ffffff80] text-semibold hover:text-white text-[13px]"
+                    className="text-muted text-semibold hover:text-primary text-[13px]"
                   >
                     {item.name}
-                    <span className="mx-2 text-[#ffffff80] text-semibold text-[13px]"> / </span>
+                    <span className="mx-2 text-muted text-semibold text-[13px]"> / </span>
                   </Link>
                 )}
               </li>
@@ -68,7 +69,7 @@ export function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
         </nav>
       )}
 
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <Maximize2 className="h-6 w-6 text-primary" />
       </div>
 

@@ -14,7 +14,7 @@ const CustomTooltip = ({ children, content }: TooltipProps) => {
           <Tooltip.Content
             side="top"
             align="center"
-            className="z-50 bg-[#3a3a3a] text-white text-xs rounded-lg shadow-lg border border-[#afafaf1a]"
+            className="z-50 bg-foreground text-primary text-[11px] rounded-lg shadow-lg border border-accent"
           >
             {content}
             <Tooltip.Arrow className="fill-gray-900" />

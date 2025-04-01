@@ -44,12 +44,12 @@ export function NetworkSwitcher() {
           <span className="flex items-center">
             <span>{selectedNetwork.icon}</span>
           </span>
-          <ChevronDown className="h-4 w-4 opacity-50" />
+          <ChevronDown className="h-4 w-4 opacity-50 text-secondary" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[200px] bg-[#fafafa1a] border-none text-sm text-white"
+        className="w-[200px] bg-[#fafafa1a] border-none text-sm text-secondary"
       >
         {networks.map((network) => (
           <DropdownMenuItem

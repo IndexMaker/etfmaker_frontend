@@ -45,13 +45,14 @@ import { VaultActivity } from "@/components/elements/vault-activity";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { VaultLiteratureSection } from "./vault-literature";
+import { cn } from "@/lib/utils";
 interface VaultDetailPageProps {
   vault: Vault;
 }
 
 export function VaultDetailPage({ vault }: VaultDetailPageProps) {
   const { t } = useLanguage();
-  const isMobile = useMediaQuery({ maxWidth: 1280 });
+  const isMobile = useMediaQuery({ maxWidth: 1540 });
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
     toast(type + " copied to clipboard.", {
@@ -138,9 +139,21 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
     <Dashboard>
       <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
         {/* Vault Header */}
-        <div className="flex flex-col xl:flex-row gap-16 ">
-          <div className="flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-[50%]">
-            <div className="h-[100px] w-[100px] rounded-full overflow-hidden bg-transparent p-[6.6px] flex items-center justify-center">
+        <div
+          className={cn("flex gap-16 ", isMobile ? "flex-col" : "flex-row ")}
+        >
+          <div
+            className={cn(
+              "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full overflow-ellipsis",
+              isMobile ? "w-full" : "w-[50%]"
+            )}
+          >
+            <div
+              className={cn(
+                "h-[100px] min-w-[100px] rounded-full overflow-hidden bg-transparent p-[6.6px] flex items-center justify-center",
+                isMobile ? "" : ""
+              )}
+            >
               {vault.icon ? (
                 <Image
                   src={vault.icon || "/placeholder.svg"}
@@ -154,7 +167,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               )}
             </div>
             <div className="flex gap-6 flex-col">
-              <h1 className="text-[38px] min-w-[50%] h-[44px] text-white text-center xl:text-left">
+              <h1 className="text-[38px] min-w-[50%] h-[44px] text-primary text-center xl:text-left">
                 {vault.name}
               </h1>
               <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
@@ -172,12 +185,12 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                         className="object-cover w-full h-full"
                       />
                     ) : (
-                      <div className="text-xs text-white">
+                      <div className="text-xs text-primary">
                         {vault.token.symbol.charAt(0)}
                       </div>
                     )}
                   </div>
-                  <span className="text-[#ffffffcc] text-[20px]">
+                  <span className="text-secondary text-[20px]">
                     {vault.token.symbol}
                   </span>
                 </div>
@@ -200,7 +213,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                       </div>
                     )}
                   </div>
-                  <span className="text-[#ffffffcc] text-[20px]">
+                  <span className="text-secondary text-[20px]">
                     {vault.curator.name}
                   </span>
                 </div>
@@ -208,8 +221,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
             </div>
           </div>
           {/* Vault Description */}
-          <div className="bg-[#202426] rounded-sm p-5 border border-zinc-800 flex items-center">
-            <p className="text-zinc-300 text-[13px] leading-[16px]">
+          <div className="bg-foreground rounded-sm p-5  flex items-center">
+            <p className="text-secondary text-[13px] leading-[16px]">
               {vault.description}
             </p>
           </div>
@@ -217,11 +230,11 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
         {/* Vault Info */}
         <div className="pt-20">
-          <h2 className="lg:text-[20px] text-[16px] mb-4 text-white font-custom">
+          <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
             {t("common.vaultInfo")}
           </h2>
           {isMobile ? (
-            <div className="flex flex-col rounded-[8px] bg-[#202426] px-[10px]">
+            <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
               <InfoMobileCard title={t("table.curator")}>
                 <div className="flex items-center flex-row">
                   <CuratorInfo curator={vault.curator} />
@@ -237,11 +250,11 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               </InfoMobileCard>
 
               <InfoMobileCard title={t("table.instantAPY")}>
-                <div className="text-sm text-white">{vault.instantApy}</div>
+                <div className="text-sm text-secondary">{vault.instantApy}</div>
               </InfoMobileCard>
 
               <InfoMobileCard title={t("table.performanceFee")}>
-                <div className="text-sm text-white">{vault.performanceFee}</div>
+                <div className="text-sm text-secondary">{vault.performanceFee}</div>
               </InfoMobileCard>
 
               <InfoMobileCard title={t("table.vaultAddress")}>
@@ -252,7 +265,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                 <TokenValue token={vault.token} value={vault.liquidity} />
               </InfoMobileCard>
 
-              <InfoMobileCard title="Guardian Address">
+              <InfoMobileCard title={t("table.guardianAddress")}>
                 <AddressInfo address={vault.guardianAddress || ""} />
               </InfoMobileCard>
             </div>
@@ -276,7 +289,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                       </div>
                     )}
                   </div>
-                  <span className="text-white text-[15px] font-normal">
+                  <span className="text-secondary text-[15px] font-normal">
                     {vault.curator.name}
                   </span>
                   {vault.curator.url && (
@@ -285,7 +298,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <ArrowUpRight className="h-4 w-4 text-zinc-400" />
+                      <ArrowUpRight className="h-4 w-4 text-secondary" />
                     </Link>
                   )}
                 </div>
@@ -309,14 +322,14 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                       </div>
                     )}
                   </div>
-                  <span className="text-white text-[15px] font-normal">
+                  <span className="text-secondary text-[15px] font-normal">
                     {vault.token.symbol}
                   </span>
                   {vault.token.address && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-5 w-5 hover:bg-transparent hover:text-white cursor-pointer"
+                      className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                       onClick={() =>
                         copyToClipboard(
                           vault.token.address || "",
@@ -324,7 +337,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                         )
                       }
                     >
-                      <Copy className="h-3 w-3 text-zinc-400 hover:text-white" />
+                      <Copy className="h-3 w-3 text-secondary hover:text-primary" />
                     </Button>
                   )}
                 </div>
@@ -349,11 +362,11 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                         </div>
                       )}
                     </div>
-                    <span className="text-white text-[15px] font-normal">
+                    <span className="text-secondary text-[15px] font-normal">
                       {vault.totalSupply.amount}
                     </span>
                   </div>
-                  <div className="text-[13px] text-white px-[2px] bg-[#fafafa1a]">
+                  <div className="text-[13px] text-secondary px-[2px] bg-accent">
                     {vault.totalSupply.usdValue}
                   </div>
                 </div>
@@ -361,7 +374,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
               {/* Instant APY */}
               <InfoCard title={t("table.instantAPY")}>
-                <div className="text-[15px] text-white font-normal">
+                <div className="text-[15px] text-secondary font-normal">
                   {vault.instantApy}
                 </div>
               </InfoCard>
@@ -371,7 +384,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                 title={t("table.performanceFee")}
                 tooltip="The fee charged on earnings by the vault curator"
               >
-                <div className="text-[15px] text-white font-normal">
+                <div className="text-[15px] text-secondary font-normal">
                   {vault.performanceFee}
                 </div>
               </InfoCard>
@@ -379,18 +392,18 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               {/* Vault Address */}
               <InfoCard title={t("table.vaultAddress")}>
                 <div className="flex items-center gap-2">
-                  <span className="text-white text-[15px] font-normal">
+                  <span className="text-secondary text-[15px] font-normal">
                     {vault.vaultAddress}
                   </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 hover:bg-transparent hover:text-white cursor-pointer"
+                    className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                     onClick={() =>
                       copyToClipboard(vault.vaultAddress, "Vault address")
                     }
                   >
-                    <Copy className="h-3 w-3 text-zinc-400" />
+                    <Copy className="h-3 w-3 text-secondary" />
                   </Button>
                 </div>
               </InfoCard>
@@ -402,7 +415,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               >
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
                       {vault.token.icon ? (
                         <Image
                           src={vault.token.icon || "/placeholder.svg"}
@@ -417,11 +430,11 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                         </div>
                       )}
                     </div>
-                    <span className="text-white text-[15px] font-normal">
+                    <span className="text-secondary text-[15px] font-normal">
                       {vault.liquidity.amount}
                     </span>
                   </div>
-                  <div className="text-[13px] text-white px-[2px] bg-[#fafafa1a]">
+                  <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
                     {vault.liquidity.usdValue}
                   </div>
                 </div>
@@ -433,18 +446,18 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                 tooltip="The blockchain address of the vault guardian"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-white text-[15px] font-normal">
+                  <span className="text-secondary text-[15px] font-normal">
                     {vault.guardianAddress}
                   </span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-5 w-5 hover:bg-transparent hover:text-white cursor-pointer"
+                    className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                     onClick={() =>
                       copyToClipboard(vault.guardianAddress, "Guardian address")
                     }
                   >
-                    <Copy className="h-3 w-3 text-zinc-400" />
+                    <Copy className="h-3 w-3 text-secondary" />
                   </Button>
                 </div>
               </InfoCard>
@@ -454,7 +467,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
         {/* Vault Literature */}
         <div className="pt-20">
-          <h2 className="lg:text-[20px] text-[16px] mb-4 text-white font-custom">
+          <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
             {t("common.vaultInfo")}
           </h2>
           <VaultLiteratureSection literature={vault.documents} />
@@ -467,7 +480,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
             <Button
               variant="outline"
               size="sm"
-              className="bg-[#202426] border-zinc-700 hover:bg-zinc-800 text-white"
+              className="bg-foreground border-zinc-700 hover:bg-zinc-800 text-primary"
               onClick={() => setShowUploader(!showUploader)}
             >
               {showUploader ? "Cancel" : "Upload Document"}
@@ -493,7 +506,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   rel="noopener noreferrer"
                   className="block group"
                 >
-                  <Card className="bg-[#202426] border-zinc-800 hover:bg-zinc-800 transition-colors">
+                  <Card className="bg-foreground border-zinc-800 hover:bg-zinc-800 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="bg-zinc-700 rounded-md p-2 mt-1">
@@ -516,7 +529,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               ))}
             </div>
           ) : (
-            <div className="bg-[#202426] rounded-lg p-6 border border-zinc-800 text-center">
+            <div className="bg-foreground rounded-lg p-6 border border-zinc-800 text-center">
               <p className="text-zinc-400">
                 No documents available for this vault.
               </p>
@@ -525,7 +538,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         </div> */}
 
         <div className="pt-16">
-          <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
               <div>{t("common.vaultAllocationBreakdown")}</div>
               <TooltipProvider>
@@ -534,7 +547,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-5 w-5 p-0 hover:bg-transparent hover:text-white text-[#ffffff80]"
+                      className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
                     >
                       <HelpCircle className="h-3 w-3 text-[#fffff80]" />
                     </Button>
@@ -550,15 +563,15 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
             <Popover>
               <PopoverTrigger asChild>
                 <CustomButton
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => setSearchQuery("")}
-                  className="bg-[#303436] border-zinc-700 hover:bg-zinc-800 text-white text-[11px] rounded-[4px] h-[26px] flex items-center"
+                  className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
                 >
                   {t("common.editProperties")}
                 </CustomButton>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[300px] z-50 p-0 bg-[#303436] border-zinc-700 text-white"
+                className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
                 align="end"
                 sideOffset={5}
               >
@@ -567,8 +580,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
-                      placeholder="Search for properties"
-                      className="pl-8 py-[10px] !shadow-none bg-[#303436] border-zinc-700 text-white"
+                      placeholder={t('common.searchProperties')}
+                      className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -578,23 +591,23 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   {filteredColumns.map((column) => (
                     <div
                       key={column.id}
-                      className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-[#fafafa20] rounded-sm"
+                      className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
                     >
-                      <span className="text-[12px]">{column.name}</span>
+                      <span className="text-[12px]">{t('table.' + column.id)}</span>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() =>
                           toggleColumnVisibility(column.id, !column.visible)
                         }
-                        className="hover:bg-transparent hover:text-white text-[#ffffffc2] h-8 w-8"
+                        className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                       >
                         {visibleColumns.filter(
                           (_column) => column.id === _column.id
                         )[0].visible ? (
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 text-card" />
                         ) : (
-                          <EyeOff className="h-4 w-4" />
+                          <EyeOff className="h-4 w-4 text-card" />
                         )}
                       </Button>
                     </div>
@@ -610,22 +623,22 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         </div>
 
         <div className="pt-16">
-          <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
               <div>{t("common.vaultReallocations")}</div>
             </div>
             <Popover>
               <PopoverTrigger asChild>
                 <CustomButton
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => setSearchQuery("")}
-                  className="bg-[#303436] border-zinc-700 hover:bg-zinc-800 text-white text-[11px] rounded-[4px] h-[26px] flex items-center"
+                  className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
                 >
                   {t("common.editProperties")}
                 </CustomButton>
               </PopoverTrigger>
               <PopoverContent
-                className="w-[300px] z-50 p-0 bg-[#303436] border-zinc-700 text-white"
+                className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
                 align="end"
                 sideOffset={5}
               >
@@ -634,8 +647,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="search"
-                      placeholder="Search for properties"
-                      className="pl-8 py-[10px] !shadow-none bg-[#303436] border-zinc-700 text-white"
+                      placeholder={t('common.searchProperties')}
+                      className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -645,9 +658,9 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   {filteredReallocationColumns.map((column) => (
                     <div
                       key={column.id}
-                      className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-[#fafafa20] rounded-sm"
+                      className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
                     >
-                      <span className="text-[12px]">{column.name}</span>
+                      <span className="text-[12px]">{t('table.' + column.id)}</span>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -657,14 +670,14 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                             !column.visible
                           )
                         }
-                        className="hover:bg-transparent hover:text-white text-[#ffffffc2] h-8 w-8"
+                        className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                       >
                         {visibleReAllocationColumns.filter(
                           (_column) => column.id === _column.id
                         )[0].visible ? (
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 text-card" />
                         ) : (
-                          <EyeOff className="h-4 w-4" />
+                          <EyeOff className="h-4 w-4 text-card" />
                         )}
                       </Button>
                     </div>
@@ -680,7 +693,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         </div>
 
         <div className="pt-16">
-          <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
               <div>{t("common.supplyPositions")}</div>
             </div>
@@ -689,7 +702,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         </div>
 
         <div className="pt-16">
-          <h1 className="lg:text-[20px] text-white flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
             <div className="flex items-center gap-3">
               <div>{t("common.userActivity")}</div>
             </div>
@@ -698,15 +711,15 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               <Popover>
                 <PopoverTrigger asChild>
                   <CustomButton
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => setSearchQuery("")}
-                    className="bg-[#303436] border-zinc-700 hover:bg-zinc-800 text-white text-[11px] rounded-[4px] h-[26px] flex items-center"
+                    className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
                   >
                     {t("common.editProperties")}
                   </CustomButton>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-[300px] z-50 p-0 bg-[#303436] border-zinc-700 text-white"
+                  className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
                   align="end"
                   sideOffset={5}
                 >
@@ -715,8 +728,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
                         type="search"
-                        placeholder="Search for properties"
-                        className="pl-8 py-[10px] !shadow-none bg-[#303436] border-zinc-700 text-white"
+                        placeholder={t('common.searchProperties')}
+                        className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -726,9 +739,9 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     {filteredActivityColumns.map((column) => (
                       <div
                         key={column.id}
-                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-[#fafafa20] rounded-sm"
+                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
                       >
-                        <span className="text-[12px]">{column.name}</span>
+                        <span className="text-[12px]">{t('table.' + column.id)}</span>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -738,14 +751,14 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                               !column.visible
                             )
                           }
-                          className="hover:bg-transparent hover:text-white text-[#ffffffc2] h-8 w-8"
+                          className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                         >
                           {visibleTransactionColumns.filter(
                             (_column) => column.id === _column.id
                           )[0].visible ? (
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-card" />
                           ) : (
-                            <EyeOff className="h-4 w-4" />
+                            <EyeOff className="h-4 w-4 text-card" />
                           )}
                         </Button>
                       </div>
@@ -773,8 +786,8 @@ interface InfoCardProps {
 
 function InfoCard({ title, tooltip, children }: InfoCardProps) {
   return (
-    <Card className="bg-[#202426] border-[#afafaf1a] border-none h-[100px] p-5 rounded-[8px]">
-      <CardContent className="px-0 flex flex-col justify-between h-full">
+    <Card className="bg-foreground border-[#afafaf1a] border-none h-[100px] p-5 rounded-[8px] shadow-none">
+      <CardContent className="px-0 flex flex-col justify-between h-full border-none">
         <div className="flex items-center gap-1 mb-3 text-[13px] text-zinc-400">
           <span>{title}</span>
           {tooltip && (
@@ -800,9 +813,9 @@ function InfoCard({ title, tooltip, children }: InfoCardProps) {
 
 function InfoMobileCard({ title, tooltip, children }: InfoCardProps) {
   return (
-    <Card className="bg-[#202426] border-[#afafaf1a] border-b-[0.5px] border-t-0 border-l-0 border-r-0 rounded-none h-[60px] pt-[6px] pb-[6px] pl-0">
-      <CardContent className="px-0 flex flex-row justify-between h-full items-center">
-        <div className="flex items-center gap-1 text-[13px] text-zinc-400">
+    <Card className="bg-foreground border-accent border-b-[0.5px] border-t-0 border-l-[0px] border-r-[0px] rounded-none h-[60px] pt-[6px] pb-[6px] pl-0 shadow-none">
+      <CardContent className="px-0 flex flex-row justify-between h-full items-center border-none">
+        <div className="flex items-center gap-1 text-[13px] text-muted">
           <span>{title}</span>
           {tooltip && (
             <TooltipProvider>
@@ -848,7 +861,7 @@ const CuratorInfo = ({
         <div className="text-[11px]">{curator.name.charAt(0)}</div>
       )}
     </div>
-    <span className="text-white text-[13px] font-normal">{curator.name}</span>
+    <span className="text-secondary text-[13px] font-normal">{curator.name}</span>
     {curator.url && (
       <Link href={curator.url} target="_blank">
         <ArrowUpRight className="h-4 w-4 text-zinc-400" />
@@ -880,7 +893,7 @@ const TokenInfo = ({
         <div className="text-[11px]">{token.symbol.charAt(0)}</div>
       )}
     </div>
-    <span className="text-white text-[13px] font-normal">{token.symbol}</span>
+    <span className="text-secondary text-[13px] font-normal">{token.symbol}</span>
   </div>
 );
 
@@ -913,9 +926,9 @@ const TokenValue = ({
           <div className="text-[11px]">{token.symbol.charAt(0)}</div>
         )}
       </div>
-      <span className="text-white text-[13px] font-normal">{value.amount}</span>
+      <span className="text-secondary text-[13px] font-normal">{value.amount}</span>
     </div>
-    <div className="text-[11px] text-white px-1 bg-[#fafafa1a]">
+    <div className="text-[11px] text-secondary px-1 bg-accent">
       {value.usdValue}
     </div>
   </div>
@@ -923,6 +936,6 @@ const TokenValue = ({
 
 const AddressInfo = ({ address }: { address: string }) => (
   <div className="flex items-center gap-2">
-    <span className="text-white text-[13px] font-normal">{address}</span>
+    <span className="text-secondary text-[13px] font-normal">{address}</span>
   </div>
 );

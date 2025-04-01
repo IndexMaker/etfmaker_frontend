@@ -20,14 +20,14 @@ export function AnalyticsPage() {
   return (
     <Dashboard>
       <div className="">
-        <div className="text-[38px] h-[44px] font-normal tracking-tight text-white flex items-center">
+        <div className="text-[38px] h-[44px] font-normal tracking-tight text-primary flex items-center">
           {t("common.analytics")}
         </div>
 
         {/* Total Morpho Section */}
         <div className="space-y-4 pt-16">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
-            <h2 className="text-[16px] font-normal text-white">
+            <h2 className="text-[16px] font-normal text-card">
               {t("common.totalMorpho")}
             </h2>
             <div className="flex gap-2">
@@ -71,7 +71,7 @@ export function AnalyticsPage() {
         {/* Morpho - Mainnet Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
-            <h2 className="text-[16px] font-normal text-white">
+            <h2 className="text-[16px] font-normal text-card">
               {t("common.morphoMainnet")}
             </h2>
             <div className="flex gap-2 flex-wrap">
@@ -125,7 +125,7 @@ export function AnalyticsPage() {
         {/* Morpho - Base Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-center justify-between">
-            <h2 className="text-[16px] font-normal text-white">
+            <h2 className="text-[16px] font-normal text-primary">
               {t("common.morphoBase")}
             </h2>
           </div>
@@ -162,7 +162,7 @@ export function AnalyticsPage() {
         {/* Morpho Optimizer Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
-            <h2 className="text-[16px] font-normal text-white">
+            <h2 className="text-[16px] font-normal text-primary">
               {t("common.morphoOptimizer")}
             </h2>
             <div className="flex gap-2 flex-wrap">
@@ -220,13 +220,13 @@ interface MetricCardProps {
 
 function MetricCard({ title, value, icon }: MetricCardProps) {
   return (
-    <Card className="bg-[#202426] border-zinc-800 p-5 md:h-[160px] h-[110px]">
+    <Card className="bg-foreground border-none p-5 md:h-[160px] h-[110px]">
       <CardContent className="p-0 flex flex-col justify-between h-full gap-2">
-        <div className="flex items-center gap-2 text-[12px] text-[#ffffffcc]">
+        <div className="flex items-center gap-2 text-[12px] text-secondary">
           {icon}
           <span>{title}</span>
         </div>
-        <div className="text-[38px] text-white h-[44px]">{value}</div>
+        <div className="text-[38px] text-card h-[44px]">{value}</div>
       </CardContent>
     </Card>
   );
@@ -234,13 +234,13 @@ function MetricCard({ title, value, icon }: MetricCardProps) {
 
 function SMMetricCard({ title, value, icon }: MetricCardProps) {
   return (
-    <Card className="bg-[#202426] border-zinc-800 p-5 md:h-[100px] h-[90px]">
+    <Card className="bg-foreground border-none p-5 md:h-[100px] h-[90px]">
       <CardContent className="p-0 flex flex-col justify-between h-full gap-2">
-        <div className="flex items-center gap-2 text-[12px] text-[#ffffffcc]">
+        <div className="flex items-center gap-2 text-[12px] text-secondary">
           {icon}
           <span>{title}</span>
         </div>
-        <div className="text-[20px] text-white">{value}</div>
+        <div className="text-[20px] text-card">{value}</div>
       </CardContent>
     </Card>
   );
@@ -257,7 +257,7 @@ function AnalyticsLink({ name, icon, url }: AnalyticsLinkProps) {
     <a href={url} target="_blank" rel="noopener noreferrer">
       <CustomButton
         variant="outline"
-        className="bg-[#fafafa1a] border-none hover:bg-zinc-800 text-xs text-white rounded-[2px] flex items-center gap-1"
+        className="bg-accent border-none hover:bg-muted text-[11px] text-primary rounded-[2px] flex items-center gap-1"
       >
         <Image
           src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}

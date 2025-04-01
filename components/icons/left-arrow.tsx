@@ -7,7 +7,6 @@ export default function LeftArrow({ className = "" }) {
       viewBox="0 0 12 11"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      color="#ffffff80"
       className={className}
     >
       <path

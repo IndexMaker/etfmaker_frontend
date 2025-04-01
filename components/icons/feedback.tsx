@@ -7,7 +7,7 @@ export default function Feedback({ className = "" }) {
       viewBox="0 0 14 13"
       fill="none"
       className={className}
-      color="var(--colors-text-tertiary)"
+      color="var(--colors-text-muted)"
     >
       <path
         fill="currentColor"

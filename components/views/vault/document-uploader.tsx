@@ -95,7 +95,7 @@ export function DocumentUploader({ vaultId, onComplete }: DocumentUploaderProps)
   }
 
   return (
-    <Card className="bg-[#202426] border-zinc-800">
+    <Card className="bg-foreground border-zinc-800">
       <CardContent className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">

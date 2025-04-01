@@ -18,7 +18,7 @@ export function CustomButton({
         variant === "outline" &&
           "border border-gray-600 text-gray-300 hover:bg-gray-700",
         variant === "secondary" &&
-          "bg-[#fafafa1a] text-[#fffffff2]",
+          "bg-accent text-card",
         className
       )}
       {...props}

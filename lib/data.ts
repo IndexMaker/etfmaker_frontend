@@ -51,7 +51,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: "3",
+    id: "spark-dai",
     name: "Steakhouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -67,7 +67,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "4",
+    id: "spark-dai",
     name: "Smokehouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -83,7 +83,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "5",
+    id: "spark-dai",
     name: "Steakhouse RUSD",
     icon: "🟠",
     token: "rUSD",
@@ -99,7 +99,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "6",
+    id: "spark-dai",
     name: "Gauntlet USDC Core",
     icon: "🔵",
     token: "USDC",
@@ -115,7 +115,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: "7",
+    id: "mev-usdc",
     name: "Hakutora USDC",
     icon: "🔵",
     token: "USDC",
@@ -131,7 +131,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "0%",
   },
   {
-    id: "8",
+    id: "mev-usdc",
     name: "Gauntlet WETH Prime",
     icon: "🟣",
     token: "WETH",
@@ -147,7 +147,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: "9",
+    id: "mev-usdc",
     name: "Steakhouse USDT",
     icon: "🟢",
     token: "USDT",
@@ -163,7 +163,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "10",
+    id: "mev-usdc",
     name: "Gauntlet LBTC Core",
     icon: "🟡",
     token: "LBTC",
@@ -716,7 +716,7 @@ export type ReAllocation = {
   id: string;
   timestamp: string;
   user: string;
-  nash: string;
+  hash: string;
   amount: number;
   currency: string;
   type: "Withdraw" | "Supply";
@@ -729,7 +729,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-1",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 7072894.47,
     currency: "DM",
     type: "Withdraw",
@@ -740,7 +740,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-2",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 10060000.0,
     currency: "DM",
     type: "Supply",
@@ -751,7 +751,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-3",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 293085.97,
     currency: "DM",
     type: "Withdraw",
@@ -762,7 +762,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-4",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 37970287.26,
     currency: "DM",
     type: "Withdraw",
@@ -773,7 +773,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-5",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 1008372.67,
     currency: "DM",
     type: "Withdraw",
@@ -784,7 +784,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-6",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 50000000.0,
     currency: "DM",
     type: "Supply",
@@ -795,7 +795,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-7",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 24752838.05,
     currency: "DM",
     type: "Withdraw",
@@ -806,7 +806,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-8",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 475978.81,
     currency: "DM",
     type: "Withdraw",
@@ -817,7 +817,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-9",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 40975054.48,
     currency: "DM",
     type: "Withdraw",
@@ -828,7 +828,7 @@ export const reallocations: ReAllocation[] = [
     id: "tx-10",
     timestamp: "2 days ago",
     user: "0x298b...dFb5",
-    nash: "0xfb33...31ca",
+    hash: "0xfb33...31ca",
     amount: 51077925.31,
     currency: "DM",
     type: "Supply",

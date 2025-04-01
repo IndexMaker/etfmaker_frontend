@@ -87,9 +87,9 @@ export function VaultTable({
   return (
     <TooltipProvider>
       <div className="">
-        <Table className="text-white text-xs bg-[#202426] rounded-[8px]">
-          <TableHeader className="text-white border-[#afafaf1a]">
-            <TableRow className="text-white hover:bg-[#fafafa1a] border-[#afafaf1a]">
+        <Table className="text-primary text-xs bg-foreground rounded-[8px]">
+          <TableHeader className="text-whiprimarprimaryyte border-accent">
+            <TableRow className="text-primary hover:bg-accent border-accent">
               {visibleColumns
                 .filter((col) => col.visible)
                 .map((col) => (
@@ -97,8 +97,8 @@ export function VaultTable({
                     key={col.id}
                     className={
                       isSortable(col.id)
-                        ? "cursor-pointer select-none text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
-                        : "text-[#ffffffcc] text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                        ? "cursor-pointer select-none text-secondary text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                        : "text-secondary text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
                     }
                     onClick={
                       isSortable(col.id) ? () => handleSort(col.id) : undefined
@@ -135,8 +135,8 @@ export function VaultTable({
           <TableBody>
             {currentVaults.map((vault: VaultInfo, index) => (
               <TableRow
-                key={vault.id}
-                className="hover:bg-[#fafafa1a] border-[#afafaf1a] h-[54px] text-[13px] cursor-pointer"
+                key={vault.id + index.toString()}
+                className="hover:bg-accent border-accent h-[54px] text-[13px] cursor-pointer"
                 onClick={() => assetDetail(vault)}
               >
                 {visibleColumns.map(
@@ -144,7 +144,7 @@ export function VaultTable({
                     col.visible && (
                       <TableCell
                         key={col.id}
-                        className="pl-5 pr-18 text-[#fffffff2]"
+                        className="pl-5 pr-18 text-card"
                       >
                         {col.id === "vaultName" && (
                           <>
@@ -183,7 +183,7 @@ export function VaultTable({
                               width={17}
                               height={17}
                             />
-                            <span className="text-[#fffffff2]">
+                            <span className="text-card">
                               {vault.token}
                             </span>
                           </div>
@@ -191,7 +191,7 @@ export function VaultTable({
                         {col.id === "totalSupply" && (
                           <div className="flex items-center">
                             <div>{vault.totalSupply}</div>
-                            <div className="text-[#fffffff2] p-1 ml-2 bg-[#afafaf1a] text-xs">
+                            <div className="text-card p-1 ml-2 bg-accent text-xs">
                               {vault.totalSupplyUsd}
                             </div>
                           </div>
@@ -225,7 +225,7 @@ export function VaultTable({
                                           height={14}
                                         />
                                         <span className="text-xs">Morpho</span>
-                                        <Copy className="w-[15px] h-[15px] " />
+                                        <Copy className="w-[15px] h-[15px] cursor-pointer" />
                                       </div>
                                       <span className="font-bold">+1.16%</span>
                                     </div>
@@ -314,23 +314,23 @@ export function VaultTable({
             ))}
           </TableBody>
         </Table>
-        <div className="flex justify-center items-center mt-4 text-white text-sx">
+        <div className="flex justify-center items-center mt-4 text-primary text-sx">
           <Button
-            className="text-xs text-[#ffffff80] p-0 h-4"
+            className="text-[11px] text-muted bg-background p-0 h-4"
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
           >
             <LeftArrow className="w-4 h-4" />
           </Button>
-          <span className="text-xs text-[#ffffff80]">
-            Page {currentPage} of {totalPages}
+          <span className="text-[11px] text-muted">
+            {t("common.page")} {currentPage} {t("common.of")} {totalPages}
           </span>
           <Button
-            className="text-xs text-[#ffffff80] p-0 h-4"
+            className="text-[11px] text-muted bg-background p-0 h-4"
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
-            <RightArrow className="w-[8px] h-[8px] rotate-180" />
+            <RightArrow className="w-[8px] h-[8px] rotate-180 " />
           </Button>
         </div>
       </div>

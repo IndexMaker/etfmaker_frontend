@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from "@radix-ui/react-tooltip";
 import Info from "../icons/info";
+import { useLanguage } from "@/contexts/language-context";
 
 interface VaultAllocationBreakdownProps {
   allocations: VaultAllocation[];
@@ -32,6 +33,7 @@ export function VaultAllocationBreakdown({
   allocations,
   visibleColumns,
 }: VaultAllocationBreakdownProps) {
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -60,24 +62,27 @@ export function VaultAllocationBreakdown({
           <TooltipProvider>
             <div className="flex items-center gap-2">
               <div>{allocation.vaultSupply.amount}</div>
-              <div className="text-[11px] bg-[#fafafa1a] text-[#ffffffcc] px-[2px] py-1 rounded-[4px]">
+              <div className="text-[11px] bg-accent text-secondary px-[2px] py-1 rounded-[4px]">
                 {allocation.vaultSupply.usdValue}
               </div>
               {parseFloat(allocation.percentage) < 0.1 ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button size="icon" className="h-4 w-4 text-[#fffffff2] rounded-none bg">
-                      <Info className="h-3 w-3 text-white" />
+                    <Button
+                      size="icon"
+                      className="h-4 w-4 text-card rounded-none bg"
+                    >
+                      <Info className="h-3 w-3 text-primary" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs p-2">
-                      <span className="font-bold text-[12px] text-white">
+                      <span className="font-bold text-[12px] text-primary">
                         Market has low total supply.
                         <a
                           target="_blank"
                           rel="noreferrer noopener"
-                          className="font-normal text-[#FFFFFFF2] text-[11px]"
+                          className="font-normal text-card text-[11px]"
                           href="https://docs.morpho.org/interface/warnings/#what-are-the-warnings-on-the-morpho-interface"
                         >
                           Learn more →
@@ -128,10 +133,10 @@ export function VaultAllocationBreakdown({
 
   return (
     <>
-      <Card className="bg-[#202426] border-none rounded-[8px] mt-4 py-0 rouneded-[8px]">
+      <Card className="bg-foreground border-none rounded-[8px] mt-4 py-0 rouneded-[8px]">
         <CardContent className="p-0 overflow-x-auto rouneded-[8px]">
           <Table className="rouneded-[16px]">
-            <TableHeader className="bg-[#202426]">
+            <TableHeader className="bg-foreground">
               <TableRow className="hover:bg-transparent border-[#afafaf1a] h-[44px]">
                 {visibleColumns
                   .filter((column) => column.visible)
@@ -139,12 +144,12 @@ export function VaultAllocationBreakdown({
                     <TableHead
                       key={column.id}
                       className={cn(
-                        "text-[#ffffffcc] text-[11px] pl-[20px] pr-[72px]",
+                        "text-secondary text-[11px] pl-[20px] pr-[72px]",
                         column.id === "percentage" && "cursor-pointer"
                       )}
                     >
                       <div className="flex items-center gap-1">
-                        {column.name}
+                        {t("table." + column.id)}
                         {column.id === "percentage" && (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -170,13 +175,13 @@ export function VaultAllocationBreakdown({
               {currentVaults.map((allocation) => (
                 <TableRow
                   key={allocation.id}
-                  className="border-[#afafaf1a] hover:bg-[#202426]/50 h-[54px] text-[13px]"
+                  className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
                 >
                   {visibleColumns
                     .filter((column) => column.visible)
                     .map((column, index) => (
                       <TableCell
-                        className="pl-[20px] text-[#fffffff2] pr-18"
+                        className="pl-[20px] text-card pr-18"
                         key={`${allocation.id}-${index}`}
                       >
                         {renderCellContent(allocation, column.id)}
@@ -188,23 +193,23 @@ export function VaultAllocationBreakdown({
           </Table>
         </CardContent>
       </Card>
-      <div className="flex justify-center items-center mt-4 text-white text-sx">
+      <div className="flex justify-center items-center mt-4 text-primary text-sx">
         <Button
-          className="text-xs text-[#ffffff80] p-0 h-4"
+          className="text-[11px] text-muted bg-background p-0 h-4"
           disabled={currentPage === 1}
           onClick={() => setCurrentPage(currentPage - 1)}
         >
           <LeftArrow className="w-4 h-4" />
         </Button>
-        <span className="text-xs text-[#ffffff80]">
-          Page {currentPage} of {totalPages}
+        <span className="text-[11px] text-muted">
+          {t("common.page")} {currentPage} {t("common.of")} {totalPages}
         </span>
         <Button
-          className="text-xs text-[#ffffff80] p-0 h-4"
+          className="text-[11px] text-muted bg-background p-0 h-4"
           disabled={currentPage === totalPages}
           onClick={() => setCurrentPage(currentPage + 1)}
         >
-          <RightArrow className="w-[8px] h-[8px] rotate-180" />
+          <RightArrow className="w-[8px] h-[8px] rotate-180 " />
         </Button>
       </div>
     </>
