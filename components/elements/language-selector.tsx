@@ -27,12 +27,12 @@ export function LanguageSelector() {
         <Button
           variant="outline"
           size="sm"
-          className="bg-foreground h-[26px] rounded-[4px] text-secondary"
+          className="!bg-transparent md:!bg-foreground border-none h-[26px] rounded-[4px] text-secondary"
         >
           <Globe className="h-4 w-4 mr-2" />
           <span className="mr-1">{selectedLanguage.flag}</span>
-          <span className="hidden sm:inline">{selectedLanguage.name}</span>
-          <ChevronDown className="h-4 w-4 ml-1 opacity-50" />
+          <span className="hidden md:flex">{selectedLanguage.name}</span>
+          <ChevronDown className="h-4 w-4 ml-1 opacity-50 hidden md:flex" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -47,7 +47,7 @@ export function LanguageSelector() {
           >
             <div className="flex items-center">
               <span className="mr-2">{lang.flag}</span>
-              <span>{lang.name}</span>
+              <span className="">{lang.name}</span>
             </div>
             {selectedLanguage.code === lang.code && (
               <Check className="h-4 w-4 ml-2" />

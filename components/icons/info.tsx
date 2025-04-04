@@ -1,11 +1,11 @@
 import React from "react";
 
-export default function Info({ className = "" }) {
+export default function Info({ className = "", color = "#797c7d" }) {
   return (
     <svg
       viewBox="3 3 18 18"
       xmlns="http://www.w3.org/2000/svg"
-      fill="#797c7d"
+      fill={color}
       className={className}
     >
       <rect
@@ -13,7 +13,7 @@ export default function Info({ className = "" }) {
         height="16"
         x="4"
         y="4"
-        fill="#797c7d"
+        fill={color}
         rx="2"
       ></rect>
       <path

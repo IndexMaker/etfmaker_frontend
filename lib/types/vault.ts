@@ -24,6 +24,7 @@ export interface Vault {
     amount: string;
     usdValue: string;
   };
+  collateral: string[];
   instantApy: string;
   performanceFee: string;
   vaultAddress: string;

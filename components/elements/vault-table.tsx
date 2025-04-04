@@ -25,6 +25,7 @@ import RightArrow from "../icons/right-arrow";
 import LeftArrow from "../icons/left-arrow";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
+import { cn } from "@/lib/utils";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -36,6 +37,7 @@ interface VaultTableProps {
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
+  onSupplyClick?: (vaultId: string) => void;
 }
 
 export function VaultTable({
@@ -44,6 +46,7 @@ export function VaultTable({
   onSort,
   sortColumn,
   sortDirection,
+  onSupplyClick,
 }: VaultTableProps) {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,7 +101,12 @@ export function VaultTable({
                     className={
                       isSortable(col.id)
                         ? "cursor-pointer select-none text-secondary text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
-                        : "text-secondary text-[11px] h-[44px] pl-5 pr-18 min-w-[180px]"
+                        : cn(
+                            "text-secondary text-[11px] h-[44px] pl-5 pr-18 ",
+                            col.id === "actions"
+                              ? "max-w-[92px] sticky right-0 bg-gradient-to-r from-transparent via-foreground to-foreground"
+                              : "min-w-[180px]"
+                          )
                     }
                     onClick={
                       isSortable(col.id) ? () => handleSort(col.id) : undefined
@@ -107,7 +115,9 @@ export function VaultTable({
                     <div className="flex items-center gap-1">
                       {
                         <span>
-                          {col.id === "instantApy"
+                          {col.id === "actions"
+                            ? ""
+                            : col.id === "instantApy"
                             ? t("table.netAPY")
                             : col.id === "vaultApy"
                             ? t("table.supplyAPY")
@@ -137,14 +147,18 @@ export function VaultTable({
               <TableRow
                 key={vault.id + index.toString()}
                 className="hover:bg-accent border-accent h-[54px] text-[13px] cursor-pointer"
-                onClick={() => assetDetail(vault)}
               >
                 {visibleColumns.map(
                   (col) =>
                     col.visible && (
                       <TableCell
                         key={col.id}
-                        className="pl-5 pr-18 text-card"
+                        className={cn(
+                          "text-card",
+                          col.id === "actions"
+                            ? "sticky right-0 px-5 py-0 bg-foreground border-t before-line max-w-[92px] cursor-default"
+                            : "pl-5 pr-18"
+                        )}
                       >
                         {col.id === "vaultName" && (
                           <>
@@ -176,20 +190,24 @@ export function VaultTable({
                           </>
                         )}
                         {col.id === "token" && (
-                          <div className="flex items-center gap-2">
+                          <div
+                            className="flex items-center gap-2"
+                            onClick={() => assetDetail(vault)}
+                          >
                             <Image
                               src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
                               alt={vault.token}
                               width={17}
                               height={17}
                             />
-                            <span className="text-card">
-                              {vault.token}
-                            </span>
+                            <span className="text-card">{vault.token}</span>
                           </div>
                         )}
                         {col.id === "totalSupply" && (
-                          <div className="flex items-center">
+                          <div
+                            className="flex items-center"
+                            onClick={() => assetDetail(vault)}
+                          >
                             <div>{vault.totalSupply}</div>
                             <div className="text-card p-1 ml-2 bg-accent text-xs">
                               {vault.totalSupplyUsd}
@@ -197,26 +215,29 @@ export function VaultTable({
                           </div>
                         )}
                         {col.id === "instantApy" && (
-                          <div className="flex items-center gap-1 cursor-pointer">
+                          <div
+                            className="flex items-center gap-1 cursor-pointer"
+                            onClick={() => assetDetail(vault)}
+                          >
                             {vault.instantApy}
                             {index >= 2 && (
                               <CustomTooltip
                                 key={"instantApy"}
                                 content={
-                                  <div className="flex flex-col gap-1 min-w-[220px]">
-                                    <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                  <div className="flex flex-col gap-1 min-w-[220px] rounded-[8px]">
+                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
                                       <span className="text-sm">
                                         Rate & Rewards
                                       </span>
                                     </div>
-                                    <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
                                       <div className="flex items-center gap-1">
                                         <BarChart2 className="h-4 w-4" />
                                         <span>Rate</span>
                                       </div>
                                       <span>+5.25%</span>
                                     </div>
-                                    <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
                                       <div className="flex items-center gap-1">
                                         <Image
                                           src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
@@ -229,7 +250,7 @@ export function VaultTable({
                                       </div>
                                       <span className="font-bold">+1.16%</span>
                                     </div>
-                                    <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
                                       <div className="flex items-center">
                                         <InstantAPY className="w-[17px] h-[17px]" />
                                         <span className="text-[#2470FFe6]">
@@ -250,22 +271,32 @@ export function VaultTable({
                             )}
                           </div>
                         )}
-                        {col.id === "vaultApy" && vault.vaultApy}
+                        {col.id === "vaultApy" && (
+                          <div onClick={() => assetDetail(vault)}>
+                            {vault.vaultApy}
+                          </div>
+                        )}
                         {col.id === "curator" && (
-                          <div className="flex items-center gap-2">
+                          <div
+                            className="flex items-center gap-2"
+                            onClick={() => assetDetail(vault)}
+                          >
                             <span>{vault.curatorIcon}</span>
                             <span>{vault.curator}</span>
                           </div>
                         )}
                         {col.id === "collateral" && (
-                          <div className="flex items-left gap-0 min-w-[150px]">
+                          <div
+                            className="flex items-left gap-0 min-w-[150px]"
+                            onClick={() => assetDetail(vault)}
+                          >
                             {vault.collateral.length > 0 ? (
                               vault.collateral.map((collateral, index) => (
                                 <CustomTooltip
                                   key={index.toString()}
                                   content={
-                                    <div className="flex flex-col gap-1 min-w-[220px]">
-                                      <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                    <div className="flex flex-col gap-1 min-w-[220px] rounded-[8px]">
+                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
                                         <span>Collateral</span>
                                         <div className="flex items-center">
                                           <Image
@@ -277,11 +308,11 @@ export function VaultTable({
                                           <span>PT-U...025</span>
                                         </div>
                                       </div>
-                                      <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
                                         <span>LLTV</span>
                                         <span className="font-bold">91.5%</span>
                                       </div>
-                                      <div className="flex justify-between border-b py-1 px-3 border-[#afafaf1a]">
+                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
                                         <span className="">Oracle</span>
                                         <a
                                           target="_blank"
@@ -305,8 +336,26 @@ export function VaultTable({
                             )}
                           </div>
                         )}
-                        {col.id === "rewards" && vault.rewards}
-                        {col.id === "performanceFee" && vault.performanceFee}
+                        {col.id === "rewards" && (
+                          <div onClick={() => assetDetail(vault)}>
+                            {vault.rewards}
+                          </div>
+                        )}
+                        {col.id === "performanceFee" && (
+                          <div onClick={() => assetDetail(vault)}>
+                            {vault.performanceFee}
+                          </div>
+                        )}
+                        {col.id === "actions" && (
+                          <div className="relative before:absolute before:top-0 before:left-0 before:w-px before:h-full before:bg-accent">
+                            <Button
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0 cursor-pointer"
+                              onClick={() => onSupplyClick?.(vault.id)}
+                            >
+                              Supply
+                            </Button>
+                          </div>
+                        )}
                       </TableCell>
                     )
                 )}

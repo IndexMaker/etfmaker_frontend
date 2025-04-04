@@ -52,7 +52,7 @@
   --radius: 0.625rem;
   --background: #f0f2f7;
   /* --foreground: #191d200f; */
-  --foreground: #ffffff;
+  --foreground: #fafcff;
   --secondary: #191d20b3;
   --primary: #000000;
   --muted: #191d2080;
@@ -178,4 +178,12 @@
   .custom-3xl-grid {
     grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
   }
+}
+
+.before-line::before {
+  @apply block content-[''] absolute top-0 left-0 w-px h-full bg-accent;
+}
+
+.svelte-w5zexe {
+  display: none !important;
 }

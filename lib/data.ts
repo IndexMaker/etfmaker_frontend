@@ -209,6 +209,7 @@ export const mockup_vaults: Vault[] = [
       amount: "163.35M DAI",
       usdValue: "$163.74M",
     },
+    collateral: ["🔵", "🟣", "🟠", "🟢", "🔴", "🔵", "+13"],
     documents: [
       {
         id: "whitepaper",
@@ -252,6 +253,7 @@ export const mockup_vaults: Vault[] = [
       amount: "198.35M USDC",
       usdValue: "$198.31M",
     },
+    collateral: ["🔵", "🟣", "🟠", "🟢", "🔴", "🔵", "+13"],
     documents: [
       {
         id: "whitepaper",
