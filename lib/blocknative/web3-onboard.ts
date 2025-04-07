@@ -1,22 +1,53 @@
 import Onboard from "@web3-onboard/core";
 import coinbaseWallet from "@web3-onboard/coinbase";
+import injected from "@web3-onboard/injected-wallets";
 import walletConnectModule from "@web3-onboard/walletconnect";
 import trustWallet from "@web3-onboard/trust";
-import bitgetWallet from '@web3-onboard/bitget/dist/index';
-import metamask from '@web3-onboard/metamask'
+import bitgetWallet from "@web3-onboard/bitget/dist/index";
+import metamask from "@web3-onboard/metamask";
 // Configure WalletConnect options
 const walletConnectOptions = {
   // Set your WalletConnect configuration options here
-  projectId: process.env.WALLETCONNECT_PROJECT_ID || "1DSWHiAW1iSFYVb86WQQUPn57iQ6W1DjGo"
+  projectId:
+    process.env.WALLETCONNECT_PROJECT_ID ||
+    "1DSWHiAW1iSFYVb86WQQUPn57iQ6W1DjGo",
+};
+
+// Detect Rabby provider
+const getRabbyProvider = () => {
+  // if (typeof window === "undefined") return null;
+
+  // const { ethereum } = window as any;
+
+  // if (ethereum?.providers) {
+  //   return ethereum.providers.find((provider: any) => provider.isRabby);
+  // } else if (ethereum?.isRabby) {
+  //   return ethereum;
+  // }
+
+  return null;
 };
 
 const metamaskOptions = {
   options: {
-    dappMetadata: {}
-  }
-}
+    dappMetadata: {url: 'localhost:3000'},
+  },
+};
+
+const injectedWallets = injected({
+  // Customize which wallets should be displayed
+  displayUnavailable: false, // Set to true to show unavailable wallets
+  // You can filter specific wallets
+  filter: {
+    // Allow only certain wallets
+    // allow: ['MetaMask', 'Trust', 'Coinbase'],
+    // Or deny specific wallets
+    // deny: ['SomeWallet']
+  },
+});
 
 const wallets = [
+  // injectedWallets,
   coinbaseWallet(),
   trustWallet(),
   bitgetWallet(),
@@ -58,5 +89,23 @@ const onboard = Onboard({
   },
   // theme: 'dark'
 });
+
+export const autoConnectRabby = async () => {
+  return false
+  const rabbyProvider = getRabbyProvider();
+  if (rabbyProvider) {
+    const wallets = await onboard.connectWallet({
+      autoSelect: {
+        label: 'MetaMask', // Rabby pretends to be MetaMask
+        disableModals: true
+      }
+    });
+
+    return wallets
+  }
+  else{
+    return false
+  }
+};
 
 export default onboard;

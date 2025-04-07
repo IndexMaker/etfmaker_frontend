@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { NetworkSwitcher } from "../elements/network-switcher";
@@ -8,7 +8,7 @@ import { CustomButton } from "../ui/custom-button";
 import Navigation from "../icons/navigation";
 import { LanguageSelector } from "../elements/language-selector";
 import { useLanguage } from "@/contexts/language-context";
-import onboard from "@/lib/blocknative/web3-onboard";
+import onboard, { autoConnectRabby } from "@/lib/blocknative/web3-onboard";
 import { useDispatch, useSelector } from "react-redux";
 import { clearWallet, setWallet } from "@/redux/walletSlice";
 import { shortenAddress } from "@/lib/utils";
@@ -23,6 +23,7 @@ import RightArrow from "../icons/right-arrow";
 import Switch from "../icons/switch";
 import Disconnect from "../icons/disconnect";
 import { useCallback, useEffect, useState } from "react";
+import { WalletState } from "@web3-onboard/core";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -39,6 +40,8 @@ export function Header({
 }: HeaderProps) {
   const { t } = useLanguage();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentNetwork = searchParams.get("network")
   const [switchOption, setSwitchOption] = useState<boolean>(false);
   const dispatch = useDispatch();
   const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
@@ -59,6 +62,9 @@ export function Header({
   });
 
   useEffect(() => {
+    // if (!storedWallet && !switchOption) {
+    //   autoConnectRabby()
+    // }
     if (!storedWallet && switchOption) {
       connectWallet();
       setSwitchOption(false);
@@ -70,17 +76,34 @@ export function Header({
       console.log("Wallet already connected:", storedWallet);
       return;
     }
+    let connected: boolean | WalletState[] = false
+    if (!switchOption)
+      connected = await autoConnectRabby()
+    if (!connected) {
+      const wallets = await onboard.connectWallet();
+      if (wallets.length > 0) {
+        const { label, accounts, chains, icon } = wallets[0]; // Extract only serializable data
+        console.log("Connected Wallet:", wallets[0]);
+  
+        dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
+  
+        // hide onboard-v2 elements...
 
-    const wallets = await onboard.connectWallet();
-    if (wallets.length > 0) {
-      const { label, accounts, chains, icon } = wallets[0]; // Extract only serializable data
-      console.log("Connected Wallet:", wallets[0]);
-
-      dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
-
-      // hide onboard-v2 elements...
+        // show How earn makes modal...
+        
+      }
     }
-  }, [storedWallet, dispatch]);
+    else{
+      if (connected.length > 0) {
+        const { label, accounts, chains, icon } = connected[0]; // Extract only serializable data
+        console.log("Connected Wallet:", connected[0]);
+  
+        dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
+  
+        // hide onboard-v2 elements...
+      }
+    }
+  }, [storedWallet, dispatch, switchOption]);
 
   const disconnectWallet = async () => {
     if (storedWallet) {
@@ -95,7 +118,7 @@ export function Header({
       await onboard.disconnectWallet({ label: storedWallet.label });
       dispatch(clearWallet()); // Clear from Redux
     }
-  }, [storedWallet, dispatch]);
+  }, [storedWallet, dispatch, setSwitchOption]);
 
   return (
     <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-background px-[11px] lg:px-[40px]">
@@ -159,7 +182,7 @@ export function Header({
             >
               <Link
                 href={
-                  "https://etherscan.io/address/" +
+                  `https://etherscan.${currentNetwork === 'mainnet' ? 'org' : 'io'}/address/` +
                   storedWallet.accounts[0].address
                 }
                 target="_blank"

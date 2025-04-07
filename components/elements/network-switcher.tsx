@@ -14,7 +14,7 @@ import Base from "../../public/icons/base.png";
 import { useRouter, useSearchParams } from "next/navigation";
 const networks = [
   {
-    id: "ethereum",
+    id: "mainnet",
     name: "Ethereum",
     chainId: "0x1",
     icon: (

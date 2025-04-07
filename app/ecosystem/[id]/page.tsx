@@ -5,7 +5,7 @@ import { notFound, useParams } from "next/navigation";
 
 export default function ProjectPage() {
   const params = useParams();
-  const project_id = params.id;
+  const project_id = params.id?.toString();
   if (!project_id) {
     return notFound(); // Handle missing params
   }
