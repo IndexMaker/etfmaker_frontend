@@ -47,7 +47,7 @@ const injectedWallets = injected({
 });
 
 const wallets = [
-  // injectedWallets,
+  injectedWallets,
   coinbaseWallet(),
   trustWallet(),
   bitgetWallet(),
