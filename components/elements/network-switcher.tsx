@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,44 +11,46 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import Base from "../../public/icons/base.png";
-import { useRouter, useSearchParams } from "next/navigation";
-const networks = [
+import { useRouter } from "next/navigation";
+export const networks: Network[] = [
   {
     id: "mainnet",
     name: "Ethereum",
     chainId: "0x1",
-    icon: (
-      <Image
-        src={"https://cdn.morpho.org/assets/chains/eth.svg"}
-        alt={"Ethereum"}
-        width={17}
-        height={17}
-      />
-    ),
+    icon: 'ethereum',
   },
   {
     id: "base",
     name: "Base",
     chainId: "0x2105",
-    icon: <Image src={Base} alt={"Base"} width={17} height={17} />,
+    icon: 'base',
   },
 ];
 
-export function NetworkSwitcher() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+type Network = {
+  id: string;
+  name: string;
+  chainId: string;
+  icon: string;
+};
+interface NetworkSwitcherProps {
+  handleNetworkSwitch: (chainId: string) => void;
+  selectedNetwork: Network | null;
+  setSelectedNetwork: (selectedNetwork: Network) => void;
+}
+export function NetworkSwitcher({
+  handleNetworkSwitch,
+  selectedNetwork,
+  setSelectedNetwork,
+}: NetworkSwitcherProps) {
+  // const router = useRouter();
+  // const searchParams = useSearchParams();
 
   // Get network from URL or default to Ethereum
-  const defaultNetwork =
-    networks.find((n) => n.id === searchParams.get("network")) || networks[0];
-  const [selectedNetwork, setSelectedNetwork] = useState(defaultNetwork);
+  // const defaultNetwork =
+  //   networks.find((n) => n.id === searchParams.get("network")) || networks[0];
+  // const [selectedNetwork, setSelectedNetwork] = useState(defaultNetwork);
 
-  useEffect(() => {
-    // Update the URL without reloading the page
-    const url = new URL(window.location.href);
-    url.searchParams.set("network", selectedNetwork.id);
-    router.replace(url.toString(), { scroll: false });
-  }, [selectedNetwork, router]);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="px-0">
@@ -57,7 +59,7 @@ export function NetworkSwitcher() {
           className="flex rounded-[4px] cursor-pointer text-xs line-[16px] items-center w-[46px] has-[>svg]:px-1 m-auto max-h-[26px] border-none text-primary hover:text-white hover:bg-[#fafafa1a] gap-1 hover:border-none shadow-none !bg-transparent md:!bg-foreground"
         >
           <span className="flex items-center">
-            <span>{selectedNetwork.icon}</span>
+            <span>{getNetworkIcon(selectedNetwork?.icon || 'ethereum')}</span>
           </span>
           <ChevronDown className="h-4 w-4 opacity-50 text-secondary hidden md:flex" />
         </Button>
@@ -69,17 +71,40 @@ export function NetworkSwitcher() {
         {networks.map((network) => (
           <DropdownMenuItem
             key={network.id}
-            onClick={() => setSelectedNetwork(network)}
+            onClick={() => {
+              setSelectedNetwork(network);
+              handleNetworkSwitch(network.chainId);
+            }}
             className="flex items-center justify-between active:bg-[#fafafa20]"
           >
             <span className="flex items-center gap-2">
-              <span>{network.icon}</span>
+              <span>{getNetworkIcon(network.icon)}</span>
               <span>{network.name}</span>
             </span>
-            {selectedNetwork.id === network.id && <Check className="h-4 w-4" />}
+            {selectedNetwork?.id === network.id && (
+              <Check className="h-4 w-4" />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
+
+export const getNetworkIcon = (iconIdentifier: string) => {
+  switch (iconIdentifier) {
+    case "ethereum":
+      return (
+        <Image
+          src={"https://cdn.morpho.org/assets/chains/eth.svg"}
+          alt={"Ethereum"}
+          width={17}
+          height={17}
+        />
+      );
+    case "base":
+      return <Image src={Base} alt={"Base"} width={17} height={17} />;
+    default:
+      return null;
+  }
+};

@@ -19,6 +19,19 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
   const { theme } = useTheme();
   const scrollableRef = useRef<HTMLDivElement | null>(null);
 
+  // Load from localStorage on mount
+  useEffect(() => {
+    const storedValue = localStorage.getItem("termsAccepted");
+    if (storedValue === "true") {
+      setTermsAccepted(true);
+    }
+  }, []);
+
+  // Save to localStorage whenever termsAccepted changes
+  useEffect(() => {
+    localStorage.setItem("termsAccepted", termsAccepted.toString());
+  }, [termsAccepted]);
+
   const handleStepChange = (step: number) => {
     setActiveStep(step);
 
@@ -73,7 +86,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           </div>
 
           <Button
-            className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer"
+            className="w-full bg-blue-600 hover:bg-blue-700 cursor-pointer text-white"
             disabled={!termsAccepted}
             onClick={onClose}
           >
@@ -1343,7 +1356,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 }}
               ></label>
               <Button
-                className="bg-blue-600 hover:bg-blue-700 text-[11px] h-[26px] rounded-[4px] cursor-pointer"
+                className="bg-blue-600 hover:bg-blue-700 text-[11px] h-[26px] rounded-[4px] cursor-pointer text-white"
                 disabled={!termsAccepted}
                 onClick={onClose}
               >

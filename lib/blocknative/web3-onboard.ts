@@ -30,20 +30,13 @@ const getRabbyProvider = () => {
 
 const metamaskOptions = {
   options: {
-    dappMetadata: {url: 'localhost:3000'},
+    dappMetadata: { url: "localhost:3000" },
   },
 };
 
 const injectedWallets = injected({
   // Customize which wallets should be displayed
   displayUnavailable: false, // Set to true to show unavailable wallets
-  // You can filter specific wallets
-  filter: {
-    // Allow only certain wallets
-    // allow: ['MetaMask', 'Trust', 'Coinbase'],
-    // Or deny specific wallets
-    // deny: ['SomeWallet']
-  },
 });
 
 const wallets = [
@@ -62,7 +55,13 @@ const onboard = Onboard({
       id: "0x1", // Ethereum Mainnet
       token: "ETH",
       label: "Ethereum Mainnet",
-      rpcUrl: "https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID",
+      rpcUrl: process.env.ETHEREUM_RPCURL || "https://mainnet.infura.io/v3/920d560360ac4b7193a85e7d7448fcf8", // Replace with your Infura key
+    },
+    {
+      id: "0x2105", // Base Mainnet (8453 in hex)
+      token: "ETH",
+      label: "Base Mainnet",
+      rpcUrl: process.env.BASE_RPCURL || "https://mainnet.base.org", // Public Base RPC
     },
   ],
   appMetadata: {
@@ -90,21 +89,37 @@ const onboard = Onboard({
   // theme: 'dark'
 });
 
+// Function to switch networks
+export const switchNetwork = async (chainId: string) => {
+  const connectedWallets = onboard.state.get().wallets;
+  if (connectedWallets.length === 0) {
+    console.error("No wallet connected");
+    return;
+  }
+
+  const wallet = connectedWallets[0];
+  try {
+    await onboard.setChain({ chainId });
+    console.log(`Switched to chain: ${chainId}`);
+  } catch (error) {
+    console.error("Failed to switch network:", error);
+  }
+};
+
 export const autoConnectRabby = async () => {
-  return false
+  return false;
   const rabbyProvider = getRabbyProvider();
   if (rabbyProvider) {
     const wallets = await onboard.connectWallet({
       autoSelect: {
-        label: 'MetaMask', // Rabby pretends to be MetaMask
-        disableModals: true
-      }
+        label: "MetaMask", // Rabby pretends to be MetaMask
+        disableModals: true,
+      },
     });
 
-    return wallets
-  }
-  else{
-    return false
+    return wallets;
+  } else {
+    return false;
   }
 };
 

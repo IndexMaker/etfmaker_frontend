@@ -104,6 +104,7 @@ export const translations: Translations = {
       noEarnPosition: "You currently have no Earn position on Ethereum.",
       switchWallet: "Switch Wallet",
       disconnectWallet: "Disconnect Wallet",
+      switchWalletNetwork: "Switch wallet network",
     },
     table: {
       vaultName: "Vault Name",
@@ -266,6 +267,7 @@ export const translations: Translations = {
         "Actualmente no tienes ninguna posición Earn en Ethereum.",
       switchWallet: "Cambiar Cartera",
       disconnectWallet: "Desconectar Cartera",
+      switchWalletNetwork: "Cambiar red de billetera",
     },
     table: {
       vaultName: "Nombre de Bóveda",
@@ -434,6 +436,7 @@ export const translations: Translations = {
         "Vous n'avez actuellement aucune récompense réclamable ou accumulée sur Ethereum.",
       switchWallet: "Changer de Portefeuille",
       disconnectWallet: "Déconnecter le Portefeuille",
+      switchWalletNetwork: "Changer de réseau de portefeuille",
     },
     table: {
       vaultName: "Nom du Coffre",
@@ -598,6 +601,7 @@ export const translations: Translations = {
         "Sie haben derzeit keine einlösbaren oder anfallenden Belohnungen auf Ethereum.",
       switchWallet: "Wallet wechseln",
       disconnectWallet: "Wallet trennen",
+      switchWalletNetwork: "Wallet-Netzwerk wechseln",
     },
     table: {
       vaultName: "Tresorname",
@@ -762,6 +766,7 @@ export const translations: Translations = {
       noEarnPosition: "В настоящее время у вас нет позиции Earn на Ethereum.",
       switchWallet: "Сменить кошелек",
       disconnectWallet: "Отключить кошелек",
+      switchWalletNetwork: "Сменить сеть кошелька",
     },
     table: {
       vaultName: "Название хранилища",
