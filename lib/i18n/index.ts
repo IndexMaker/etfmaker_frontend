@@ -5,7 +5,7 @@ type Language = {
   flag: string;
 };
 export const languages: Language[] = [
-  { code: "en", name: "English", flag: "🇺🇸" },
+  { code: "en", name: "English", flag: "🇬🇧" },
   { code: "es", name: "Español", flag: "🇪🇸" },
   { code: "fr", name: "Français", flag: "🇫🇷" },
   { code: "de", name: "Deutsch", flag: "🇩🇪" },
@@ -89,7 +89,7 @@ export const translations: Translations = {
         'Morpho is committed to industry-leading security practices, but there are still risks associated with <a href="https://docs.morpho.org/morpho/concepts/risk-documentation" class="underline">Morpho</a> and <a href="https://docs.morpho.org/morpho-vaults/concepts/risk-documentation" class="underline">Morpho Vault</a>.',
       checkBoxConfirmationWithLink:
         'Check this box to confirm you have read the Morpho <a href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf" class="underline">Terms of Use</a> and understand the associated risks.',
-      claim: "Claim",
+      claim: "Claim rewards",
       positions: "Positions",
       rewards: "Rewards",
       bundler: "Bundler",
@@ -105,6 +105,14 @@ export const translations: Translations = {
       switchWallet: "Switch Wallet",
       disconnectWallet: "Disconnect Wallet",
       switchWalletNetwork: "Switch wallet network",
+      transactionConfrimTitle:
+        "Are you sure you want to cancel your transactions?",
+      noKeep: "No, keep",
+      yesCancel: "Yes, cancel",
+      insufficientValue: "You have an insufficient balance.",
+      maxSupplyConfirmation: "You will not have ETH left to pay for gas.",
+      iUnderstand: "I understand",
+      undoMaxSupply: "Undo max supply",
     },
     table: {
       vaultName: "Vault Name",
@@ -251,7 +259,7 @@ export const translations: Translations = {
         'Morpho está comprometido con las mejores prácticas de seguridad de la industria, pero aún existen riesgos asociados con <a href="https://docs.morpho.org/morpho/concepts/risk-documentation" class="underline">Morpho</a> y <a href="https://docs.morpho.org/morpho-vaults/concepts/risk-documentation" class="underline">Morpho Vault</a>.',
       checkBoxConfirmationWithLink:
         'Marque esta casilla para confirmar que ha leído los <a href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf" class="underline">Términos de Uso</a> de Morpho y comprende los riesgos asociados.',
-      claim: "Reclamar",
+      claim: "Canjear recompensas",
       positions: "Posiciones",
       rewards: "Recompensas",
       bundler: "Agrupador",
@@ -268,6 +276,14 @@ export const translations: Translations = {
       switchWallet: "Cambiar Cartera",
       disconnectWallet: "Desconectar Cartera",
       switchWalletNetwork: "Cambiar red de billetera",
+      transactionConfrimTitle:
+        "¿Estás seguro/a de que quieres cancelar tus transacciones?",
+      noKeep: "No, conservar",
+      yesCancel: "Sí, cancelar",
+      insufficientValue: "No tiene saldo suficiente.",
+      maxSupplyConfirmation: "No te quedará ETH para pagar el gas.",
+      iUnderstand: "Entiendo",
+      undoMaxSupply: "Deshacer máximo",
     },
     table: {
       vaultName: "Nombre de Bóveda",
@@ -420,7 +436,7 @@ export const translations: Translations = {
         'Morpho s\'engage à respecter les meilleures pratiques de sécurité de l\'industrie, mais il existe encore des risques associés à <a href="https://docs.morpho.org/morpho/concepts/risk-documentation" class="underline">Morpho</a> et <a href="https://docs.morpho.org/morpho-vaults/concepts/risk-documentation" class="underline">Morpho Vault</a>.',
       checkBoxConfirmationWithLink:
         'Cochez cette case pour confirmer que vous avez lu les <a href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf" class="underline">Conditions d\'utilisation</a> de Morpho et que vous comprenez les risques associés.',
-      claim: "Réclamer",
+      claim: "Recevoir les récompenses",
       positions: "Positions",
       rewards: "Récompenses",
       finalizeTransactions: "Finaliser les transactions",
@@ -437,6 +453,14 @@ export const translations: Translations = {
       switchWallet: "Changer de Portefeuille",
       disconnectWallet: "Déconnecter le Portefeuille",
       switchWalletNetwork: "Changer de réseau de portefeuille",
+      transactionConfrimTitle:
+        "Êtes-vous sûr(e) de vouloir annuler vos transactions?",
+      noKeep: "Non, garder",
+      yesCancel: "Oui, annuler",
+      insufficientValue: "Vous n'avez pas assez de solde.",
+      maxSupplyConfirmation: "Il ne vous restera plus d'ETH pour payer le gas.",
+      iUnderstand: "Je comprends",
+      undoMaxSupply: "Annuler le max",
     },
     table: {
       vaultName: "Nom du Coffre",
@@ -586,7 +610,7 @@ export const translations: Translations = {
         'Morpho verpflichtet sich zu branchenführenden Sicherheitspraktiken, aber es bestehen weiterhin Risiken im Zusammenhang mit <a href="https://docs.morpho.org/morpho/concepts/risk-documentation" class="underline">Morpho</a> und <a href="https://docs.morpho.org/morpho-vaults/concepts/risk-documentation" class="underline">Morpho Vault</a>.',
       checkBoxConfirmationWithLink:
         'Markieren Sie dieses Feld, um zu bestätigen, dass Sie die <a href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf" class="underline">Nutzungsbedingungen</a> von Morpho gelesen haben und die damit verbundenen Risiken verstehen.',
-      claim: "Beanspruchen",
+      claim: "Prämien einfordern",
       positions: "Positionen",
       rewards: "Belohnungen",
       bundler: "Bündler",
@@ -602,6 +626,15 @@ export const translations: Translations = {
       switchWallet: "Wallet wechseln",
       disconnectWallet: "Wallet trennen",
       switchWalletNetwork: "Wallet-Netzwerk wechseln",
+      transactionConfrimTitle:
+        "Sind Sie sicher, dass Sie Ihre Transaktionen stornieren möchten?",
+      noKeep: "Nein, beibehalten",
+      yesCancel: "Ja, abbrechen",
+      insufficientValue: "Sie haben nicht genug Guthaben.",
+      maxSupplyConfirmation:
+        "Sie werden kein ETH mehr übrig haben, um Gas zu bezahlen.",
+      iUnderstand: "Ich verstehe",
+      undoMaxSupply: "Maximalbetrag rückgängig machen",
     },
     table: {
       vaultName: "Tresorname",
@@ -751,7 +784,7 @@ export const translations: Translations = {
         'Morpho стремится к соблюдению передовых практик безопасности в отрасли, но все равно существуют риски, связанные с <a href="https://docs.morpho.org/morpho/concepts/risk-documentation" class="underline">Morpho</a> и <a href="https://docs.morpho.org/morpho-vaults/concepts/risk-documentation" class="underline">Morpho Vault</a>.',
       checkBoxConfirmationWithLink:
         'Отметьте это поле, чтобы подтвердить, что вы прочитали <a href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf" class="underline">Условия использования</a> Morpho и понимаете связанные с этим риски.',
-      claim: "Запросить",
+      claim: "Забрать награды",
       positions: "Позиции",
       rewards: "Награды",
       max: "Макс",
@@ -767,6 +800,14 @@ export const translations: Translations = {
       switchWallet: "Сменить кошелек",
       disconnectWallet: "Отключить кошелек",
       switchWalletNetwork: "Сменить сеть кошелька",
+      transactionConfrimTitle:
+        "Вы уверены, что хотите отменить свои транзакции?",
+      noKeep: "Нет, сохранить",
+      yesCancel: "Да, отменить",
+      insufficientValue: "У вас недостаточно средств.",
+      maxSupplyConfirmation: "У вас не останется ETH для оплаты газа.",
+      iUnderstand: "Я понимаю",
+      undoMaxSupply: "Отменить максимум",
     },
     table: {
       vaultName: "Название хранилища",

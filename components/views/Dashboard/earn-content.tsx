@@ -52,7 +52,16 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
     "position"
   );
   const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  const { selectedNetwork, currentChainId } = useSelector(
+    (state: RootState) => state.network
+  );
 
+  useEffect(() => {
+    const termsAccepted = localStorage.getItem("termsAccepted");
+    if ((!termsAccepted || termsAccepted === 'false') && storedWallet) {
+      setShowHowEarnWorks(true)
+    }
+  }, [storedWallet])
   // Function to handle sorting
   const handleSort = (columnId: string, direction: "asc" | "desc") => {
     setSortColumn(columnId);
@@ -144,7 +153,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   const [visibleColumns, setVisibleColumns] = useState<ColumnType[]>([]);
   useEffect(() => {
-    if (storedWallet) {
+    if (storedWallet && currentChainId === selectedNetwork) {
       setVisibleColumns(
         columns
           .filter((column) => column.visible)
@@ -161,7 +170,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
           }))
       );
     }
-  }, [storedWallet, columns]);
+  }, [storedWallet, columns, currentChainId, selectedNetwork]);
 
   if (showHowEarnWorks) {
     return (
@@ -255,7 +264,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                   </div>
                 </div>
                 <div className="gap-4 hidden sm:flex">
-                  <CustomButton disabled={true} className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer">
+                  <CustomButton disabled={true} className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30">
                     {t("common.claim")}
                   </CustomButton>
                   {activeMyearnTab === "position" ? (

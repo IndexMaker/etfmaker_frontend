@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/language-context";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 interface HowEarnWorksProps {
   onClose: () => void;
 }
@@ -18,7 +20,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const { theme } = useTheme();
   const scrollableRef = useRef<HTMLDivElement | null>(null);
-
+  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
   // Load from localStorage on mount
   useEffect(() => {
     const storedValue = localStorage.getItem("termsAccepted");
@@ -52,14 +54,16 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
         {/* Top disclaimer section */}
         <div className="mb-6">
           <div className="flex justify-end mb-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-secondary w-5 h-5 rounded-[4px] hover:text-primary absolute top-3 p-[6px] bg-accent right-3"
-            >
-              <X className="h-[8px] w-[8px]" />
-            </Button>
+            {!storedWallet && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="text-secondary w-5 h-5 rounded-[4px] hover:text-primary absolute top-3 p-[6px] bg-accent right-3"
+              >
+                <X className="h-[8px] w-[8px]" />
+              </Button>
+            )}
           </div>
 
           <p
@@ -701,14 +705,16 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
   return (
     <div className="space-y-0 px-[20px] xl:px-[82px] border-none relative h-auto pb-0">
       <div className="">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="text-secondary hover:text-primary absolute right-4 top-4"
-        >
-          <X className="h-5 w-5" />
-        </Button>
+        {!storedWallet && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-secondary hover:text-primary absolute right-4 top-4"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 items-start">

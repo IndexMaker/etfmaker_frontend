@@ -188,7 +188,7 @@ export const mockup_vaults: Vault[] = [
       "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to Morpho markets.",
     icon: "https://cdn.morpho.org/assets/logos/dai.svg",
     token: {
-      symbol: "DAI",
+      symbol: "ETH",
       icon: "https://cdn.morpho.org/assets/logos/dai.svg",
       address: "0x6b175474e89094c44da98b954eedeac495271d0f",
     },

@@ -12,6 +12,17 @@ import Image from "next/image";
 import CustomTooltip from "./custom-tooltip";
 import InstantAPY from "../icons/instantApy";
 import { useLanguage } from "@/contexts/language-context";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@radix-ui/react-popover";
+import { getViemClient } from "@/lib/blocknative/viem";
+import { base } from "viem/chains";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
+import Info from "../icons/info";
+import { formatEther } from "viem";
 
 interface SupplyPanelProps {
   vaultId: string;
@@ -28,8 +39,18 @@ export function SupplyPanel({
   open,
   setOpen,
 }: SupplyPanelProps) {
-  const [amount, ] = useState("");
+  const [amount, setAmount] = useState(0);
+  const [balance, setBalance] = useState(0);
   const { t } = useLanguage();
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [maxpopoverOpen, setMaxPopoverOpen] = useState(false);
+  const [insufficientValue, setInsufficientValue] = useState(false);
+
+  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  const { currentChainId } = useSelector((state: RootState) => state.network);
+  useEffect(() => {
+    setBalance(0);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -44,6 +65,7 @@ export function SupplyPanel({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [setOpen]);
+
   // const handleMaxClick = () => {
   //   // In a real app, this would set the max available balance
   //   setAmount("1000.00");
@@ -57,10 +79,43 @@ export function SupplyPanel({
   //   }
   // };
 
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!storedWallet || !currentChainId) {
+        setBalance(0);
+        return;
+      }
+
+      try {
+        const client = getViemClient(currentChainId);
+        const address = storedWallet.accounts[0].address as `0x${string}`;
+        const balanceWei = await client.getBalance({ address });
+        const balanceEth = formatEther(balanceWei); // Convert from wei to ETH
+        console.log(balanceEth)
+        setBalance(Number.parseFloat(balanceEth));
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setBalance(0);
+      }
+    };
+
+    vaultId && fetchBalance();
+  }, [storedWallet, currentChainId, vaultId]);
+
   const handleSupply = () => {
     // In a real app, this would handle the supply transaction
     console.log(`Supplying ${amount} to vault ${vaultId}`);
     onClose();
+  };
+
+  const setMaxAmount = () => {
+    if (balance === 0) {
+      setInsufficientValue(true);
+      setMaxPopoverOpen(false)
+      return;
+    }
+    setAmount(balance);
+    setMaxPopoverOpen(false)
   };
 
   return (
@@ -136,7 +191,12 @@ export function SupplyPanel({
                 </label>
               </div>
               <div className="flex flex-col">
-                <div className="flex flex-row items-center justify-between gap-1 space-x-2 px-[8px] py-[10px] bg-accent rounded-[8px] border-accent border-[0.5px]">
+                <div
+                  className={cn(
+                    "flex flex-row items-center justify-between gap-1 space-x-2 px-[8px] py-[10px] bg-accent rounded-[8px] border-[0.5px]",
+                    insufficientValue ? "border-[#c73e59f2]" : "border-accent"
+                  )}
+                >
                   {/* Input and Value Display */}
                   <div className="flex flex-col">
                     <input
@@ -146,12 +206,17 @@ export function SupplyPanel({
                       autoComplete="off"
                       autoCorrect="off"
                       step="any"
+                      value={amount}
                       className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-gray-400"
                       onInput={(e) => {
                         e.currentTarget.value = e.currentTarget.value.replace(
                           /[^0-9.]/g,
                           ""
-                        ); // Allow only numbers and decimal point
+                        );
+
+                        setAmount(
+                          Number.parseFloat(e.currentTarget.value) || 0
+                        );
                       }}
                       onKeyDown={(e) => {
                         if (
@@ -186,18 +251,65 @@ export function SupplyPanel({
                     <span className="text-secondary text-[12px]">USDC</span>
 
                     {/* Max Button */}
-                    <Button
-                      type="button"
-                      className="px-[8px] py-[5px] h-[26px] text-[12px] rounded-[4px] bg-accent text-primary hover:bg-muted"
+                    <Popover
+                      open={maxpopoverOpen}
+                      onOpenChange={setMaxPopoverOpen}
                     >
-                      {t("common.max")}
-                    </Button>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          className="px-[8px] py-[5px] h-[26px] text-[12px] rounded-[4px] bg-accent text-primary hover:bg-muted cursor-pointer"
+                        >
+                          {t("common.max")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[320px] p-0 bg-ring text-card rounded-md flex flex-col gap-4 shadow-[0px_1px_20px_0px_rgba(0,0,0,0.04),0px_12px_16px_0px_rgba(6,9,11,0.05),0px_6px_12px_0px_rgba(0,0,0,0.07)] z-100 backdrop-blur-xl"
+                        align="center"
+                        sideOffset={10}
+                      >
+                        <div className="flex flex-col ">
+                          <div className="px-[12px] py-[17px] flex flex-row gap-2 border-b-1 border-accent">
+                            <Info className="w-4 h-4" />
+                            <p className="text-[13px] font-normal text-secondary text-center ">
+                              {t('common.maxSupplyConfirmation')}
+                            </p>
+                          </div>
+                          <div className="flex justify-end flex-col items-end gap-2 px-[12px] py-[16px]">
+                            <Button
+                              variant="ghost"
+                              className="text-[13px] px-[8px] py-[5px] bg-[#2470FF] !hover:bg-[#2470FF90] cursor-pointer h-[32px] rounded-[4px] w-full"
+                              onClick={setMaxAmount}
+
+                            >
+                              {t('common.iUnderstand')}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="text-[13px] px-[8px] py-[5px] bg-accent cursor-pointer h-[32px] rounded-[4px] w-full"
+                              onClick={() => {setAmount(0); setMaxPopoverOpen(false);}}
+                            >
+                              {t('common.undoMaxSupply')}
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>
+              {insufficientValue && (
+                <div className="flex justify-end mt-1 gap-1">
+                  <Info color="#c73e59f2" className="w-4 h-4" />
+                  <span className="text-xs text-secondary">
+                    {t("common.insufficientValue")}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-end mt-1">
                 <span className="text-xs text-secondary">
-                  {t("common.balance")}: 0 {vault.token.symbol}
+                  {t("common.balance")}: {balance.toFixed(2)}{" "}
+                  {vault.token.symbol}
                 </span>
               </div>
             </div>
@@ -319,18 +431,47 @@ export function SupplyPanel({
             </div>
           </div>
           {/* Footer */}
-          <div className="mt-auto px-4 py-6 border-t border-accent">
-            <div className="flex gap-10 lg:gap-30 items-center h-[40px] justify-between">
-              <Button
-                variant="outline"
-                className="h-[26px] px-[8px] py-[5px] border-accent w-[50px] bg-accent text-[11px] hover:bg-foreground text-primary cursor-pointer"
-                onClick={onClose}
-              >
-                {t("common.cancel")}
-              </Button>
+          <div className="mt-auto px-4 py-6 border-t border-accent relative">
+            <div className="flex gap-10 lg:gap-30 items-center h-[40px] justify-between relative">
+              <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-[26px] px-[8px] py-[5px] border-accent w-[50px] bg-accent text-[11px] hover:bg-foreground text-primary cursor-pointer"
+                  >
+                    {t("common.cancel")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[300px] p-4 bg-ring text-card rounded-md flex flex-col gap-4 shadow-[0px_1px_20px_0px_rgba(0,0,0,0.04),0px_12px_16px_0px_rgba(6,9,11,0.05),0px_6px_12px_0px_rgba(0,0,0,0.07)] z-100"
+                  align="start"
+                  sideOffset={10}
+                >
+                  <p className="text-[11px] font-normal text-card text-center">
+                    {t("common.transactionConfrimTitle")}
+                  </p>
+                  <div className="flex justify-end items-end gap-2">
+                    <Button
+                      variant="secondary"
+                      className="text-[11px] px-[8px] py-[5px] bg-accent cursor-pointer h-[26px] rounded-[4px]"
+                      onClick={() => setPopoverOpen(false)}
+                    >
+                      {t("common.noKeep")}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      className="text-[11px] px-[8px] py-[5px] cursor-pointer !bg-[#c73e59e6] h-[26px] rounded-[4px]"
+                      onClick={onClose}
+                    >
+                      {t("common.yesCancel")}
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <Button
                 className="flex-1 h-[40px] bg-blue-600 hover:bg-blue-700 text-primary text-[14px] cursor-pointer"
-                disabled={!amount || Number.parseFloat(amount) <= 0}
+                disabled={!amount || amount <= 0}
                 onClick={handleSupply}
               >
                 {t("common.finalizeTransactions")}
