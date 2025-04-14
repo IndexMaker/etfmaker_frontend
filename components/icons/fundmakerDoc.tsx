@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function MorphoDoc({ className = "" }) {
+export default function FundMakerDoc({ className = "" }) {
   return (
     <svg
       viewBox="0 0 16 18"

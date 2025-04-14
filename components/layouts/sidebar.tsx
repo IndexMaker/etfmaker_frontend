@@ -11,8 +11,8 @@ import { usePathname } from "next/navigation";
 import RightArrow from "../icons/right-arrow";
 import EcosystemSvg from "../icons/ecosystem";
 import AnalyticsSvg from "../icons/analytics";
-import MorphoSvg from "../icons/morphoSvg";
-import MorphoDoc from "../icons/morphoDoc";
+import FundMakerSvg from "../icons/fundmakerSvg";
+import FundMakerDoc from "../icons/fundmakerDoc";
 import Feedback from "../icons/feedback";
 import TOS from "../icons/tos";
 import Blockchain from "../icons/blockchain";
@@ -171,17 +171,17 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://app.morpho.org/"
-                icon={MorphoSvg}
+                icon={FundMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                {t("common.morphoAppV2")}
+                {t("common.fundmakerAppV2")}
               </NavItem>
               <NavItem
                 href="https://delegate.morpho.org/"
-                icon={MorphoSvg}
+                icon={FundMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -191,23 +191,23 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://docs.morpho.org/"
-                icon={MorphoDoc}
+                icon={FundMakerDoc}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                {t("common.morphoDocs")}
+                {t("common.fundmakerDocs")}
               </NavItem>
               <NavItem
                 href="https://optimizers.morpho.org/"
-                icon={MorphoSvg}
+                icon={FundMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                {t("common.morphoOptimizers")}
+                {t("common.fundmakerOptimizers")}
               </NavItem>
               <NavItem
                 href="https://docs.google.com/forms/d/e/1FAIpQLSc3ZpfvlcBmMgCDfg6ahM6cKNm003bbns5Ao6QfXJNfcfpATw/viewform?embedded=true"
@@ -220,7 +220,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 {t("common.feedback")}
               </NavItem>
               <NavItem
-                href="https://cdn.morpho.org/documents/Morpho_Terms_of_Use.pdf"
+                href="https://cdn.morpho.org/documents/FundMaker_Terms_of_Use.pdf"
                 icon={TOS}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"

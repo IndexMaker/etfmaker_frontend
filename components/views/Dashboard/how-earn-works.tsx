@@ -69,7 +69,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           <p
             className="text-secondary text-sm mb-4"
             dangerouslySetInnerHTML={{
-              __html: t("common.morphoSecurityWithLinks"),
+              __html: t("common.fundmakerSecurityWithLinks"),
             }}
           ></p>
 
@@ -668,7 +668,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           {activeStep === 1 && (
             <div>
               <h3 className="text-[16px] text-card font-normal mb-2">
-                {t("common.depositInMorphoVault")}
+                {t("common.depositInFundMakerVault")}
               </h3>
               <p className="text-secondary text-[13px] leading-[16px]">
                 {t("common.earnYieldByDepositingAssetIntoVault")}
@@ -679,10 +679,10 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           {activeStep === 2 && (
             <div>
               <h3 className="text-[16px] text-card font-normal mb-2">
-                {t("common.assetsAreSuppliedOnMorpho")}
+                {t("common.assetsAreSuppliedOnFundMaker")}
               </h3>
               <p className="text-secondary text-[13px] leading-[16px]">
-                {t("common.morphoVaultAllocation")}
+                {t("common.fundmakerVaultAllocation")}
               </p>
             </div>
           )}
@@ -1272,7 +1272,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 01
               </div>
               <h3 className="text-[16px] font-normal text-card">
-                {t("common.depositInMorphoVault")}
+                {t("common.depositInFundMakerVault")}
               </h3>
             </div>
             <p
@@ -1298,7 +1298,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 02
               </div>
               <h3 className="text-[16px] font-normal text-card leading-[16px]">
-                {t("common.assetsAreSuppliedOnMorpho")}
+                {t("common.assetsAreSuppliedOnFundMaker")}
               </h3>
             </div>
             <p
@@ -1306,7 +1306,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 activeStep === 2 ? "opacity-100" : "opacity-100"
               }`}
             >
-              {t("common.morphoVaultAllocation")}
+              {t("common.fundmakerVaultAllocation")}
             </p>
           </div>
 
@@ -1341,7 +1341,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
             <p
               className="text-secondary text-[13px]"
               dangerouslySetInnerHTML={{
-                __html: t("common.morphoSecurityWithLinks"),
+                __html: t("common.fundmakerSecurityWithLinks"),
               }}
             ></p>
 

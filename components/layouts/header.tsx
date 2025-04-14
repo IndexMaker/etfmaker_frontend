@@ -98,7 +98,10 @@ export function Header({
     if (segment === "vault") {
       segment = "earn";
     }
-    const path = segment === "earn" ? '/' : `../${pathSegments.slice(0, index + 1).join("/")}`;
+    const path =
+      segment === "earn"
+        ? "/"
+        : `../${pathSegments.slice(0, index + 1).join("/")}`;
     const _segment = t("common." + segment);
     return {
       name: _segment.charAt(0).toUpperCase() + segment.slice(1), // Capitalize first letter
@@ -108,11 +111,9 @@ export function Header({
 
   // Listen for wallet chain changes
   useEffect(() => {
-    console.log(currentChainId)
-    if (currentChainId === '0x2105') {
+    if (currentChainId === "0x2105") {
       setShowModal(false);
-    }
-    else if (currentChainId !== selectedNetwork) {
+    } else if (currentChainId !== selectedNetwork) {
       storedWallet && setShowModal(true);
     } else {
       setShowModal(false);
@@ -125,7 +126,7 @@ export function Header({
           const chainId = wallets[0].chains[0].id;
           dispatch(setReduxCurrentChainId(chainId));
 
-          if (chainId !== selectedNetwork && currentChainId !== '0x2105') {
+          if (chainId !== selectedNetwork && currentChainId !== "0x2105") {
             setShowModal(true);
           } else {
             setShowModal(false);
@@ -274,9 +275,10 @@ export function Header({
                 <span className="text-secondary hidden lg:flex">
                   {shortenAddress(storedWallet.accounts[0].address)}
                 </span>
-                {currentChainId !== selectedNetwork && currentChainId !== '0x2105' && (
-                  <Info color="#FFB13De6" className="h-4 w-4" />
-                )}
+                {currentChainId !== selectedNetwork &&
+                  currentChainId !== "0x2105" && (
+                    <Info color="#FFB13De6" className="h-4 w-4" />
+                  )}
               </CustomButton>
             </PopoverTrigger>
             <PopoverContent
@@ -303,10 +305,11 @@ export function Header({
                   height="12px"
                 />
               </Link>
-              {currentChainId !== selectedNetwork && currentChainId !== '0x2105' ? (
+              {currentChainId !== selectedNetwork &&
+              currentChainId !== "0x2105" ? (
                 <div
                   className="flex gap-2 p-[6px] items-center h-[36px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
-                  onClick={handleSwitchWalletNetwork} 
+                  onClick={handleSwitchWalletNetwork}
                 >
                   {currentChainId !== "0x1" ? (
                     <Image

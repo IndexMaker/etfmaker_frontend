@@ -123,15 +123,15 @@ export function ProjectDetailPage({ project }: ProjectDetailPageProps) {
 
             <div className="space-y-4">
               <h2 className="text-[16px] font-semibold text-card">
-                {t("common.morphoIntegration")}
+                {t("common.fundmakerIntegration")}
               </h2>
               <p className="text-muted-foreground text-[14px]">
-                {project.name} is integrated with Morpho on multiple levels.
-                First, Metamorpho vault curators can easily spin up trustless
+                {project.name} is integrated with FundMaker on multiple levels.
+                First, Metafundmaker vault curators can easily spin up trustless
                 guardians for their vaults using the {project.name} App. For
                 example, Steakhouse Financial secures vaults for their
                 depositors with {project.name} Guardian DAOs. Second, any DAO or
-                multisig on {project.name} can now seamlessly use Morpho using{" "}
+                multisig on {project.name} can now seamlessly use FundMaker using{" "}
                 {project.name}&lsquo;s DappConnect, which enables onchain
                 organizations to create actions directly through a Dapps user
                 interface - no code required.

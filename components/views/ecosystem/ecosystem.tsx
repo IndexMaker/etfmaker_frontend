@@ -18,7 +18,7 @@ export function EcosystemPage() {
             {t("common.ecosystem")}
           </h1>
           <p className="text-secondary text-[14px]">
-            {t("common.projectsOnMorpho")}
+            {t("common.projectsOnFundMaker")}
           </p>
         </div>
 

@@ -26,6 +26,8 @@ import LeftArrow from "../icons/left-arrow";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -37,7 +39,7 @@ interface VaultTableProps {
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
-  onSupplyClick?: (vaultId: string) => void;
+  onSupplyClick?: (vaultId: string, token: string) => void;
 }
 
 export function VaultTable({
@@ -56,6 +58,10 @@ export function VaultTable({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
+
+  const selectedVault = useSelector(
+    (state: RootState) => state.vault.selectedVault
+  );
 
   // Function to handle column header click for sorting
   const handleSort = (columnId: string) => {
@@ -245,7 +251,7 @@ export function VaultTable({
                                           width={14}
                                           height={14}
                                         />
-                                        <span className="text-xs">Morpho</span>
+                                        <span className="text-xs">FundMaker</span>
                                         <Copy className="w-[15px] h-[15px] cursor-pointer" />
                                       </div>
                                       <span className="font-bold">+1.16%</span>
@@ -254,7 +260,7 @@ export function VaultTable({
                                       <div className="flex items-center">
                                         <InstantAPY className="w-[17px] h-[17px]" />
                                         <span className="text-[#2470FFe6]">
-                                          Morpho
+                                          FundMaker
                                         </span>
                                       </div>
                                       <span className="font-bold text-[#2470FFe6]">
@@ -349,8 +355,17 @@ export function VaultTable({
                         {col.id === "actions" && (
                           <div className="relative before:absolute before:top-0 before:left-0 before:w-px before:h-full before:bg-accent">
                             <Button
-                              className="bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0 cursor-pointer"
-                              onClick={() => onSupplyClick?.(vault.id)}
+                              className={cn(
+                                "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0 cursor-pointer",
+                                selectedVault
+                                  .map((v) => v.vaultId)
+                                  .includes(vault.id) ||  (vault.id !== "relend-eth" && vault.id !== "mev-usdc")
+                                  ? "opacity-30 cursor-default disabled:pointer-events-none"
+                                  : ""
+                              )}
+                              onClick={() =>
+                                onSupplyClick?.(vault.id, vault.token)
+                              }
                             >
                               Supply
                             </Button>

@@ -11,7 +11,7 @@ import TVL from "@/components/icons/tvl";
 import Borrow from "@/components/icons/borrow";
 import Deposit from "@/components/icons/deposit";
 import Markets from "@/components/icons/market-created";
-import Morpho from "@/components/icons/morpho";
+import FundMaker from "@/components/icons/fundmaker";
 import APY from "@/components/icons/apy";
 import { useLanguage } from "@/contexts/language-context";
 
@@ -24,11 +24,11 @@ export function AnalyticsPage() {
           {t("common.analytics")}
         </div>
 
-        {/* Total Morpho Section */}
+        {/* Total FundMaker Section */}
         <div className="space-y-4 pt-16">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-card">
-              {t("common.totalMorpho")}
+              {t("common.totalFundMaker")}
             </h2>
             <div className="flex gap-2">
               <AnalyticsLink
@@ -68,25 +68,25 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Morpho - Mainnet Section */}
+        {/* FundMaker - Mainnet Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-card">
-              {t("common.morphoMainnet")}
+              {t("common.fundmakerMainnet")}
             </h2>
             <div className="flex gap-2 flex-wrap">
               <AnalyticsLink
                 name="BlockAnalytica"
-                icon="morpho"
+                icon="fundmaker"
                 url="https://morpho.blockanalitica.com/"
               />
               <AnalyticsLink
-                name="DefiLlama - Morpho"
+                name="DefiLlama - FundMaker"
                 icon="defillama"
                 url="https://defillama.com/protocol/morpho-blue"
               />
               <AnalyticsLink
-                name="Dune - Morpho"
+                name="Dune - FundMaker"
                 icon="dune"
                 url="https://dune.com/morpho/morpho-blue-dashboard"
               />
@@ -115,18 +115,18 @@ export function AnalyticsPage() {
               icon={<Markets className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title={t("common.morphoVaults")}
+              title={t("common.fundmakerVaults")}
               value="153"
-              icon={<Morpho className="h-3 w-3 text-blue-400" />}
+              icon={<FundMaker className="h-3 w-3 text-blue-400" />}
             />
           </div>
         </div>
 
-        {/* Morpho - Base Section */}
+        {/* FundMaker - Base Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-center justify-between">
             <h2 className="text-[16px] font-normal text-primary">
-              {t("common.morphoBase")}
+              {t("common.fundmakerBase")}
             </h2>
           </div>
 
@@ -152,32 +152,32 @@ export function AnalyticsPage() {
               icon={<Markets className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title={t("common.morphoVaults")}
+              title={t("common.fundmakerVaults")}
               value="145"
-              icon={<Morpho className="h-3 w-3 text-blue-400" />}
+              icon={<FundMaker className="h-3 w-3 text-blue-400" />}
             />
           </div>
         </div>
 
-        {/* Morpho Optimizer Section */}
+        {/* FundMaker Optimizer Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-primary">
-              {t("common.morphoOptimizer")}
+              {t("common.fundmakerOptimizer")}
             </h2>
             <div className="flex gap-2 flex-wrap">
               <AnalyticsLink
-                name={"Morpho Optimizers"}
-                icon="morpho"
+                name={"FundMaker Optimizers"}
+                icon="fundmaker"
                 url="https://optimizers.morpho.org/"
               />
               <AnalyticsLink
-                name="DefiLlama - Morpho Aave V3"
+                name="DefiLlama - FundMaker Aave V3"
                 icon="defillama"
                 url="https://defillama.com/protocol/morpho-aavev3"
               />
               <AnalyticsLink
-                name="DefiLlama - Morpho Aave V2"
+                name="DefiLlama - FundMaker Aave V2"
                 icon="defillama"
                 url="https://defillama.com/protocol/morpho-aave"
               />
@@ -263,7 +263,7 @@ function AnalyticsLink({ name, icon, url }: AnalyticsLinkProps) {
           src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}
           width={15}
           height={15}
-          alt="Morpho"
+          alt="FundMaker"
         />
         <div>{name}</div>
         <ArrowUpRight className="ml-1 h-3 w-3" />

@@ -19,16 +19,16 @@ export type VaultInfo = {
 
 export const vaults: VaultInfo[] = [
   {
-    id: "spark-dai",
-    name: "Spark DAI Vault",
+    id: "relend-eth",
+    name: "Relend ETH",
     icon: "🟠",
-    token: "DAI",
+    token: "ETH",
     tokenIcon: "🟠",
-    totalSupply: "550,536,111.22 DAI",
-    totalSupplyUsd: "$550.57M",
+    totalSupply: "1.28 WETH",
+    totalSupplyUsd: "$2080.80",
     instantApy: "5.38%",
     vaultApy: "5.38%",
-    curator: "SparkDAO",
+    curator: "B.Protocol",
     curatorIcon: "⚡️",
     collateral: ["🔵", "🟣", "🟠"],
     rewards: "+1.16%",
@@ -51,7 +51,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: "spark-dai",
+    id: "spark-dai-1",
     name: "Steakhouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -67,7 +67,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "spark-dai",
+    id: "spark-dai-2",
     name: "Smokehouse USDC",
     icon: "🔵",
     token: "USDC",
@@ -83,7 +83,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "spark-dai",
+    id: "spark-dai-3",
     name: "Steakhouse RUSD",
     icon: "🟠",
     token: "rUSD",
@@ -99,7 +99,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "spark-dai",
+    id: "spark-dai-4",
     name: "Gauntlet USDC Core",
     icon: "🔵",
     token: "USDC",
@@ -115,7 +115,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: "mev-usdc",
+    id: "mev-usdc-1",
     name: "Hakutora USDC",
     icon: "🔵",
     token: "USDC",
@@ -131,7 +131,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "0%",
   },
   {
-    id: "mev-usdc",
+    id: "mev-usdc-2",
     name: "Gauntlet WETH Prime",
     icon: "🟣",
     token: "WETH",
@@ -147,7 +147,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "10%",
   },
   {
-    id: "mev-usdc",
+    id: "mev-usdc-3",
     name: "Steakhouse USDT",
     icon: "🟢",
     token: "USDT",
@@ -163,7 +163,7 @@ export const vaults: VaultInfo[] = [
     performanceFee: "5%",
   },
   {
-    id: "mev-usdc",
+    id: "mev-usdc-5",
     name: "Gauntlet LBTC Core",
     icon: "🟡",
     token: "LBTC",
@@ -182,19 +182,19 @@ export const vaults: VaultInfo[] = [
 
 export const mockup_vaults: Vault[] = [
   {
-    id: "spark-dai",
-    name: "Spark DAI Vault",
+    id: "relend-eth",
+    name: "Relend ETH",
     description:
-      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to Morpho markets.",
-    icon: "https://cdn.morpho.org/assets/logos/dai.svg",
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets.",
+    icon: "https://cdn.morpho.org/assets/logos/eth.svg",
     token: {
       symbol: "ETH",
-      icon: "https://cdn.morpho.org/assets/logos/dai.svg",
+      icon: "https://cdn.morpho.org/assets/logos/eth.svg",
       address: "0x6b175474e89094c44da98b954eedeac495271d0f",
     },
     curator: {
-      name: "SparkDAO",
-      icon: "https://cdn.morpho.org/v2/assets/images/spark.svg",
+      name: "B.protocol",
+      icon: "https://cdn.morpho.org/v2/assets/images/bprotocol.png",
       url: "https://spark.fi",
     },
     totalSupply: {
@@ -302,7 +302,7 @@ export const projects: Project[] = [
     id: "delv-fixed-borrow",
     name: "DELV Fixed Borrow",
     description:
-      "DELV Fixed Borrow enables existing DeFi borrowers on Morpho to fix their interest rates and gain predictability on borrow costs.",
+      "DELV Fixed Borrow enables existing DeFi borrowers on FundMaker to fix their interest rates and gain predictability on borrow costs.",
     icon: "hyperdrive",
   },
   {
@@ -1013,5 +1013,75 @@ export const userActivities: Activity[] = [
       currency: "DAI",
       amountSummary: "$50.52M",
     },
+  },
+];
+
+export const TOKEN_LIST = [
+  {
+    symbol: 'ETH',
+    type: 'native',
+    decimals: 18,
+  },
+  {
+    symbol: 'USDC',
+    type: 'erc20',
+    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC contract address (mainnet)
+    decimals: 6,
+  },
+  {
+    symbol: 'USDT',
+    type: 'erc20',
+    address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT contract address (mainnet)
+    decimals: 6,
+  },
+];
+
+export const TOKEN_METADATA: {
+  [chainId: string]: { [key: string]: { address?: string; decimals: number; type: 'native' | 'erc20' } };
+} = {
+  "0x1": {
+    // Ethereum mainnet
+    ETH: {
+      type: 'native',
+      decimals: 18,
+    },
+    USDC: {
+      type: 'erc20',
+      address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC on Ethereum
+      decimals: 6,
+    },
+    USDT: {
+      type: 'erc20',
+      address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', // USDT on Ethereum
+      decimals: 6,
+    },
+  },
+  '0x2105': {
+    // Base mainnet
+    ETH: {
+      type: 'native',
+      decimals: 18,
+    },
+    USDC: {
+      type: 'erc20',
+      address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913', // USDC on Base
+      decimals: 6,
+    },
+    USDT: {
+      type: 'erc20',
+      address: ' 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2', // USDT on Base (verify this address)
+      decimals: 6,
+    },
+  },
+};
+
+// ABI for ERC-20 balanceOf function
+export const ERC20_ABI = [
+  {
+    constant: true,
+    inputs: [{ name: '_owner', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: 'balance', type: 'uint256' }],
+    type: 'function',
   },
 ];

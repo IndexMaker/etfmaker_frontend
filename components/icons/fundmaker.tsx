@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function Morpho({ className = "" }) {
+export default function FundMaker({ className = "" }) {
   return (
     <svg
       width="16"

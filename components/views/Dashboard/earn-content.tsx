@@ -38,7 +38,7 @@ const initialColumns:ColumnType[] = [
 ];
 
 interface EarnContentProps {
-  onSupplyClick?: (vaultId: string) => void;
+  onSupplyClick?: (vaultId: string, token: string) => void;
 }
 
 export function EarnContent({ onSupplyClick }: EarnContentProps) {
