@@ -10,7 +10,6 @@ export class CoinGeckoService {
   private readonly logger = new Logger(CoinGeckoService.name);
   constructor(
     private httpService: HttpService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private dbService: DbService,
   ) {}
 

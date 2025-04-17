@@ -1,4 +1,13 @@
-import { pgTable, serial, varchar, decimal, timestamp, jsonb, bigint, text } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  varchar,
+  decimal,
+  timestamp,
+  jsonb,
+  bigint,
+  text,
+} from 'drizzle-orm/pg-core';
 
 export const compositions = pgTable('compositions', {
   id: serial('id').primaryKey(),
@@ -32,7 +41,7 @@ export const userActivities = pgTable('user_activities', {
 export const binancePairs = pgTable('binance_pairs', {
   id: serial('id').primaryKey(),
   symbol: varchar('symbol', { length: 50 }).notNull(), // e.g., BTCUSDT
-  quoteAsset: varchar('quote_asset', { length: 10 }).notNull(), 
+  quoteAsset: varchar('quote_asset', { length: 10 }).notNull(),
   status: varchar('status', { length: 20 }).notNull(), // TRADING, BREAK, HALTED, etc.
   fetchedAt: timestamp('fetched_at').defaultNow(), // When the data was fetched
 });

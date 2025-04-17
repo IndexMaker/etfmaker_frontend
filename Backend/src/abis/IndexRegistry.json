@@ -1,0 +1,135 @@
+[
+    {
+      "inputs": [
+        { "internalType": "string", "name": "_name", "type": "string" },
+        { "internalType": "string", "name": "_ticker", "type": "string" },
+        { "internalType": "uint256", "name": "_curatorFee", "type": "uint256" }
+      ],
+      "name": "registerIndex",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+        { "internalType": "bytes", "name": "weights", "type": "bytes" },
+        { "internalType": "uint256", "name": "price", "type": "uint256" }
+      ],
+      "name": "setCuratorWeights",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+        { "internalType": "bytes", "name": "weights", "type": "bytes" },
+        { "internalType": "uint256", "name": "price", "type": "uint256" }
+      ],
+      "name": "setSolverWeights",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "internalType": "address", "name": "newCurator", "type": "address" }
+      ],
+      "name": "upgradeCurator",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "indexId", "type": "uint256" }
+      ],
+      "name": "getIndexDatas",
+      "outputs": [
+        { "internalType": "string", "name": "name", "type": "string" },
+        { "internalType": "string", "name": "ticker", "type": "string" },
+        { "internalType": "address", "name": "curator", "type": "address" },
+        { "internalType": "uint256", "name": "lastPrice", "type": "uint256" },
+        { "internalType": "uint256", "name": "lastWeightUpdateTimestamp", "type": "uint256" },
+        { "internalType": "uint256", "name": "lastPriceUpdateTimestamp", "type": "uint256" },
+        { "internalType": "uint256", "name": "curatorFee", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+        { "internalType": "address", "name": "solverAddress", "type": "address" }
+      ],
+      "name": "getData",
+      "outputs": [
+        { "internalType": "bytes", "name": "curatorWeightsData", "type": "bytes" },
+        { "internalType": "uint256", "name": "curatorPriceData", "type": "uint256" },
+        { "internalType": "bytes", "name": "solverWeightsData", "type": "bytes" },
+        { "internalType": "uint256", "name": "solverPriceData", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "indexId", "type": "uint256" }
+      ],
+      "name": "getLastPrice",
+      "outputs": [
+        { "internalType": "uint256", "name": "", "type": "uint256" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "indexed": false, "internalType": "string", "name": "name", "type": "string" },
+        { "indexed": false, "internalType": "string", "name": "ticker", "type": "string" },
+        { "indexed": false, "internalType": "address", "name": "curator", "type": "address" }
+      ],
+      "name": "IndexDatasSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+        { "indexed": false, "internalType": "bytes", "name": "weights", "type": "bytes" },
+        { "indexed": false, "internalType": "uint256", "name": "price", "type": "uint256" }
+      ],
+      "name": "CuratorWeightsSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "solver", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" },
+        { "indexed": false, "internalType": "bytes", "name": "weights", "type": "bytes" },
+        { "indexed": false, "internalType": "uint256", "name": "price", "type": "uint256" }
+      ],
+      "name": "SolverWeightsSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "uint256", "name": "indexId", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "oldCurator", "type": "address" },
+        { "indexed": false, "internalType": "address", "name": "newCurator", "type": "address" }
+      ],
+      "name": "CuratorUpgraded",
+      "type": "event"
+    }
+]

@@ -8,7 +8,7 @@ services:
     ports:
       - '5000:5000'
     environment:
-      - DATABASE_URL=postgresql://neondb_owner:npg_S2J3TmZIGiEY@ep-winter-tooth-a5miqhef-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
+      - DATABASE_URL=postgresql://postgres:root@localhost:5432/fundmaker?sslmode=disable
       - COINGECKO_API_KEY=${COINGECKO_API_KEY}
       - COINMARKETCAP_API_KEY=${COINMARKETCAP_API_KEY}
       - BINANCE_API_KEY=${BINANCE_API_KEY}

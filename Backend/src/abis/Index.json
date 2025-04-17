@@ -1,0 +1,197 @@
+[
+    {
+      "inputs": [
+        { "internalType": "address", "name": "_pSymmAddress", "type": "address" },
+        { "internalType": "address", "name": "_IndexRegistryAddress", "type": "address" },
+        { "internalType": "string", "name": "_name", "type": "string" },
+        { "internalType": "string", "name": "_symbol", "type": "string" },
+        { "internalType": "bytes32", "name": "_custodyId", "type": "bytes32" },
+        { "internalType": "address", "name": "_collateralToken", "type": "address" },
+        { "internalType": "uint256", "name": "_collateralTokenPrecision", "type": "uint256" },
+        { "internalType": "uint256", "name": "_mintFee", "type": "uint256" },
+        { "internalType": "uint256", "name": "_burnFee", "type": "uint256" },
+        { "internalType": "uint256", "name": "_managementFee", "type": "uint256" },
+        { "internalType": "uint256", "name": "_maxMintPerBlock", "type": "uint256" },
+        { "internalType": "uint256", "name": "_maxRedeemPerBlock", "type": "uint256" }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "to", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "chainId", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "Burn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "from", "type": "address" },
+        { "indexed": false, "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "Deposit",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "to", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "executionPrice", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "executionTime", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "Mint",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "oldMaxMintPerBlock", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "maxMintPerBlock", "type": "uint256" }
+      ],
+      "name": "MaxMintPerBlockChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "oldMaxRedeemPerBlock", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "maxRedeemPerBlock", "type": "uint256" }
+      ],
+      "name": "MaxRedeemPerBlockChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "to", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "executionPrice", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "executionTime", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "Withdraw",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "indexed": false, "internalType": "address", "name": "from", "type": "address" },
+        { "indexed": false, "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "WithdrawRequest",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "deposit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getBurnFee",
+      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCollateralToken",
+      "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCollateralTokenPrecision",
+      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getLastPrice",
+      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getManagementFee",
+      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMintFee",
+      "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "target", "type": "address" },
+        { "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "internalType": "uint256", "name": "executionPrice", "type": "uint256" },
+        { "internalType": "uint256", "name": "executionTime", "type": "uint256" },
+        { "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "internalType": "uint256", "name": "chainId", "type": "uint256" },
+        { "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "burn",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "withdrawRequest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "uint256", "name": "amount", "type": "uint256" },
+        { "internalType": "address", "name": "to", "type": "address" },
+        { "components": [
+          { "internalType": "bytes", "name": "signature", "type": "bytes" },
+          { "internalType": "uint256", "name": "nonce", "type": "uint256" },
+          { "internalType": "uint256", "name": "deadline", "type": "uint256" }
+        ], "internalType": "struct PSYMM.VerificationData", "name": "v", "type": "tuple" },
+        { "internalType": "uint256", "name": "executionPrice", "type": "uint256" },
+        { "internalType": "uint256", "name": "executionTime", "type": "uint256" },
+        { "internalType": "address", "name": "frontend", "type": "address" }
+      ],
+      "name": "withdraw",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+]

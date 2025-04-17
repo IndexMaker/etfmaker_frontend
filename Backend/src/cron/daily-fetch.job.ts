@@ -22,7 +22,7 @@ export class DailyFetchJob {
   async handleDailyFetch() {
     // Fetch market cap
     const cgMarketCaps = await this.coinGeckoService.getMarketCap();
-    const cmcMarketCaps = await this.coinMarketCapService.getMarketCap();
+    // const cmcMarketCaps = await this.coinMarketCapService.getMarketCap();
 
     // Fetch Binance listings
     const { listings, delistings } = await this.binanceService.detectListingsAndDelistings();
@@ -47,12 +47,9 @@ export class DailyFetchJob {
         this.coinGeckoService,
         this.binanceService,
         new IndexRegistryService(),
-        {
-          db: tx,
-          getDb: () => tx,
-        },
+        new DbService(),
       );
-      await top100Service.rebalanceTop100('top100');
+      await top100Service.rebalanceTop100(100);
     });
   }
 }

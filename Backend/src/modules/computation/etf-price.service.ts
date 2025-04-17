@@ -14,13 +14,13 @@ export class EtfPriceService {
   ) {}
 
   async computeLivePrice(indexId: string, chainId: number): Promise<number> {
-    const { tokens, weights } = await this.indexRegistryService.getIndexData(indexId, chainId);
+    // const { tokens, weights } = await this.indexRegistryService.getIndexData(indexId, chainId);
     let totalPrice = 0;
-    for (let i = 0; i < tokens.length; i++) {
-      const coinId = this.mapTokenToCoinGeckoId(tokens[i]); // Map ERC20 address to CoinGecko ID
-      const price = await this.coinGeckoService.getLivePrice(coinId);
-      totalPrice += price * (weights[i] / 10000); // Weights in basis points
-    }
+    // for (let i = 0; i < tokens.length; i++) {
+    //   const coinId = this.mapTokenToCoinGeckoId(tokens[i]); // Map ERC20 address to CoinGecko ID
+    //   const price = await this.coinGeckoService.getLivePrice(coinId);
+    //   totalPrice += price * (weights[i] / 10000); // Weights in basis points
+    // }
     return totalPrice;
   }
 

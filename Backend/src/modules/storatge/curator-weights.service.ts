@@ -7,6 +7,6 @@ export class CuratorWeightsService {
   constructor(private indexRegistryService: IndexRegistryService) {}
 
   async storeWeights(indexId: string, weights: number[], timestamp: number): Promise<void> {
-    await this.indexRegistryService.setCuratorWeights(indexId, weights, timestamp);
+    // await this.indexRegistryService.setCuratorWeights(indexId, weights, timestamp);
   }
 }

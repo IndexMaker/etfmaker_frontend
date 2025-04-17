@@ -37,14 +37,14 @@ export class IndexController {
 
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get(':indexId/rebalance')
-  async rebalance(@Param('indexId') indexId: string): Promise<void> {
+  async rebalance(@Param('indexId') indexId: number): Promise<void> {
     await this.top100Service.rebalanceTop100(indexId);
   }
 
   @ApiOperation({ summary: 'Get index data' })
   @Get(':indexId/data')
-  async getIndexData(@Param('indexId') indexId: string): Promise<any> {
-    // return this.indexRegistryService.getIndexData(indexId, 1);
+  async getIndexData(@Param('indexId') indexId: number): Promise<any> {
+    return this.indexRegistryService.getIndexData(indexId);
   }
 
   @ApiOperation({ summary: 'Detect Binance listings/delistings' })
