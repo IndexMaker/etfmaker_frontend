@@ -54,3 +54,29 @@ export const tokenMetadata = pgTable('token_metadata', {
   marketCap: bigint('market_cap', { mode: 'number' }),
   fetchedAt: timestamp('fetched_at').defaultNow(),
 });
+
+export const binanceListings = pgTable('binance_listings', {
+  id: serial('id').primaryKey(),
+  pair: varchar('pair', { length: 20 }).notNull(), // e.g., BTCUSDT
+  action: varchar('action', { length: 10 }).notNull(), // listing or delisting
+  timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const tokenOhlc = pgTable('token_ohlc', {
+  id: serial('id').primaryKey(),
+  coinId: varchar('coin_id', { length: 100 }).notNull(), // e.g., bitcoin
+  open: decimal('open', { precision: 18, scale: 8 }).notNull(),
+  high: decimal('high', { precision: 18, scale: 8 }).notNull(),
+  low: decimal('low', { precision: 18, scale: 8 }).notNull(),
+  close: decimal('close', { precision: 18, scale: 8 }).notNull(),
+  timestamp: bigint('timestamp', { mode: 'number' }).notNull(), // Daily timestamp
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const tokenCategories = pgTable('token_categories', {
+  id: serial('id').primaryKey(),
+  coinId: varchar('coin_id', { length: 100 }).notNull(),
+  categories: jsonb('categories').notNull(), // Array of categories
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

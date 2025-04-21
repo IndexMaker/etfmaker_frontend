@@ -13,18 +13,21 @@ export class CoinGeckoService {
     private dbService: DbService,
   ) {}
 
-  async getMarketCap(): Promise<any[]> {
+  async getMarketCap(limit: number = 250, options: { ids?: string } = {}): Promise<any[]> {
     const response = await firstValueFrom(
       this.httpService.get('https://api.coingecko.com/api/v3/coins/markets', {
         params: {
           vs_currency: 'usd',
           order: 'market_cap_desc',
-          per_page: 250,
+          per_page: limit,
           page: 1,
           sparkline: false,
-          // x_cg_pro_api_key: process.env.COINGECKO_API_KEY,
-          'x-cg-demo-api-key': process.env.COINGECKO_API_KEY,
+          ...options,
         },
+        headers: {
+          'accept': "application/json",
+          "x-cg-demo-api-key": process.env.COINGECKO_API_KEY,
+        }
       }),
     );
     const coins = response.data;
@@ -40,14 +43,14 @@ export class CoinGeckoService {
           marketCap: coin.market_cap,
           fetchedAt: new Date(),
         })
-        .onConflictDoUpdate({
-          target: tokenMetadata.coinGeckoId,
-          set: {
-            categories,
-            marketCap: coin.market_cap,
-            fetchedAt: new Date(),
-          },
-        });
+        // .onConflictDoUpdate({
+        //   target: tokenMetadata.coinGeckoId,
+        //   set: {
+        //     categories,
+        //     marketCap: coin.market_cap,
+        //     fetchedAt: new Date(),
+        //   },
+        // });
     }
     return coins;
   }
@@ -60,9 +63,11 @@ export class CoinGeckoService {
           params: {
             vs_currency: 'usd',
             days: '1',
-            // x_cg_pro_api_key: process.env.COINGECKO_API_KEY,
-            'x-cg-demo-api-key': process.env.COINGECKO_API_KEY,
           },
+          headers: {
+            'accept': "application/json",
+            "x-cg-demo-api-key": process.env.COINGECKO_API_KEY,
+          }
         },
       ),
     );
@@ -80,9 +85,11 @@ export class CoinGeckoService {
       const response = await firstValueFrom(
         this.httpService.get(`https://api.coingecko.com/api/v3/coins/${coinId}`, {
           params: { 
-            // x_cg_pro_api_key: process.env.COINGECKO_API_KEY 
-            'x-cg-demo-api-key': process.env.COINGECKO_API_KEY,
           },
+          headers: {
+            'accept': "application/json",
+            "x-cg-demo-api-key": process.env.COINGECKO_API_KEY,
+          }
         }),
       );
       const categories = response.data.categories || [];
@@ -100,9 +107,11 @@ export class CoinGeckoService {
         params: {
           ids: coinId,
           vs_currencies: 'usd',
-          // x_cg_pro_api_key: process.env.COINGECKO_API_KEY,
-          'x-cg-demo-api-key': process.env.COINGECKO_API_KEY,
         },
+        headers: {
+          'accept': "application/json",
+          "x-cg-demo-api-key": process.env.COINGECKO_API_KEY,
+        }
       }),
     );
     return response.data[coinId]?.usd || 0;

@@ -26,9 +26,7 @@ export class BinanceService {
       const response = await firstValueFrom(this.httpService.get(this.apiUrl));
       const data = response.data;
 
-      // Filter for pairs ending in USDT or USDC
       const pairs = data.symbols
-        .filter((symbol: any) => ['USDT', 'USDC'].includes(symbol.quoteAsset))
         .map((symbol: any) => ({
           symbol: symbol.symbol,
           quoteAsset: symbol.quoteAsset,
