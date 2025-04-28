@@ -16,7 +16,7 @@ export class IndexService {
     this.providers = new Map([
       [1, new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://mainnet.infura.io/v3/your_infura_key')],
       [137, new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')],
-      [8453, new ethers.JsonRpcProvider(process.env.BASE_RPC_URL || 'https://mainnet.base.org')], // Base
+      [84532, new ethers.JsonRpcProvider(process.env.BASE_SEPOLIA_RPCURL || 'https://mainnet.base.org')], // Base
     ]);
 
     // Initialize contracts
@@ -58,6 +58,24 @@ export class IndexService {
         this.logger.log(`Processed Mint event for ${to} on chain ${chainId}, tx: ${event.transactionHash}`);
       } catch (error) {
         this.logger.error(`Error processing Mint event: ${error.message}`);
+      }
+    });
+
+    // Listen for Deposit events
+    contract.on('Deposit', async (amount, from, executionPrice, executionTime, frontend, event) => {
+      try {
+        await this.handleEvent({
+          indexId: indexId.toString(),
+          userAddress: from,
+          action: 'deposite',
+          amount: formatUnits(amount, 8), // Assume 8 decimals
+          txHash: event.transactionHash,
+          chainId,
+          timestamp: executionTime.toNumber(),
+        });
+        this.logger.log(`Processed Deposite event for ${from} on chain ${chainId}, tx: ${event.transactionHash}`);
+      } catch (error) {
+        this.logger.error(`Error processing Deposite event: ${error.message}`);
       }
     });
 

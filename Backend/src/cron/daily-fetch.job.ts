@@ -109,14 +109,11 @@ export class DailyFetchJob {
         });
       console.log(`Stored categories for ${categoryInserts.length} tokens`);
     }
-    // Start event listeners for indices
-    const indexId = 'top100'; // Example
-    await this.indexService.listenToEvents('0xYourIndexAddress', 1); // Mainnet
-    await this.indexService.listenToEvents('0xYourIndexAddress', 8453); // Base
+    await this.indexService.listenToEvents(process.env.INDEX_REGISTRY_ADDRESS || '', 8453); // Base
   }
 
-  @Cron('0 0 */14 * *') // Every 2 weeks
-  async handleRebalance() {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async rebalanceSYAZ() {
     await this.dbService.getDb().transaction(async (tx) => {
       const top100Service = new Top100Service(
         this.coinGeckoService,
@@ -124,7 +121,20 @@ export class DailyFetchJob {
         new IndexRegistryService(),
         new DbService(),
       );
-      await top100Service.rebalanceTop100(100);
+      await top100Service.rebalanceSYAZ(2);
+    });
+  }
+
+  @Cron('0 0 */14 * *') // Every 2 weeks
+  async rebalanceSY100() {
+    await this.dbService.getDb().transaction(async (tx) => {
+      const top100Service = new Top100Service(
+        this.coinGeckoService,
+        this.binanceService,
+        new IndexRegistryService(),
+        new DbService(),
+      );
+      await top100Service.rebalanceSY100(1);
     });
   }
 }

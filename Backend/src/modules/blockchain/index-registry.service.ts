@@ -14,12 +14,12 @@ export class IndexRegistryService {
     this.providers = new Map([
       [1, new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://mainnet.infura.io/v3/your_infura_key')],
       [137, new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')],
-      [8453, new ethers.JsonRpcProvider(process.env.BASE_RPC_URL || 'https://mainnet.base.org')], // Base
+      [84532, new ethers.JsonRpcProvider(process.env.BASE_SEPOLIA_RPCURL || 'https://mainnet.base.org')], // Base
     ]);
 
     // Initialize contracts
     this.contracts = new Map();
-    const indexRegistryAddress = process.env.INDEX_REGISTRY_ADDRESS || '0xae0d5185a7f08a9d558fd3147d61e185f322115e';
+    const indexRegistryAddress = process.env.INDEX_REGISTRY_ADDRESS || '0x77599dFBf5Fd70c5BA8D678Ca5dE3adc2fCa4150';
     for (const [chainId, provider] of this.providers) {
       this.contracts.set(
         chainId,
@@ -29,10 +29,10 @@ export class IndexRegistryService {
 
     // Initialize wallet for write operations
     const privateKey = process.env.PRIVATE_KEY;
-    if (privateKey && this.providers.get(8453)) {
-      this.wallet = new ethers.Wallet(privateKey, this.providers.get(8453));
+    if (privateKey && this.providers.get(84532)) {
+      this.wallet = new ethers.Wallet(privateKey, this.providers.get(84532));
       this.contracts.set(
-        8453,
+        84532,
         new ethers.Contract(indexRegistryAddress, IndexRegistryABI, this.wallet),
       );
     } else {
@@ -115,7 +115,7 @@ export class IndexRegistryService {
     }
   }
 
-  async registerIndex(name: string, ticker: string, curatorFee: number, chainId: number = 8453): Promise<void> {
+  async registerIndex(name: string, ticker: string, curatorFee: bigint, chainId: number = 8453): Promise<void> {
     if (!this.wallet || !this.contracts.has(chainId)) {
       this.logger.error(`Cannot perform write operation: Wallet or chain ${chainId} not configured`);
       throw new Error(`Wallet or chain ${chainId} not configured`);

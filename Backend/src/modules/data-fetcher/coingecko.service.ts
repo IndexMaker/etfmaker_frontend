@@ -31,7 +31,14 @@ export class CoinGeckoService {
       }),
     );
     const coins = response.data;
-    for (const coin of coins.slice(0, 100)) {
+
+    // Filter based on atl_date
+    const filteredTokens = coins.filter((token: any) => {
+      if (!token.atl_date) return false; // no date? skip
+      const atlDate = new Date(token.atl_date);
+      return atlDate >= new Date('2022-01-01');
+    });
+    for (const coin of filteredTokens) {
       const categories = await this.getCategories(coin.id);
       await this.dbService
         .getDb()
@@ -53,6 +60,25 @@ export class CoinGeckoService {
         // });
     }
     return coins;
+  }
+
+  async getA16zPortfolioTokens(options: {ids?: string} = {}): Promise<any[]> {
+    // Fetch a16z Portfolio tokens from CoinGecko
+    const response = await firstValueFrom(this.httpService.get('https://api.coingecko.com/api/v3/coins/markets', {
+        params: {
+          category: "a16z-portfolio",
+          order: 'market_cap_desc',
+          page: 1,
+          per_page: 250,
+          ...options,
+        },
+        headers: {
+          'accept': "application/json",
+          "x-cg-demo-api-key": process.env.COINGECKO_API_KEY,
+        }
+      })
+    )
+    return response.data || []
   }
 
   async getOHLC(coinId: string): Promise<number[][]> {
