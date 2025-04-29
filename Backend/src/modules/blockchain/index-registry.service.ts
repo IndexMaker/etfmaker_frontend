@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AbiCoder, ZeroAddress, ethers } from 'ethers';
-import IndexRegistryABI from '../../abis/IndexRegistry.json';
+import * as path from 'path';
 
 @Injectable()
 export class IndexRegistryService {
@@ -20,10 +20,16 @@ export class IndexRegistryService {
     // Initialize contracts
     this.contracts = new Map();
     const indexRegistryAddress = process.env.INDEX_REGISTRY_ADDRESS || '0x77599dFBf5Fd70c5BA8D678Ca5dE3adc2fCa4150';
+    const artifactPath = path.resolve(
+      __dirname,
+      '../../../../artifacts/contracts/src/ETFMaker/IndexRegistry.sol/IndexRegistry.json',
+    );
+    const IndexRegistryArtifact = require(artifactPath);
+
     for (const [chainId, provider] of this.providers) {
       this.contracts.set(
         chainId,
-        new ethers.Contract(indexRegistryAddress, IndexRegistryABI, provider),
+        new ethers.Contract(indexRegistryAddress, IndexRegistryArtifact.abi, provider),
       );
     }
 
@@ -33,7 +39,7 @@ export class IndexRegistryService {
       this.wallet = new ethers.Wallet(privateKey, this.providers.get(84532));
       this.contracts.set(
         84532,
-        new ethers.Contract(indexRegistryAddress, IndexRegistryABI, this.wallet),
+        new ethers.Contract(indexRegistryAddress, IndexRegistryArtifact.abi, this.wallet),
       );
     } else {
       this.logger.warn('Private key or Base provider not set; write operations disabled');
@@ -102,10 +108,7 @@ export class IndexRegistryService {
     try {
       const contract = this.contracts.get(chainId)!;
       // Encode weights as [address, uint256][]
-      const encodedWeights = AbiCoder.defaultAbiCoder().encode(
-        ['tuple(address,uint256)[]'],
-        [weights]
-      );
+      const encodedWeights = this.encodeWeights(weights);
       const tx = await contract.setCuratorWeights(indexId, timestamp, encodedWeights, price);
       await tx.wait();
       this.logger.log(`Set weights for indexId ${indexId} on chain ${chainId}, tx: ${tx.hash}`);
@@ -130,5 +133,27 @@ export class IndexRegistryService {
       this.logger.error(`Error registering index ${name} on chain ${chainId}: ${error.message}`);
       throw error;
     }
+  }
+
+  private encodeWeights(symbolWeights: [string, number][]): string {
+    const bytesArray: Uint8Array[] = [];
+  
+    for (const [symbol, weight] of symbolWeights) {
+      // Manually pad symbol to 12 bytes (or truncate)
+      const symbolBytesRaw = ethers.toUtf8Bytes(symbol);
+      const symbolBytes = new Uint8Array(12);
+      symbolBytes.set(symbolBytesRaw.slice(0, 12)); // truncate/pad to 12 bytes
+      bytesArray.push(symbolBytes);
+  
+      // Pack weight into 2 bytes (uint16)
+      const weightBytes = new Uint8Array(2);
+      weightBytes[0] = (weight >> 8) & 0xff;
+      weightBytes[1] = weight & 0xff;
+      bytesArray.push(weightBytes);
+    }
+  
+    // Concatenate and hexlify
+    const finalBytes = Uint8Array.from(bytesArray.flatMap(byteArray => Array.from(byteArray)));
+    return ethers.hexlify(finalBytes);
   }
 }

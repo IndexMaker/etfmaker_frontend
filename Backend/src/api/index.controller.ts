@@ -38,8 +38,8 @@ export class IndexController {
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
-    await this.top100Service.rebalanceSY100(1);
-    await this.top100Service.rebalanceSYAZ(2);
+    // await this.top100Service.rebalanceSY100(1);
+    await this.top100Service.rebalanceSYAZ(3);
   }
 
   @ApiOperation({ summary: 'Get index data' })
