@@ -14,7 +14,7 @@ export class IndexRegistryService {
     this.providers = new Map([
       [1, new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://mainnet.infura.io/v3/your_infura_key')],
       [137, new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')],
-      [84532, new ethers.JsonRpcProvider(process.env.BASE_SEPOLIA_RPCURL || 'https://mainnet.base.org')], // Base
+      [8453, new ethers.JsonRpcProvider(process.env.BASE_RPCURL || 'https://mainnet.base.org')], // Base
     ]);
 
     // Initialize contracts
@@ -35,10 +35,10 @@ export class IndexRegistryService {
 
     // Initialize wallet for write operations
     const privateKey = process.env.PRIVATE_KEY;
-    if (privateKey && this.providers.get(84532)) {
-      this.wallet = new ethers.Wallet(privateKey, this.providers.get(84532));
+    if (privateKey && this.providers.get(8453)) {
+      this.wallet = new ethers.Wallet(privateKey, this.providers.get(8453));
       this.contracts.set(
-        84532,
+        8453,
         new ethers.Contract(indexRegistryAddress, IndexRegistryArtifact.abi, this.wallet),
       );
     } else {
@@ -155,5 +155,24 @@ export class IndexRegistryService {
     // Concatenate and hexlify
     const finalBytes = Uint8Array.from(bytesArray.flatMap(byteArray => Array.from(byteArray)));
     return ethers.hexlify(finalBytes);
+  }
+
+  decodeWeights(hexData: string): [string, number][] {
+    const bytes = ethers.getBytes(hexData);
+    const result: [string, number][] = [];
+  
+    for (let i = 0; i < bytes.length; i += 14) {
+      // Get symbol (12 bytes)
+      const symbolBytes = bytes.slice(i, i + 12);
+      const symbol = ethers.toUtf8String(symbolBytes).replace(/\0+$/, ''); // Remove padding nulls
+  
+      // Get weight (2 bytes)
+      const weightBytes = bytes.slice(i + 12, i + 14);
+      const weight = (weightBytes[0] << 8) | weightBytes[1];
+  
+      result.push([symbol, weight]);
+    }
+  
+    return result;
   }
 }

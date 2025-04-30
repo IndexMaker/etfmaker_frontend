@@ -1,14 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    domains: ["cdn.morpho.org", 'www.countryflags.io'], // Add allowed external domains here
+    domains: ["cdn.morpho.org", "www.countryflags.io"],
   },
   eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
     ignoreDuringBuilds: true,
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:5001/:path*", // Proxy to NestJS backend
+      },
+    ];
   },
 };
 

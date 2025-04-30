@@ -16,7 +16,7 @@ export class IndexService {
     this.providers = new Map([
       [1, new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://mainnet.infura.io/v3/your_infura_key')],
       [137, new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')],
-      [84532, new ethers.JsonRpcProvider(process.env.BASE_SEPOLIA_RPCURL || 'https://mainnet.base.org')], // Base
+      [8453, new ethers.JsonRpcProvider(process.env.BASE_RPCURL || 'https://mainnet.base.org')], // Base
     ]);
 
     // Initialize contracts

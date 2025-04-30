@@ -121,7 +121,8 @@ export class DailyFetchJob {
         new IndexRegistryService(),
         new DbService(),
       );
-      await top100Service.rebalanceSYAZ(2);
+      const timestamp = Math.floor((new Date()).getTime() / 1000)
+      await top100Service.rebalanceSYAZ(2, timestamp);
     });
   }
 
@@ -134,7 +135,8 @@ export class DailyFetchJob {
         new IndexRegistryService(),
         new DbService(),
       );
-      await top100Service.rebalanceSY100(1);
+      const timestamp = Math.floor((new Date()).getTime() / 1000)
+      await top100Service.rebalanceSY100(1, timestamp);
     });
   }
 }

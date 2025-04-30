@@ -6,6 +6,7 @@ import { compositions, rebalances } from '../../db/schema';
 import { ethers } from 'ethers';
 import { DbService } from 'src/db/db.service';
 import * as path from 'path';
+import { and, eq, isNull } from 'drizzle-orm';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 @Injectable()
@@ -25,7 +26,7 @@ export class Top100Service {
     private dbService: DbService,
   ) {
     const rpcUrl =
-      process.env.BASE_SEPOLIA_RPCURL || 'https://mainnet.base.org'; // Use testnet URL for Sepolia if needed
+      process.env.BASE_RPCURL || 'https://mainnet.base.org'; // Use testnet URL for Sepolia if needed
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
     // Configure signer with private key
@@ -36,9 +37,13 @@ export class Top100Service {
     this.signer = new ethers.Wallet(privateKey, this.provider);
   }
 
-  async rebalanceSY100(indexId: number): Promise<void> {
-    this.logger.log('Starting SY100 rebalance...');
-
+  async rebalanceSY100(
+    indexId: number,
+    rebalanceTimestamp: number,
+  ): Promise<void> {
+    this.logger.log(
+      `Starting SY100 rebalance at ${new Date(rebalanceTimestamp * 1000).toISOString()}...`,
+    );
     try {
       // Load IndexRegistry contract
       const artifactPath = path.resolve(
@@ -74,11 +79,13 @@ export class Top100Service {
         }
       }
 
-      console.log(indexes, indexCount, process.env.INDEX_REGISTRY_ADDRESS);
       if (!(await this.indexExists(indexId, indexRegistry))) {
         this.logger.log('SY100 does not exist, deploying...');
         // Fetch market cap and weights
-        const { weights, price } = await this.computeSY100Weights(indexId);
+        const { weights, price } = await this.computeSY100Weights(
+          indexId,
+          rebalanceTimestamp,
+        );
         weightsForContract = weights;
         etfPrice = price;
 
@@ -94,7 +101,10 @@ export class Top100Service {
       } else {
         this.logger.log('SY100 exists, updating weights...');
         // Fetch market cap and weights
-        const { weights, price } = await this.computeSY100Weights(indexId);
+        const { weights, price } = await this.computeSY100Weights(
+          indexId,
+          rebalanceTimestamp,
+        );
         weightsForContract = weights;
         etfPrice = price;
       }
@@ -104,8 +114,8 @@ export class Top100Service {
         indexId,
         weightsForContract,
         Math.floor(etfPrice * 1e6),
-        Math.floor(Date.now() / 1000),
-        84532,
+        rebalanceTimestamp,
+        8453,
       );
 
       this.logger.log(
@@ -119,15 +129,18 @@ export class Top100Service {
 
   private async computeSY100Weights(
     indexId: number,
+    rebalanceTimestamp: number,
   ): Promise<{ weights: [string, number][]; price: number }> {
     const binancePairs = await this.binanceService.fetchTradingPairs();
-    const activePairs = binancePairs.filter(pair => pair.status === 'TRADING');
+    const activePairs = binancePairs.filter(
+      (pair) => pair.status === 'TRADING',
+    );
     // Create a map of tokens to their preferred pairs (USDC > USDT)
     const tokenToPairMap = new Map<string, string>();
-    activePairs.forEach(pair => {
+    activePairs.forEach((pair) => {
       const quote = pair.quoteAsset;
       const base = pair.symbol.replace(quote, '');
-      
+
       // Only consider USDC/USDT pairs
       if (quote === 'USDC' || quote === 'USDT') {
         // Prefer USDC if available, otherwise keep USDT if no USDC exists
@@ -138,12 +151,12 @@ export class Top100Service {
     });
     const eligibleTokens: any[] = [];
     let page = 1;
-  
+
     while (eligibleTokens.length < 100) {
       const marketCaps = await this.coinGeckoService.getMarketCap(250, page);
-  
+
       if (marketCaps.length === 0) break; // No more data to fetch
-  
+
       for (const coin of marketCaps) {
         if (eligibleTokens.length >= 100) break;
         // Check if token has either USDC or USDT pair
@@ -151,12 +164,25 @@ export class Top100Service {
         const pair = tokenToPairMap.get(symbolUpper);
         if (!pair) continue; // Skip if no USDC/USDT pair
         if (!tokenToPairMap.has(symbolUpper)) continue;
-  
+
+        // ✅ Check if token was listed before rebalancing
+        const listingTimestamp =
+          await this.binanceService.getListingTimestampFromS3(
+            pair.split('.')[1],
+          );
+        console.log(listingTimestamp, pair.split('.')[1]);
+        if (!listingTimestamp || listingTimestamp / 1000 > rebalanceTimestamp) {
+          this.logger.warn(
+            `${coin.id} skipped: listed after rebalancing date.`,
+          );
+          continue;
+        }
+
         const categories = await this.coinGeckoService.getCategories(coin.id);
         const isBlacklisted = categories.some((c) =>
           this.blacklistedCategories.includes(c),
         );
-  
+
         if (!isBlacklisted) {
           eligibleTokens.push({
             symbol: coin.symbol,
@@ -169,48 +195,58 @@ export class Top100Service {
           );
         }
       }
-  
+
       page += 1;
     }
-  
+
     if (eligibleTokens.length < 100) {
       throw new Error(
         `Insufficient eligible tokens for Top 100 index. Only found ${eligibleTokens.length}`,
       );
     }
-  
+
     const weightsForContract: [string, number][] = eligibleTokens.map(
-      token => [token.binancePair, 100] // e.g., ["bi.ETHUSDT", 100]
+      (token) => [token.binancePair, 100], // e.g., ["bi.ETHUSDT", 100]
     );
-  
+
     const etfPrice = eligibleTokens.reduce(
       (sum, token) => sum + token.current_price * (100 / 10000),
-      0
+      0,
     );
-  
-    await this.dbService.getDb().insert(compositions).values(
-      weightsForContract.map((addr, i) => ({
+
+    // Begin transaction
+    await this.dbService.getDb().transaction(async (tx) => {
+      // Insert new compositions
+      await tx.insert(compositions).values(
+        weightsForContract.map(([tokenAddress, weight]) => ({
+          indexId: indexId.toString(),
+          tokenAddress,
+          weight: (weight / 100).toString(),
+          validUntil: new Date(),
+          rebalanceTimestamp,
+        }))
+      );
+
+      // Record rebalance event
+      await tx.insert(rebalances).values({
         indexId: indexId.toString(),
-        tokenAddress: addr[0],
-        weight: (addr[1] / 100).toString(),
-      })),
-    );
-  
-    await this.dbService.getDb().insert(rebalances).values({
-      indexId: indexId.toString(),
-      weights: JSON.stringify(weightsForContract),
-      prices: weightsForContract.reduce(
-        (obj, p, i) => ({ ...obj, [weightsForContract[i][0]]: p }),
-        {},
-      ),
-      timestamp: Math.floor(Date.now() / 1000),
+        weights: JSON.stringify(weightsForContract),
+        prices: Object.fromEntries(eligibleTokens.map((token, i) => [
+          token.binancePair,
+          token.current_price
+        ])),
+        timestamp: rebalanceTimestamp, // Use the passed timestamp
+      });
     });
-  
+    console.log(etfPrice, weightsForContract);
+
     return { weights: weightsForContract, price: etfPrice };
   }
-  
 
-  async rebalanceSYAZ(indexId: number): Promise<void> {
+  async rebalanceSYAZ(
+    indexId: number,
+    rebalanceTimestamp: number,
+  ): Promise<void> {
     console.log('Starting SYAZ rebalance...');
     const artifactPath = path.resolve(
       __dirname,
@@ -227,11 +263,11 @@ export class Top100Service {
 
     for (let i = 0; i < Number(indexCount); i++) {
       const indexData = await indexRegistry.getIndexDatas(i.toString());
-        // Only if valid
-        indexes.push({
-          id: i,
-          data: indexData,
-        });
+      // Only if valid
+      indexes.push({
+        id: i,
+        data: indexData,
+      });
     }
     console.log(indexes, indexCount, process.env.INDEX_REGISTRY_ADDRESS);
     const name = 'SYAZ';
@@ -240,28 +276,38 @@ export class Top100Service {
 
     if (!(await this.indexExists(indexId, indexRegistry))) {
       this.logger.log('SYAZ does not exist, deploying...');
-      const { weights, etfPrice } = await this.fetchSYAZWeights(indexId);
+      const { weights, etfPrice } = await this.fetchSYAZWeights(
+        indexId,
+        rebalanceTimestamp,
+      );
       await this.deployIndex(name, symbol, custodyId, indexId, weights);
       // Update smart contract
-      await this.indexRegistryService.setCuratorWeights(
-        indexId,
-        weights,
-        Math.floor(etfPrice * 1e6),
-        Math.floor(Date.now() / 1000),
-        84532,
-      );
+      if (weights && etfPrice) {
+        await this.indexRegistryService.setCuratorWeights(
+          indexId,
+          weights,
+          Math.floor(etfPrice * 1e6),
+          rebalanceTimestamp,
+          8453,
+        );
+      }
     } else {
       this.logger.log('SYAZ exists, updating weights...');
-      const { weights, etfPrice } = await this.fetchSYAZWeights(indexId);
+      const { weights, etfPrice } = await this.fetchSYAZWeights(
+        indexId,
+        rebalanceTimestamp,
+      );
 
       // Update smart contract
-      await this.indexRegistryService.setCuratorWeights(
-        indexId,
-        weights,
-        Math.floor(etfPrice * 1e6),
-        Math.floor(Date.now() / 1000),
-        84532,
-      );
+      if (weights && etfPrice) {
+        await this.indexRegistryService.setCuratorWeights(
+          indexId,
+          weights,
+          Math.floor(etfPrice * 1e6),
+          rebalanceTimestamp,
+          8453,
+        );
+      }
     }
   }
 
@@ -317,25 +363,32 @@ export class Top100Service {
     this.logger.log(`${name} deployed to: ${deployedAddress}`);
 
     // Register the index
-    await this.indexRegistryService.registerIndex(name, symbol, managementFee, 84532);
+    await this.indexRegistryService.registerIndex(
+      name,
+      symbol,
+      managementFee,
+      8453,
+    );
     this.logger.log(`${name} registered with ID ${indexId}`);
 
     return deployedAddress;
   }
 
-  async fetchSYAZWeights(indexId: number) {
+  async fetchSYAZWeights(indexId: number, rebalanceTimestamp: number) {
     try {
       // Fetch a16z Portfolio tokens from CoinGecko
       const a16zTokens = await this.coinGeckoService.getA16zPortfolioTokens();
 
       const binancePairs = await this.binanceService.fetchTradingPairs();
-      const activePairs = binancePairs.filter(pair => pair.status === 'TRADING');
+      const activePairs = binancePairs.filter(
+        (pair) => pair.status === 'TRADING',
+      );
       // Create a map of tokens to their preferred pairs (USDC > USDT)
       const tokenToPairMap = new Map<string, string>();
-      activePairs.forEach(pair => {
+      activePairs.forEach((pair) => {
         const quote = pair.quoteAsset;
         const base = pair.symbol.replace(quote, '');
-        
+
         // Only consider USDC/USDT pairs
         if (quote === 'USDC' || quote === 'USDT') {
           // Prefer USDC if available, otherwise keep USDT if no USDC exists
@@ -345,32 +398,82 @@ export class Top100Service {
         }
       });
 
-      const eligibleTokens: any[] = []
+      const eligibleTokens: any[] = [];
       // Filter for tokens listed on Binance
       const binanceA16ZTokens = a16zTokens.filter((token) => {
         const symbolUpper = token.symbol.toUpperCase();
         const pair = tokenToPairMap.get(symbolUpper); // Get the full pair (e.g., BTCUSDC)
-        
+
         // Ensure the pair exists AND ends with USDC or USDT
         if (!pair) return false;
-        
-        const quoteAsset = pair.endsWith('USDC') ? 'USDC' : 
-                          pair.endsWith('USDT') ? 'USDT' : 
-                          null;
-        
+
+        const quoteAsset = pair.endsWith('USDC')
+          ? 'USDC'
+          : pair.endsWith('USDT')
+            ? 'USDT'
+            : null;
+
         return quoteAsset !== null; // Only allow USDC/USDT pairs
       });
 
-      binanceA16ZTokens.map(coin => {
+      binanceA16ZTokens.map(async (coin) => {
         const symbolUpper = coin.symbol.toUpperCase();
         const pair = tokenToPairMap.get(symbolUpper);
+        if (pair) {
+          // ✅ Check if token was listed before rebalancing
+          const listingTimestamp =
+            await this.binanceService.getListingTimestampFromS3(
+              pair.split('.')[1],
+            );
+          console.log(listingTimestamp, pair.split('.')[1]);
+          if (
+            !listingTimestamp ||
+            listingTimestamp / 1000 > rebalanceTimestamp
+          ) {
+            this.logger.warn(
+              `${coin.id} skipped: listed after rebalancing date.`,
+            );
+          } else {
+            eligibleTokens.push({
+              symbol: coin.symbol,
+              binancePair: pair, // e.g., "bi.BTCUSDC"
+              current_price: coin.current_price,
+            });
+          }
+        }
+      });
 
-        eligibleTokens.push({
-          symbol: coin.symbol,
-          binancePair: pair, // e.g., "bi.BTCUSDC"
-          current_price: coin.current_price,
-        });
-      })
+      // Get current active composition
+      const currentComposition = await this.dbService
+        .getDb()
+        .select()
+        .from(compositions)
+        .where(
+          and(
+            eq(compositions.indexId, indexId.toString()),
+            isNull(compositions.validUntil),
+          ),
+        );
+
+      // Check if we need to rebalance
+      const currentTokenSet = new Set(eligibleTokens.map((t) => t.binancePair));
+      const previousTokenSet = new Set(
+        currentComposition.map((c) => c.tokenAddress),
+      );
+
+      const hasNewTokens = [...currentTokenSet].some(
+        (t) => !previousTokenSet.has(t),
+      );
+      const hasRemovedTokens = [...previousTokenSet].some(
+        (t) => !currentTokenSet.has(t),
+      );
+
+      // Skip rebalance if no changes
+      if (!hasNewTokens && !hasRemovedTokens && currentComposition.length > 0) {
+        this.logger.log('No changes in A16Z portfolio - skipping rebalance');
+        return { weights: null, etfPrice: null };
+      }
+
       // Assign equal weights
       const weightPerToken = Math.floor(10000 / eligibleTokens.length);
       const weightsRaw = eligibleTokens.map(() => weightPerToken);
@@ -388,32 +491,54 @@ export class Top100Service {
 
       // Compute ETF price
       const prices = await Promise.all(
-        eligibleTokens.map((coin) =>
-          // this.coinGeckoService.getLivePrice(coin.id),
-          coin.current_price
+        eligibleTokens.map(
+          (coin) =>
+            // this.coinGeckoService.getLivePrice(coin.id),
+            coin.current_price,
         ),
       );
       const etfPrice = prices.reduce(
         (sum, price, i) => sum + price * (weightPerToken / 10000),
         0,
       );
-      console.log(etfPrice, weights)
-      await this.dbService.getDb().insert(compositions).values(
-        weights.map((addr, i) => ({
+      console.log(etfPrice, weights);
+      // Begin transaction
+      await this.dbService.getDb().transaction(async (tx) => {
+        // Mark previous compositions as invalid
+        if (currentComposition.length > 0) {
+          await tx
+            .update(compositions)
+            .set({ validUntil: new Date() })
+            .where(
+              and(
+                eq(compositions.indexId, indexId.toString()),
+                isNull(compositions.validUntil),
+              ),
+            );
+        }
+
+        // Insert new compositions
+        await tx.insert(compositions).values(
+          weights.map(([tokenAddress, weight]) => ({
+            indexId: indexId.toString(),
+            tokenAddress,
+            weight: (weight / 100).toString(),
+            rebalanceTimestamp,
+          })),
+        );
+
+        // Record rebalance event
+        await tx.insert(rebalances).values({
           indexId: indexId.toString(),
-          tokenAddress: addr[0],
-          weight: (addr[1] / 100).toString(),
-        })),
-      );
-    
-      await this.dbService.getDb().insert(rebalances).values({
-        indexId: indexId.toString(),
-        weights: JSON.stringify(weights),
-        prices: weights.reduce(
-          (obj, p, i) => ({ ...obj, [weights[i][0]]: p }),
-          {},
-        ),
-        timestamp: Math.floor(Date.now() / 1000),
+          weights: JSON.stringify(weights),
+          prices: Object.fromEntries(
+            eligibleTokens.map((token, i) => [
+              token.binancePair,
+              token.current_price,
+            ]),
+          ),
+          timestamp: rebalanceTimestamp, // Use the passed timestamp
+        });
       });
       return { weights, etfPrice };
     } catch (error) {
@@ -445,34 +570,5 @@ export class Top100Service {
     //   8453,
     // );
     console.log(`Weights updated for index ID ${indexId}`);
-  }
-
-  private async getFallbackTokens() {
-    // const fallbackIds = [
-    //   ...this.fallbackStablecoins,
-    //   ...this.fallbackWrappedTokens,
-    // ];
-    // const tokens: any[] = [];
-    // for (const id of fallbackIds) {
-    //   try {
-    //     const marketData = await this.coinGeckoService.getMarketCap(1, {
-    //       ids: id,
-    //     });
-    //     if (marketData.length > 0) tokens.push(marketData[0]);
-    //   } catch (error) {
-    //     this.logger.warn(
-    //       `Failed to fetch fallback token ${id}: ${error.message}`,
-    //     );
-    //   }
-    // }
-    // return tokens;
-  }
-
-  private mapCoinGeckoToToken(coinId: string): string {
-    const map: Record<string, string> = {
-      bitcoin: '0x...',
-      ethereum: '0x...',
-    };
-    return map[coinId] || '0x0000000000000000000000000000000000000000';
   }
 }

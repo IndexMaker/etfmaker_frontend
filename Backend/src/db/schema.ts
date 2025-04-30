@@ -14,6 +14,8 @@ export const compositions = pgTable('compositions', {
   indexId: varchar('index_id', { length: 66 }).notNull(),
   tokenAddress: varchar('token_address', { length: 66 }).notNull(),
   weight: decimal('weight', { precision: 5, scale: 4 }).notNull(),
+  rebalanceTimestamp: bigint('rebalance_timestamp', { mode: 'number' }).notNull(),
+  validUntil: timestamp('valid_until'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 

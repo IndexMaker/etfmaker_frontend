@@ -29,6 +29,13 @@
       "when": 1744986842749,
       "tag": "0003_exotic_betty_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1746005154836,
+      "tag": "0004_fearless_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

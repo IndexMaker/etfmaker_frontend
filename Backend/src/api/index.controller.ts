@@ -38,8 +38,28 @@ export class IndexController {
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
-    // await this.top100Service.rebalanceSY100(1);
-    await this.top100Service.rebalanceSYAZ(3);
+    // SY100: Biweekly from 2022-01-01
+    let sy100Start = new Date('2022-01-01');
+    const now = new Date();
+
+    while (sy100Start <= now) {
+      console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
+      await this.top100Service.rebalanceSY100(
+        1,
+        Math.floor(sy100Start.getTime() / 1000),
+      );
+      sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
+    }
+    let syazStart = new Date();
+
+    while (syazStart <= now) {
+      console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
+      await this.top100Service.rebalanceSYAZ(
+        2,
+        Math.floor(syazStart.getTime() / 1000),
+      );
+      syazStart.setDate(syazStart.getDate() + 1); // daily
+    }
   }
 
   @ApiOperation({ summary: 'Get index data' })
@@ -58,5 +78,48 @@ export class IndexController {
   @Get('binance/pairs')
   async getBinancePairs(): Promise<any> {
     return this.binanceService.fetchTradingPairs();
+  }
+
+  @Get('/getHistoricalData')
+  async getHistoricalData() {
+    const indexIds = [4, 5]; // Or dynamically load this list if needed
+    const allData: any[] = [];
+
+    for (const indexId of indexIds) {
+      const rawData = await this.etfPriceService.getHistoricalData(indexId);
+
+      // Calculate cumulative returns
+      let baseValue = 10000;
+      let indexName = '';
+      const chartData = rawData.map((entry, index) => {
+        indexName =  entry.name
+        if (index === 0)
+          return {
+            name: entry.name,
+            date: entry.date,
+            price: entry.price,
+            value: baseValue,
+          };
+
+        const prevPrice = rawData[index - 1].price;
+        const returnPct = (entry.price - prevPrice) / prevPrice;
+        baseValue = baseValue * (1 + returnPct);
+
+        return {
+          date: entry.date,
+          price: entry.price,
+          value: baseValue,
+        };
+      });
+
+      allData.push({
+        name: indexName,
+        indexId,
+        rawData,
+        chartData,
+      });
+    }
+
+    return allData;
   }
 }
