@@ -278,159 +278,18 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    id: "aragon",
-    name: "Aragon",
+    id: "symmio",
+    name: "Symmio Index",
     description:
-      "Building full-stack DAO technology, enabling organizations to govern their protocols and assets on-chain.",
+      "Building full-stack onchain juridiction, enabling index providers to launch liquidity in minutes.",
     icon: "aragon",
   },
   {
-    id: "brahma-console",
-    name: "Brahma Console",
+    id: "Carbon",
+    name: "Carbon Index",
     description:
-      "Console is your universal multi-chain account to secure, navigate, and automate on-chain interactions.",
+      "Carbon Index is a leading onchain index provider, enabling index providers to launch liquidity in minutes.",
     icon: "brahma",
-  },
-  {
-    id: "contango",
-    name: "Contango",
-    description:
-      "Trade decentralized perpetual futures by automated hedging strategies on underlying lending protocols.",
-    icon: "contango",
-  },
-  {
-    id: "delv-fixed-borrow",
-    name: "DELV Fixed Borrow",
-    description:
-      "DELV Fixed Borrow enables existing DeFi borrowers on FundMaker to fix their interest rates and gain predictability on borrow costs.",
-    icon: "hyperdrive",
-  },
-  {
-    id: "defi-saver",
-    name: "Defi Saver",
-    description:
-      "Advanced DeFi Management. All the essential tools for creating, tracking, and managing your DeFi portfolio.",
-    icon: "defisaver",
-  },
-  {
-    id: "definitive",
-    name: "Definitive",
-    description:
-      "A non-custodial platform for advanced on-chain trade execution and DeFi yield.",
-    icon: "definitive",
-  },
-  {
-    id: "furucombo",
-    name: "Furucombo",
-    description:
-      "Furucombo is a multi-chain DeFi aggregator designed to simplify & optimize DeFi trading for everyone!",
-    icon: "furucombo",
-  },
-  {
-    id: "hyperdrive",
-    name: "Hyperdrive",
-    description:
-      "Get yield, your way. Access fixed and variable yields at your control with Hyperdrive.",
-    icon: "hyperdrive",
-  },
-  {
-    id: "idle-finance",
-    name: "Idle Finance",
-    description:
-      "Yield optimization and risk tranching. Automated, diversified, DeFi yields.",
-    icon: "idlefinance",
-  },
-  {
-    id: "instadapp",
-    name: "Instadapp",
-    description:
-      "The ultimate DeFi hub. Simplify your journey and enjoy a safer, more accessible experience.",
-    icon: "instadapp",
-  },
-  {
-    id: "ionic-protocol",
-    name: "Ionic Protocol",
-    description:
-      "Isolated Lending and Borrowing for Yield Bearing Assets on the Superchain.",
-    icon: "ionic",
-  },
-  {
-    id: "moonwell",
-    name: "Moonwell",
-    description:
-      "Put your digital assets to work. Lend or borrow to handle whatever life throws your way.",
-    icon: "moonwell",
-  },
-  {
-    id: "opencover",
-    name: "OpenCover",
-    description:
-      "The leading cover aggregator to protect your portfolio against protocol risk.",
-    icon: "opencover",
-  },
-  {
-    id: "origami",
-    name: "Origami",
-    description: "Automated leverage for dummies.",
-    icon: "origami",
-  },
-  {
-    id: "oval",
-    name: "Oval",
-    description: "Capture OEV from liquidations.",
-    icon: "oval",
-  },
-  {
-    id: "protocolink",
-    name: "Protocolink",
-    description: "Linking the potential of Web3 using the most elastic SDK.",
-    icon: "protocolink",
-  },
-  {
-    id: "reserve",
-    name: "Reserve",
-    description:
-      "A permissionless platform to launch and govern R1 asset-backed currencies.",
-    icon: "reserve",
-  },
-  {
-    id: "safe",
-    name: "Safe",
-    description: "The most trusted Smart Wallet.",
-    icon: "safe",
-  },
-  {
-    id: "sommelier-finance",
-    name: "Sommelier Finance",
-    description:
-      "Automated vaults to find best-in-class yields while mitigating risk.",
-    icon: "sommelier",
-  },
-  {
-    id: "stream",
-    name: "Stream",
-    description: "A capital-efficient platform to supercharge DeFi adoption.",
-    icon: "stream",
-  },
-  {
-    id: "summerfi",
-    name: "SummerFi",
-    description:
-      "Power up your portfolio by Borrowing, Lending, and Multiplying your favorite assets using automated tools.",
-    icon: "summerfi",
-  },
-  {
-    id: "superform",
-    name: "Superform",
-    description: "The Onchain Wealth App",
-    icon: "superform",
-  },
-  {
-    id: "vaultcraft",
-    name: "VaultCraft",
-    description:
-      "Leading modular DeFi and RTCI vault protocol - now powered by Gnosis Safe.",
-    icon: "vaultcraft",
   },
 ];
 
