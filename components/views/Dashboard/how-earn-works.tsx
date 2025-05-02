@@ -671,7 +671,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 {t("common.depositInFundMakerVault")}
               </h3>
               <p className="text-secondary text-[13px] leading-[16px]">
-                {t("common.earnYieldByDepositingAssetIntoVault")}
+                {t("common.indexYieldByDepositingAssetIntoVault")}
               </p>
             </div>
           )}
@@ -690,7 +690,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           {activeStep === 3 && (
             <div>
               <h3 className="text-[16px] text-card font-normal mb-2">
-                {t("common.earnYieldFromBorrowers")}
+                {t("common.indexYieldFromBorrowers")}
               </h3>
               <p className="text-secondary text-[13px] leading-[16px]">
                 {t("common.vaultsGenerateYield")}
@@ -1280,7 +1280,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 activeStep === 1 ? "opacity-100" : "opacity-100"
               }`}
             >
-              {t("common.earnYieldByDepositingAssetIntoVault")}
+              {t("common.indexYieldByDepositingAssetIntoVault")}
             </p>
           </div>
 
@@ -1324,7 +1324,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 03
               </div>
               <h3 className="text-[16px] font-normal text-card leading-[16px]">
-                {t("common.earnYieldFromBorrowers")}
+                {t("common.indexYieldFromBorrowers")}
               </h3>
             </div>
             <p

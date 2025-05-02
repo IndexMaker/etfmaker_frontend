@@ -185,7 +185,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
       <div className="flex-1 space-y-6 overflow-auto">
         <div className="flex flex-row justify-between">
           <h1 className="text-[38px] text-primary flex items-center">
-            {t("common.earn")}
+            {t("common.index")}
           </h1>
           <div className="hidden gap-3 md:flex">
             <Link href={"./analytics"}>
