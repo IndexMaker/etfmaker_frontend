@@ -107,6 +107,7 @@ export const translations: Translations = {
       maxSupplyConfirmation: "You will not have ETH left to pay for gas.",
       iUnderstand: "I understand",
       undoMaxSupply: "Undo max supply",
+      ecosystem: "Ecosystem"
     },
     table: {
       vaultName: "Vault Name",

@@ -313,7 +313,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                 <Input
                   type="search"
                   placeholder={t("common.searchVaults")}
-                  className="pl-8 text-xs h-[32px] md:w-[150px] text-primary border-[#afafaf1a] focus:border-[#afafaf1a] focus:border-none"
+                  className="pl-8 !text-[12px] h-[32px] md:w-[150px] text-primary border-[#afafaf1a] focus:border-[#afafaf1a] focus:border-none"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />

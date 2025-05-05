@@ -5,7 +5,9 @@ import { useMediaQuery } from "react-responsive";
 import Link from "next/link";
 import {
   ArrowUpRight,
+  Check,
   CheckCircle,
+  ChevronDown,
   Copy,
   Eye,
   EyeOff,
@@ -49,6 +51,7 @@ import { cn } from "@/lib/utils";
 import { PerformanceChart } from "@/components/elements/performance-chart";
 import { TimePeriodSelector } from "@/components/elements/time-period";
 import axios from "axios";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 interface VaultDetailPageProps {
   vault: Vault;
 }
@@ -73,11 +76,12 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
 
   useEffect(() => {
+    const API_BASE_URL = process.env.BACKEND_API || "https://miserable-georgie-hotcoding85-6ad5b67a.koyeb.app"
     const fetchData = async () => {
       setIsLoading(true);
       try {
         const response = await axios(
-          `http://localhost:5001/indices/getHistoricalData`
+          `${API_BASE_URL}/indices/getHistoricalData`
         );
         const data = response.data;
         setIndexData(data);
@@ -549,17 +553,29 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
             <label className="block text-sm font-medium text-secondary mb-2">
               Choose Index
             </label>
-            <select
-              value={selectedIndexId || ""}
-              onChange={(e) => setSelectedIndexId(Number(e.target.value))}
-              className="block w-full px-3 py-2 border border-secondary text-primary rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            >
-              {indexData.map((index) => (
-                <option key={index.indexId} value={index.indexId}>
-                  {index.name}
-                </option>
-              ))}
-            </select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-between w-full px-3 py-2 text-sm text-left rounded-md border border-secondary text-primary bg-background hover:bg-muted"
+                >
+                  {indexData.find((i) => i.indexId === selectedIndexId)?.name || "Select Index"}
+                  <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-[400px] xs-[200px] bg-foreground border-none text-sm text-secondary">
+                {indexData.map((index) => (
+                  <DropdownMenuItem
+                    key={index.indexId}
+                    onClick={() => setSelectedIndexId(index.indexId)}
+                    className="flex items-center justify-between active:bg-[#fafafa20] p-4"
+                  >
+                    <span>{index.name}</span>
+                    {selectedIndexId === index.indexId && <Check className="h-4 w-4" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <TimePeriodSelector

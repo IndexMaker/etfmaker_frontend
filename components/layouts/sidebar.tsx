@@ -15,10 +15,12 @@ import FundMakerSvg from "../icons/fundmakerSvg";
 import FundMakerDoc from "../icons/fundmakerDoc";
 import Feedback from "../icons/feedback";
 import TOS from "../icons/tos";
-import Blockchain from "../icons/blockchain";
+import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "../theme-toggle";
 import { useTheme } from "next-themes";
+import Logo from "../icons/logo";
+import DARK from '../../public/logo/dark.png'
 
 interface SidebarProps {
   open: boolean;
@@ -87,17 +89,17 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         >
           <Link href="/" className="flex items-center">
             {collapsed ? (
-              //   <Image
-              //     src={DARK}
-              //     alt={"LOGO"}
-              //     width={30}
-              //     height={12}
-              //     className="object-none text-primary"
-              //   />
-              <Blockchain
-                className="w-6 h-6 dark:text-ring"
-                color={theme == "dark" ? "#D0CECE" : "#2470ff"}
-              />
+                <Image
+                  src={DARK}
+                  alt={"LOGO"}
+                  width={30}
+                  height={12}
+                  className="object-none text-primary"
+                />
+              // <Logo
+              //   className="w-40 h-6 dark:text-ring"
+              //   color={theme == "dark" ? "#D0CECE" : "#2470ff"}
+              // />
             ) : (
               //   <Image
               //     src={DARK}
@@ -106,8 +108,8 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               //     height={24}
               //     className="text-primary"
               //   />
-              <Blockchain
-                className="w-6 h-6 dark:text-ring"
+              <Logo
+                className="w-36 h-6 dark:text-ring"
                 color={theme == "dark" ? "#D0CECE" : "#2470ff"}
               />
             )}
