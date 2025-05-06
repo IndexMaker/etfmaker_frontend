@@ -39,27 +39,21 @@ export class IndexController {
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
     // SY100: Biweekly from 2022-01-01
-    let sy100Start = new Date('2022-01-01');
-    const now = new Date();
+    // let sy100Start = new Date('2019-01-01');
+    // const now = new Date();
 
-    while (sy100Start <= now) {
-      console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
-      await this.top100Service.rebalanceSY100(
-        1,
-        Math.floor(sy100Start.getTime() / 1000),
-      );
-      sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
-    }
-    let syazStart = new Date();
+    // while (sy100Start < now) {
+    //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
+    //   await this.top100Service.rebalanceSY100(6, Math.floor(sy100Start.getTime() / 1000));
+    //   sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
+    // }
+    // let syazStart = new Date('2019-01-01');
 
-    while (syazStart <= now) {
-      console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
-      await this.top100Service.rebalanceSYAZ(
-        2,
-        Math.floor(syazStart.getTime() / 1000),
-      );
-      syazStart.setDate(syazStart.getDate() + 1); // daily
-    }
+    // while (syazStart < now) {
+    //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
+    //   await this.top100Service.rebalanceSYAZ(7, Math.floor(syazStart.getTime() / 1000));
+    //   syazStart.setDate(syazStart.getDate() + 1); // daily
+    // }
   }
 
   @ApiOperation({ summary: 'Get index data' })
@@ -82,7 +76,7 @@ export class IndexController {
 
   @Get('/getHistoricalData')
   async getHistoricalData() {
-    const indexIds = [4, 5]; // Or dynamically load this list if needed
+    const indexIds = [6, 7]; // Or dynamically load this list if needed
     const allData: any[] = [];
 
     for (const indexId of indexIds) {
@@ -121,5 +115,11 @@ export class IndexController {
     }
 
     return allData;
+  }
+
+  @Get('/fetchBtcHistoricalData')
+  async fetchBtcHistoricalData(): Promise<any> {
+    const btcData = await this.etfPriceService.fetchCoinHistoricalData();
+    return btcData;
   }
 }

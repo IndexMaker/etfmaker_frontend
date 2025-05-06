@@ -8,15 +8,19 @@ services:
     ports:
       - '5000:5000'
     environment:
-      - DATABASE_URL=postgresql://postgres:root@localhost:5432/fundmaker?sslmode=disable
+      - DATABASE_URL=${DATABASE_URL}
       - COINGECKO_API_KEY=${COINGECKO_API_KEY}
       - COINMARKETCAP_API_KEY=${COINMARKETCAP_API_KEY}
       - BINANCE_API_KEY=${BINANCE_API_KEY}
       - BINANCE_API_SECRET=${BINANCE_API_SECRET}
       - ETH_RPC_URL=${ETH_RPC_URL}
       - POLYGON_RPC_URL=${POLYGON_RPC_URL}
+      - BASE_RPCURL=${BASE_RPCURL}
+      - BASE_SEPOLIA_RPCURL=${BASE_SEPOLIA_RPCURL}
       - INDEX_REGISTRY_ADDRESS=${INDEX_REGISTRY_ADDRESS}
+      - PSYMM_ADDRESS=${PSYMM_ADDRESS}
       - PRIVATE_KEY=${PRIVATE_KEY}
+      - USDC_ADDRESS_IN_BASE=${USDC_ADDRESS_IN_BASE}
       - REDIS_URL=redis://redis:6379
     depends_on:
       - redis # Only depends on Redis now

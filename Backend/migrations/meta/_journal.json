@@ -36,6 +36,20 @@
       "when": 1746005154836,
       "tag": "0004_fearless_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1746408760090,
+      "tag": "0005_puzzling_mysterio",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1746490130608,
+      "tag": "0006_luxuriant_satana",
+      "breakpoints": true
     }
   ]
 }

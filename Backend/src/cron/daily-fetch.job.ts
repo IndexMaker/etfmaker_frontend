@@ -112,20 +112,6 @@ export class DailyFetchJob {
     await this.indexService.listenToEvents(process.env.INDEX_REGISTRY_ADDRESS || '', 8453); // Base
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async rebalanceSYAZ() {
-    await this.dbService.getDb().transaction(async (tx) => {
-      const top100Service = new Top100Service(
-        this.coinGeckoService,
-        this.binanceService,
-        new IndexRegistryService(),
-        new DbService(),
-      );
-      const timestamp = Math.floor((new Date()).getTime() / 1000)
-      await top100Service.rebalanceSYAZ(2, timestamp);
-    });
-  }
-
   @Cron('0 0 */14 * *') // Every 2 weeks
   async rebalanceSY100() {
     await this.dbService.getDb().transaction(async (tx) => {
@@ -136,7 +122,21 @@ export class DailyFetchJob {
         new DbService(),
       );
       const timestamp = Math.floor((new Date()).getTime() / 1000)
-      await top100Service.rebalanceSY100(1, timestamp);
+      await top100Service.rebalanceSY100(6, timestamp);
+    });
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async rebalanceSYAZ() {
+    await this.dbService.getDb().transaction(async (tx) => {
+      const top100Service = new Top100Service(
+        this.coinGeckoService,
+        this.binanceService,
+        new IndexRegistryService(),
+        new DbService(),
+      );
+      const timestamp = Math.floor((new Date()).getTime() / 1000)
+      await top100Service.rebalanceSYAZ(7, timestamp);
     });
   }
 }

@@ -7,13 +7,16 @@ import {
   jsonb,
   bigint,
   text,
+  integer,
+  doublePrecision,
+  json,
 } from 'drizzle-orm/pg-core';
 
 export const compositions = pgTable('compositions', {
   id: serial('id').primaryKey(),
   indexId: varchar('index_id', { length: 66 }).notNull(),
   tokenAddress: varchar('token_address', { length: 66 }).notNull(),
-  weight: decimal('weight', { precision: 5, scale: 4 }).notNull(),
+  weight: decimal('weight', { precision: 7, scale: 4 }).notNull(),
   rebalanceTimestamp: bigint('rebalance_timestamp', { mode: 'number' }).notNull(),
   validUntil: timestamp('valid_until'),
   createdAt: timestamp('created_at').defaultNow(),
@@ -80,5 +83,35 @@ export const tokenCategories = pgTable('token_categories', {
   id: serial('id').primaryKey(),
   coinId: varchar('coin_id', { length: 100 }).notNull(),
   categories: jsonb('categories').notNull(), // Array of categories
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const projects = pgTable('projects', {
+  id: serial('id').primaryKey(),
+  projectId: varchar('project_id', { length: 50 }).unique().notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  icon: varchar('icon', { length: 50 }).notNull(),
+  websiteUrl: varchar('website_url', { length: 255 }),
+  docsUrl: varchar('docs_url', { length: 255 }),
+  twitterUrl: varchar('twitter_url', { length: 255 }),
+  discordUrl: varchar('discord_url', { length: 255 }),
+  screenshots: json('screenshots').$type<string[]>(), // Array of URLs
+  overview: text('overview'),
+  integrationDetails: text('integration_details'),
+});
+
+export const historicalPrices = pgTable('historical_prices', {
+  id: serial('id').primaryKey(),
+  coinId: text('coin_id').notNull(),          // e.g., 'ethereum'
+  symbol: text('symbol').notNull(),           // e.g., 'ETH'
+  timestamp: integer('timestamp').notNull(),  // Unix timestamp (daily granularity)
+  price: doublePrecision('price').notNull(),  // USD price
+});
+
+export const coinSymbols = pgTable('coin_symbols', {
+  symbol: text('symbol').primaryKey(),
+  coinId: text('coin_id').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });

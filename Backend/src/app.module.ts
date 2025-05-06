@@ -9,6 +9,9 @@ import { DataFetcherModule } from './modules/data-fetcher/data-fetcher.module';
 import { BlockchainModule } from './modules/blockchain/blockchain.module';
 import { ComputationModule } from './modules/computation/computation.module';
 import { StorageModule } from './modules/storatge/storage.module';
+import { ProjectsController } from './api/project.controller';
+import { ProjectsService } from './projects/project.service';
+import { ProjectsModule } from './modules/projects/project.module';
 
 @Module({
   imports: [
@@ -24,8 +27,9 @@ import { StorageModule } from './modules/storatge/storage.module';
     BlockchainModule,
     ComputationModule,
     StorageModule,
+    ProjectsModule
   ],
-  controllers: [IndexController],
+  controllers: [IndexController, ProjectsController],
   providers: [DailyFetchJob],
 })
 export class AppModule {}
