@@ -1,11 +1,22 @@
 export interface IndexData {
-    tokens: string[];
-    weights: number[];
-  }
-  
-  export interface RebalanceData {
-    indexId: string;
-    weights: number[];
-    prices: Record<string, number>;
-    timestamp: number;
-  }
+  tokens: string[];
+  weights: number[];
+}
+
+export interface RebalanceData {
+  indexId: string;
+  weights: number[];
+  prices: Record<string, number>;
+  timestamp: number;
+}
+
+export interface IndexListEntry {
+  indexId: number;
+  name: string;
+  ticker: string;
+  curator: string;
+  totalSupply: number;
+  ytdReturn: number;
+  collateral: string[]; // URLs to token logos
+  managementFee: number;
+}

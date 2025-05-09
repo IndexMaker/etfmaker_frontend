@@ -32,10 +32,13 @@ export class CoinGeckoService {
       if (records.length === 0) {
         return null;
       }
-      return records.reduce((acc, record) => {
-        acc[record.symbol] = record.coinId;
-        return acc;
-      }, {} as Record<string, string>);
+      return records.reduce(
+        (acc, record) => {
+          acc[record.symbol] = record.coinId;
+          return acc;
+        },
+        {} as Record<string, string>,
+      );
     } catch (error) {
       console.error('Error fetching from database:', error);
       return null;
@@ -52,8 +55,12 @@ export class CoinGeckoService {
       }),
     );
 
-    const coins: Array<{ id: string; symbol: string; name: string }> = response.data;
-    const candidatesMap: Record<string, Array<{ id: string; name: string }>> = {};
+    const coins: Array<{ id: string; symbol: string; name: string }> =
+      response.data;
+    const candidatesMap: Record<
+      string,
+      Array<{ id: string; name: string }>
+    > = {};
 
     for (const coin of coins) {
       const symbolUpper = coin.symbol.toUpperCase();
@@ -80,7 +87,9 @@ export class CoinGeckoService {
     return result;
   }
 
-  private async storeInDatabase(data: Array<{ symbol: string; coinId: string }>): Promise<void> {
+  private async storeInDatabase(
+    data: Array<{ symbol: string; coinId: string }>,
+  ): Promise<void> {
     try {
       // Using transaction for bulk insert
       await this.dbService.getDb().transaction(async (tx) => {
@@ -89,17 +98,20 @@ export class CoinGeckoService {
 
         // Insert new data
         for (const item of data) {
-          await tx.insert(coinSymbols).values({
-            symbol: item.symbol,
-            coinId: item.coinId,
-            updatedAt: new Date(),
-          }).onConflictDoUpdate({
-            target: coinSymbols.symbol,
-            set: {
+          await tx
+            .insert(coinSymbols)
+            .values({
+              symbol: item.symbol,
               coinId: item.coinId,
               updatedAt: new Date(),
-            },
-          });
+            })
+            .onConflictDoUpdate({
+              target: coinSymbols.symbol,
+              set: {
+                coinId: item.coinId,
+                updatedAt: new Date(),
+              },
+            });
         }
       });
     } catch (error) {
@@ -107,113 +119,145 @@ export class CoinGeckoService {
       throw error;
     }
   }
-  
-  private selectBestId(symbol: string, candidates: Array<{ id: string; name: string }>): string | null {
+
+  private selectBestId(
+    symbol: string,
+    candidates: Array<{ id: string; name: string }>,
+  ): string | null {
     if (candidates.length === 0) return null;
-    
+
     const symbolLower = symbol.toLowerCase();
-    
+
     // Special cases for common symbols that might have conflicts
     const SPECIAL_CASES: Record<string, string> = {
-      'BTC': 'bitcoin',
-      'ETH': 'ethereum',
-      'USDT': 'tether',
-      'BNB': 'binancecoin',
-      'XRP': 'ripple',
-      'SOL': 'solana',
-      'DOGE': 'dogecoin',
+      BTC: 'bitcoin',
+      ETH: 'ethereum',
+      USDT: 'tether',
+      BNB: 'binancecoin',
+      XRP: 'ripple',
+      SOL: 'solana',
+      DOGE: 'dogecoin',
       // Add other special cases as needed
     };
-    
+
     // Check if this symbol has a special case handling
     if (SPECIAL_CASES[symbol.toUpperCase()]) {
       return SPECIAL_CASES[symbol.toUpperCase()];
     }
-    
+
     // Sort candidates by quality (most likely to be the main coin first)
     const sortedCandidates = [...candidates].sort((a, b) => {
       // Prefer exact symbol matches (btc -> bitcoin)
       const aExactMatch = a.id === symbolLower ? 1 : 0;
       const bExactMatch = b.id === symbolLower ? 1 : 0;
       if (aExactMatch !== bExactMatch) return bExactMatch - aExactMatch;
-      
+
       // Prefer clean IDs (no wormhole, wrapped, etc.)
       const aClean = this.isCleanId(a.id) && this.isCleanId(a.name) ? 1 : 0;
       const bClean = this.isCleanId(b.id) && this.isCleanId(b.name) ? 1 : 0;
       if (aClean !== bClean) return bClean - aClean;
-      
+
       // Prefer shorter IDs (bitcoin vs bitcoin-2)
       if (a.id.length !== b.id.length) return a.id.length - b.id.length;
-      
+
       // Prefer more "mainstream" names (contains "bitcoin" rather than "bitcoin cash")
       const aMainstream = this.isMainstream(a.name);
       const bMainstream = this.isMainstream(b.name);
       if (aMainstream !== bMainstream) return bMainstream ? -1 : 1;
-      
+
       // Finally, sort alphabetically as tiebreaker
       return a.id.localeCompare(b.id);
     });
-    
+
     return sortedCandidates[0]?.id || null;
   }
-  
+
   private isCleanId(idOrName: string): boolean {
     const forbidden = [
-      'wormhole', 'wrapped', 'bridged', 'peg', 
-      'binance-peg', 'anchor', 'portal', 
-      'token', 'old', '-old', '-2', '-3',
-      'deprecated', 'legacy', 'renbtc'
+      'wormhole',
+      'wrapped',
+      'bridged',
+      'peg',
+      'binance-peg',
+      'anchor',
+      'portal',
+      'token',
+      'old',
+      '-old',
+      '-2',
+      '-3',
+      'deprecated',
+      'legacy',
+      'renbtc',
     ];
-    return !forbidden.some(f => idOrName.toLowerCase().includes(f));
+    return !forbidden.some((f) => idOrName.toLowerCase().includes(f));
   }
-  
+
   private isMainstream(name: string): boolean {
     const mainstreamKeywords = [
-      'bitcoin', 'ethereum', 'ripple', 'litecoin',
-      'cardano', 'polkadot', 'stellar', 'chainlink',
-      'binance', 'tether', 'monero', 'dogecoin'
+      'bitcoin',
+      'ethereum',
+      'ripple',
+      'litecoin',
+      'cardano',
+      'polkadot',
+      'stellar',
+      'chainlink',
+      'binance',
+      'tether',
+      'monero',
+      'dogecoin',
     ];
-    return mainstreamKeywords.some(k => 
-      name.toLowerCase().includes(k.toLowerCase())
+    return mainstreamKeywords.some((k) =>
+      name.toLowerCase().includes(k.toLowerCase()),
     );
   }
 
   async getMarketCapsByIds(ids: string[]): Promise<any[]> {
     const response = await firstValueFrom(
-      this.httpService.get('https://pro-api.coingecko.com/api/v3/coins/markets', {
-        params: {
-          vs_currency: 'usd',
-          ids: ids.join(','), // comma-separated list
-          order: 'market_cap_desc',
-          sparkline: false,
-          per_page: ids.length,
+      this.httpService.get(
+        'https://pro-api.coingecko.com/api/v3/coins/markets',
+        {
+          params: {
+            vs_currency: 'usd',
+            ids: ids.join(','), // comma-separated list
+            order: 'market_cap_desc',
+            sparkline: false,
+            per_page: ids.length,
+          },
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
         },
-        headers: {
-          accept: 'application/json',
-          'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
-        },
-      }),
+      ),
     );
-  
+
     return response.data;
   }
 
-  async getTokenMarketChart(id: string, currency: string = 'usd'): Promise<Array<[number, number]>> {
+  async getTokenMarketChart(
+    id: string,
+    currency: string = 'usd',
+  ): Promise<Array<[number, number]>> {
     if (this.priceCache[id]) {
       return this.priceCache[id];
     }
 
     const response = await firstValueFrom(
-      this.httpService.get(`https://pro-api.coingecko.com/api/v3/coins/${id}/market_chart`, {
-        params: {
-          vs_currency: currency,
-          days: '3000',
+      this.httpService.get(
+        `https://pro-api.coingecko.com/api/v3/coins/${id}/market_chart`,
+        {
+          params: {
+            vs_currency: currency,
+            days: '3000',
+          },
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
         },
-        headers: {
-          accept: 'application/json',
-          'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
-        },
-      }),
+      ),
     );
 
     const prices: Array<[number, number]> = response.data.prices; // [ [timestamp, price], ... ]
@@ -221,7 +265,6 @@ export class CoinGeckoService {
 
     return prices;
   }
-  
 
   async getMarketCap(
     limit: number = 250,
@@ -229,20 +272,23 @@ export class CoinGeckoService {
     options: { ids?: string } = {},
   ): Promise<any[]> {
     const response = await firstValueFrom(
-      this.httpService.get('https://pro-api.coingecko.com/api/v3/coins/markets', {
-        params: {
-          vs_currency: 'usd',
-          order: 'market_cap_desc',
-          per_page: limit,
-          page: page,
-          sparkline: false,
-          ...options,
+      this.httpService.get(
+        'https://pro-api.coingecko.com/api/v3/coins/markets',
+        {
+          params: {
+            vs_currency: 'usd',
+            order: 'market_cap_desc',
+            per_page: limit,
+            page: page,
+            sparkline: false,
+            ...options,
+          },
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
         },
-        headers: {
-          accept: 'application/json',
-          'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
-        },
-      }),
+      ),
     );
     const coins = response.data;
 
@@ -269,7 +315,6 @@ export class CoinGeckoService {
       //     fetchedAt: new Date(),
       //   },
       // });
-
       // Sleep between requests to avoid hitting 30 requests/min limit
       // await sleep(2500); // 2.5 seconds pause (~24 requests/min safe)
     }
@@ -279,24 +324,29 @@ export class CoinGeckoService {
   async resolveTokenAddressFromCoinGecko(coinId: string): Promise<string> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`https://pro-api.coingecko.com/api/v3/coins/${coinId}`, {
-          headers: {
-            accept: 'application/json',
-            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+        this.httpService.get(
+          `https://pro-api.coingecko.com/api/v3/coins/${coinId}`,
+          {
+            headers: {
+              accept: 'application/json',
+              'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+            },
           },
-        }),
+        ),
       );
       const platforms = response.data.platforms;
-  
+
       const ethereumAddress = platforms?.ethereum;
-  
+
       if (!ethereumAddress) {
         return ethers.ZeroAddress;
       }
-  
+
       return ethereumAddress;
     } catch (error) {
-      console.error(`Failed to resolve token address for ${coinId}: ${error.message}`);
+      console.error(
+        `Failed to resolve token address for ${coinId}: ${error.message}`,
+      );
       return ethers.ZeroAddress;
     }
   }
@@ -304,20 +354,23 @@ export class CoinGeckoService {
   async getA16zPortfolioTokens(options: { ids?: string } = {}): Promise<any[]> {
     // Fetch a16z Portfolio tokens from CoinGecko
     const response = await firstValueFrom(
-      this.httpService.get('https://pro-api.coingecko.com/api/v3/coins/markets', {
-        params: {
-          vs_currency: 'usd',
-          category: 'andreessen-horowitz-a16z-portfolio',
-          order: 'market_cap_desc',
-          page: 1,
-          per_page: 250,
-          ...options,
+      this.httpService.get(
+        'https://pro-api.coingecko.com/api/v3/coins/markets',
+        {
+          params: {
+            vs_currency: 'usd',
+            category: 'andreessen-horowitz-a16z-portfolio',
+            order: 'market_cap_desc',
+            page: 1,
+            per_page: 250,
+            ...options,
+          },
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
         },
-        headers: {
-          accept: 'application/json',
-          'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
-        },
-      }),
+      ),
     );
     return response.data || [];
   }
@@ -374,36 +427,43 @@ export class CoinGeckoService {
 
   async getLivePrice(coinId: string): Promise<number> {
     const response = await firstValueFrom(
-      this.httpService.get(`https://pro-api.coingecko.com/api/v3/simple/price`, {
-        params: {
-          ids: coinId,
-          vs_currencies: 'usd',
+      this.httpService.get(
+        `https://pro-api.coingecko.com/api/v3/simple/price`,
+        {
+          params: {
+            ids: coinId,
+            vs_currencies: 'usd',
+          },
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
         },
-        headers: {
-          accept: 'application/json',
-          'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
-        },
-      }),
+      ),
     );
     return response.data[coinId]?.usd || 0;
   }
 
-  async storeDailyPricesForToken(id: string, symbol: string, rebalanceTimestamp: number) {
+  async storeDailyPricesForToken(
+    id: string,
+    symbol: string,
+    rebalanceTimestamp: number,
+  ) {
     const db = this.dbService.getDb();
-  
+
     // Check if any prices already exist for this token
     const exists = await db
       .select({ count: sql<number>`count(*)` })
       .from(historicalPrices)
       .where(eq(historicalPrices.coinId, id));
     if (exists[0].count > 0) return;
-  
+
     const url = `https://pro-api.coingecko.com/api/v3/coins/${id}/market_chart`;
     const params = {
       vs_currency: 'usd',
       days: 3000,
     };
-  
+
     const response = await firstValueFrom(
       this.httpService.get(url, {
         params,
@@ -411,22 +471,24 @@ export class CoinGeckoService {
           accept: 'application/json',
           'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
         },
-      })
+      }),
     );
-  
+
     const prices: [number, number][] = response.data.prices; // [ [timestamp(ms), price], ... ]
     if (!prices || prices.length === 0) return;
-  
+
     // Check if the earliest available price is after the rebalance timestamp
     const earliestTimestamp = Math.floor(prices[0][0] / 1000); // ms to s
     if (earliestTimestamp > rebalanceTimestamp) {
-      console.log(`⏭ Skipped ${symbol} (${id}) — no data before rebalance timestamp`);
+      console.log(
+        `⏭ Skipped ${symbol} (${id}) — no data before rebalance timestamp`,
+      );
       return;
     }
-  
+
     for (const [timestampMs, price] of prices) {
       const timestamp = Math.floor(timestampMs / 1000); // Convert to seconds
-  
+
       // Check if price already exists
       const exists = await db
         .select({ count: sql<number>`count(*)` })
@@ -434,12 +496,12 @@ export class CoinGeckoService {
         .where(
           and(
             eq(historicalPrices.coinId, id),
-            eq(historicalPrices.timestamp, timestamp)
-          )
+            eq(historicalPrices.timestamp, timestamp),
+          ),
         );
-  
+
       if (exists[0].count > 0) continue;
-  
+
       await db.insert(historicalPrices).values({
         coinId: id,
         symbol,
@@ -447,23 +509,22 @@ export class CoinGeckoService {
         price,
       });
     }
-  
+
     console.log(`✅ Stored daily prices for ${symbol} (${id})`);
   }
-  
 
   async getOrFetchTokenPriceAtTimestamp(
     coinId: string,
     symbol: string,
-    timestamp: number
+    timestamp: number,
   ): Promise<number | null> {
     const db = this.dbService.getDb();
-  
+
     // Normalize timestamp to daily UTC (00:00)
     const normalizedDate = new Date(timestamp * 1000);
     normalizedDate.setUTCHours(0, 0, 0, 0);
     const normalizedUnix = Math.floor(normalizedDate.getTime() / 1000);
-  
+
     // 1. Try DB
     const existing = await db
       .select({ price: historicalPrices.price })
@@ -471,19 +532,19 @@ export class CoinGeckoService {
       .where(
         and(
           eq(historicalPrices.coinId, coinId),
-          eq(historicalPrices.timestamp, normalizedUnix)
-        )
+          eq(historicalPrices.timestamp, normalizedUnix),
+        ),
       )
       .limit(1);
-  
+
     if (existing.length) {
       return existing[0].price;
     }
-  
+
     // 2. Fetch from CoinGecko (±1 day range to ensure coverage)
     const from = normalizedUnix;
     const to = normalizedUnix + 24 * 60 * 60;
-  
+
     const response = await firstValueFrom(
       this.httpService.get(
         `https://pro-api.coingecko.com/api/v3/coins/${coinId}/market_chart/range`,
@@ -497,16 +558,16 @@ export class CoinGeckoService {
             accept: 'application/json',
             'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
           },
-        }
-      )
+        },
+      ),
     );
-  
+
     const prices: [number, number][] = response.data?.prices ?? [];
-  
+
     // 3. Find price with timestamp closest to our target date (±12h window)
     let selected: { timestamp: number; price: number } | null = null;
     let closestDiff = Infinity;
-  
+
     for (const [tsMs, price] of prices) {
       const ts = Math.floor(tsMs / 1000);
       const diff = Math.abs(ts - normalizedUnix);
@@ -515,12 +576,14 @@ export class CoinGeckoService {
         closestDiff = diff;
       }
     }
-  
+
     if (!selected) {
-      this.logger.warn(`No historical price found for ${coinId} near ${normalizedUnix}`);
-      return null
+      this.logger.warn(
+        `No historical price found for ${coinId} near ${normalizedUnix}`,
+      );
+      return null;
     }
-  
+
     // 4. Store in DB
     await db.insert(historicalPrices).values({
       coinId,
@@ -528,7 +591,73 @@ export class CoinGeckoService {
       timestamp: normalizedUnix,
       price: selected.price,
     });
-  
+
     return selected.price;
+  }
+
+  async storeTodayPricesUsingLastTokens() {
+    // Normalize today's date to UTC midnight
+    const now = new Date();
+    now.setUTCHours(0, 0, 0, 0);
+    const todayTimestamp = Math.floor(now.getTime() / 1000);
+
+    // Step 1: Get latest (most recent) timestamp entry for each unique token
+    const result = await this.dbService.getDb().execute(sql`
+      SELECT DISTINCT ON (coin_id)
+        coin_id,
+        symbol,
+        timestamp
+      FROM historical_prices
+      ORDER BY coin_id, timestamp DESC
+    `);
+
+    const latestPrices = result.rows as {
+      coin_id: string;
+      symbol: string;
+      timestamp: number;
+    }[];
+
+    if (!latestPrices || latestPrices.length === 0) {
+      return;
+    }
+    // Step 2: For each token, fetch & store today's price using your existing function
+    for (const { coin_id, symbol } of latestPrices) {
+      try {
+        const price = await this.getOrFetchTokenPriceAtTimestamp(
+          coin_id,
+          symbol,
+          todayTimestamp,
+        );
+        if (price !== null) {
+          this.logger.log(
+            `Stored price for ${symbol} on ${now.toISOString()}: $${price}`,
+          );
+        }
+      } catch (err) {
+        this.logger.error(
+          `Error storing today's price for ${symbol}: ${err.message}`,
+        );
+      }
+    }
+  }
+
+  async getCoinData(path: string): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`https://pro-api.coingecko.com/api/v3${path}`, {
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        `Failed to fetch CoinGecko data for path: ${path}`,
+        error.message,
+      );
+      return null;
+    }
   }
 }

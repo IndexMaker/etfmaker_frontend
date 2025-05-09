@@ -12,3 +12,14 @@ export interface Project {
   overview?: string;
   integrationDetails?: string;
 }
+
+export interface IndexListEntry {
+  indexId: number;
+  name: string;
+  ticker: string;
+  curator: string;
+  totalSupply: number;
+  ytdReturn: number;
+  collateral: string[]; // URLs to token logos
+  managementFee: number;
+}

@@ -34,8 +34,8 @@ interface SupplyPanelProps {
   setOpen: (open: boolean) => void;
 }
 interface VaultInfo {
-  vaultId: string;
-  token: string;
+  name: string;
+  ticker: string;
   amount: number;
 }
 
@@ -153,15 +153,15 @@ export function SupplyPanel({
   const setMaxAmount = (vaultId: string) => {
 
     // Assuming vaultId is unique and corresponds to a vault with a token
-    const vault = selectedVault.find((v) => v.vaultId === vaultId);
-    const maxBalance = vault ? balances[vault.token] || 0 : 0;
+    const vault = selectedVault.find((v) => v.name === vaultId);
+    const maxBalance = vault ? balances[vault.ticker] || 0 : 0;
 
     if (maxBalance === 0) {
       setInsufficientValue(true);
       setMaxPopoverOpen(false);
       return;
     }
-    dispatch(updateVaultAmount({ vaultId, amount: maxBalance }));
+    dispatch(updateVaultAmount({ name: vaultId, amount: maxBalance }));
     setMaxPopoverOpen(false);
   };
 
@@ -173,9 +173,9 @@ export function SupplyPanel({
     const amount = parseFloat(value);
     
     if (!isNaN(amount) && amount >= 0) {
-      dispatch(updateVaultAmount({ vaultId, amount }));
+      dispatch(updateVaultAmount({ name: vaultId, amount }));
     } else {
-      dispatch(updateVaultAmount({ vaultId, amount: 0 }));
+      dispatch(updateVaultAmount({ name: vaultId, amount: 0 }));
     }
   };
 
@@ -280,7 +280,7 @@ export function SupplyPanel({
                               step="any"
                               value={
                                 selectedVault.find(
-                                  (_vault) => _vault.vaultId === vault.id
+                                  (_vault) => _vault.name === vault.id
                                 )?.amount || ""
                               }
                               className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-gray-400"
@@ -364,7 +364,7 @@ export function SupplyPanel({
                                       variant="ghost"
                                       className="text-[13px] px-[8px] py-[5px] bg-accent cursor-pointer h-[32px] rounded-[4px] w-full"
                                       onClick={() => {
-                                        dispatch(updateVaultAmount({vaultId: vault.id, amount: 0}));
+                                        dispatch(updateVaultAmount({name: vault.id, amount: 0}));
                                         setMaxPopoverOpen(false);
                                       }}
                                     >

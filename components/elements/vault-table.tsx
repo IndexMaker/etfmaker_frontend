@@ -25,9 +25,10 @@ import RightArrow from "../icons/right-arrow";
 import LeftArrow from "../icons/left-arrow";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
-import { cn } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { IndexListEntry } from "@/types";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -35,7 +36,7 @@ interface VaultTableProps {
     title: string;
     visible: boolean;
   }[];
-  vaults: VaultInfo[];
+  vaults: IndexListEntry[];
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
   sortColumn?: string;
   sortDirection?: "asc" | "desc";
@@ -76,8 +77,8 @@ export function VaultTable({
     }
   };
 
-  const assetDetail = (vault: VaultInfo) => {
-    router.push("./vault/" + vault?.id);
+  const assetDetail = (vault: IndexListEntry) => {
+    router.push("./vault/" + vault?.name);
   };
 
   // Determine if a column is sortable
@@ -149,9 +150,9 @@ export function VaultTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentVaults.map((vault: VaultInfo, index) => (
+            {currentVaults.map((vault: IndexListEntry, index) => (
               <TableRow
-                key={vault.id + index.toString()}
+                key={vault.name}
                 className="hover:bg-accent border-accent h-[54px] text-[13px] cursor-pointer"
               >
                 {visibleColumns.map(
@@ -159,6 +160,7 @@ export function VaultTable({
                     col.visible && (
                       <TableCell
                         key={col.id}
+                        onClick={() => assetDetail(vault)}
                         className={cn(
                           "text-card",
                           col.id === "actions"
@@ -166,15 +168,15 @@ export function VaultTable({
                             : "pl-5 pr-18"
                         )}
                       >
-                        {col.id === "vaultName" && (
+                        {col.id === "name" && (
                           <>
                             <div className="flex items-center gap-2 pl-[1.5px]">
-                              <Image
+                              {/* <Image
                                 src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
                                 alt={vault.token}
                                 width={17}
                                 height={17}
-                              />
+                              /> */}
                               <span>{vault.name}</span>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -195,18 +197,12 @@ export function VaultTable({
                             </div>
                           </>
                         )}
-                        {col.id === "token" && (
+                        {col.id === "ticker" && (
                           <div
                             className="flex items-center gap-2"
                             onClick={() => assetDetail(vault)}
                           >
-                            <Image
-                              src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
-                              alt={vault.token}
-                              width={17}
-                              height={17}
-                            />
-                            <span className="text-card">{vault.token}</span>
+                            <span className="text-card">{vault.ticker}</span>
                           </div>
                         )}
                         {col.id === "totalSupply" && (
@@ -216,11 +212,11 @@ export function VaultTable({
                           >
                             <div>{vault.totalSupply}</div>
                             <div className="text-card p-1 ml-2 bg-accent text-xs">
-                              {vault.totalSupplyUsd}
+                              {vault.totalSupply}
                             </div>
                           </div>
                         )}
-                        {col.id === "instantApy" && (
+                        {/* {col.id === "instantApy" && (
                           <div
                             className="flex items-center gap-1 cursor-pointer"
                             onClick={() => assetDetail(vault)}
@@ -276,10 +272,10 @@ export function VaultTable({
                               </CustomTooltip>
                             )}
                           </div>
-                        )}
-                        {col.id === "vaultApy" && (
+                        )} */}
+                        {col.id === "ytdReturn" && (
                           <div onClick={() => assetDetail(vault)}>
-                            {vault.vaultApy}
+                            {vault.ytdReturn}
                           </div>
                         )}
                         {col.id === "curator" && (
@@ -287,8 +283,7 @@ export function VaultTable({
                             className="flex items-center gap-2"
                             onClick={() => assetDetail(vault)}
                           >
-                            <span>{vault.curatorIcon}</span>
-                            <span>{vault.curator}</span>
+                            <span>{shortenAddress(vault.curator)}</span>
                           </div>
                         )}
                         {col.id === "collateral" && (
@@ -297,59 +292,96 @@ export function VaultTable({
                             onClick={() => assetDetail(vault)}
                           >
                             {vault.collateral.length > 0 ? (
-                              vault.collateral.map((collateral, index) => (
-                                <CustomTooltip
-                                  key={index.toString()}
-                                  content={
-                                    <div className="flex flex-col gap-1 min-w-[220px] rounded-[8px]">
-                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                        <span>Collateral</span>
-                                        <div className="flex items-center">
-                                          <Image
-                                            src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
-                                            alt={vault.token}
-                                            width={17}
-                                            height={17}
-                                          />
-                                          <span>PT-U...025</span>
+                              <>
+                                {vault.collateral
+                                  .slice(0, 5)
+                                  .map((collateral, index) => (
+                                    <CustomTooltip
+                                      key={index.toString()}
+                                      content={
+                                        <div className="flex flex-col gap-1 min-w-[220px] rounded-[8px]">
+                                          <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                            <span>Collateral</span>
+                                            <div className="flex items-center">
+                                              <Image
+                                                src={collateral}
+                                                alt={"Collateral"}
+                                                width={17}
+                                                height={17}
+                                              />
+                                              <span>PT-U...025</span>
+                                            </div>
+                                          </div>
+                                          <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                            <span>LLTV</span>
+                                            <span className="font-bold">
+                                              91.5%
+                                            </span>
+                                          </div>
+                                          <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                            <span className="">Oracle</span>
+                                            <a
+                                              target="_blank"
+                                              href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
+                                              className="hover:bg-[afafaf20]"
+                                            >
+                                              Exchange rate
+                                            </a>
+                                            <Copy className="w-[15px] h-[15px]" />
+                                          </div>
                                         </div>
+                                      }
+                                    >
+                                      <span className="hover:px-1 hover:transition-all">
+                                        <div className="flex items-center gap-1">
+                                          {collateral !== "" && (
+                                            <Image
+                                              src={collateral}
+                                              alt={"Collateral"}
+                                              width={17}
+                                              height={17}
+                                              className="mr-1" // Adds slight overlap between images
+                                            />
+                                          )}
+                                        </div>
+                                      </span>
+                                    </CustomTooltip>
+                                  ))}
+                                {vault.collateral.length > 5 && (
+                                  <CustomTooltip
+                                    content={
+                                      <div className="flex flex-col gap-2 p-2">
+                                        {vault.collateral
+                                          .slice(5)
+                                          .map((collateral, index) => (
+                                            <div
+                                              key={index}
+                                              className="flex items-center gap-2"
+                                            >
+                                              <Image
+                                                src={collateral}
+                                                alt="Collateral"
+                                                width={17}
+                                                height={17}
+                                              />
+                                              <span>PT-U...025</span>
+                                            </div>
+                                          ))}
                                       </div>
-                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                        <span>LLTV</span>
-                                        <span className="font-bold">91.5%</span>
-                                      </div>
-                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                        <span className="">Oracle</span>
-                                        <a
-                                          target="_blank"
-                                          href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
-                                          className="hover:bg-[afafaf20]"
-                                        >
-                                          Exchange rate
-                                        </a>
-                                        <Copy className="w-[15px] h-[15px]" />
-                                      </div>
-                                    </div>
-                                  }
-                                >
-                                  <span className="hover:px-1 hover:transition-all">
-                                    {collateral}
-                                  </span>
-                                </CustomTooltip>
-                              ))
-                            ) : (
-                              <></>
-                            )}
+                                    }
+                                  >
+                                    <span className="text-[12px] pl-2">
+                                      + {vault.collateral.length - 5}
+                                    </span>
+                                  </CustomTooltip>
+                                )}
+                              </>
+                            ) : null}
                           </div>
                         )}
-                        {col.id === "rewards" && (
+                        {col.id === "managementFee" && (
                           <div onClick={() => assetDetail(vault)}>
-                            {vault.rewards}
-                          </div>
-                        )}
-                        {col.id === "performanceFee" && (
-                          <div onClick={() => assetDetail(vault)}>
-                            {vault.performanceFee}
+                            {vault.managementFee}
                           </div>
                         )}
                         {col.id === "actions" && (
@@ -358,13 +390,15 @@ export function VaultTable({
                               className={cn(
                                 "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0 cursor-pointer",
                                 selectedVault
-                                  .map((v) => v.vaultId)
-                                  .includes(vault.id) ||  (vault.id !== "relend-eth" && vault.id !== "mev-usdc")
+                                  .map((v) => v.name)
+                                  .includes(vault.name) ||
+                                  (vault.name !== "relend-eth" &&
+                                    vault.name !== "mev-usdc")
                                   ? "opacity-30 cursor-default disabled:pointer-events-none"
                                   : ""
                               )}
                               onClick={() =>
-                                onSupplyClick?.(vault.id, vault.token)
+                                onSupplyClick?.(vault.name, vault.ticker)
                               }
                             >
                               Supply

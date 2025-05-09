@@ -19,8 +19,8 @@ export default function Dashboard({ children }: DashboardProps) {
   const dispatch = useDispatch();
 
   // Function to handle supply button click
-  const handleSupplyClick = (vaultId: string, token: string) => {
-    dispatch(addSelectedVault({ vaultId, token }));
+  const handleSupplyClick = (name: string, ticker: string) => {
+    dispatch(addSelectedVault({ name, ticker }));
     // setRightbarOpen(true)
   };
 
@@ -55,7 +55,7 @@ export default function Dashboard({ children }: DashboardProps) {
               open={rightbarOpen}
               setOpen={setRightbarOpen}
               vaults={mockup_vaults.filter((vault) =>
-                selectedVault.map((v) => v.vaultId).includes(vault.id)
+                selectedVault.map((v) => v.name).includes(vault.id)
               )}
             />
           )}

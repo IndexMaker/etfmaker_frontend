@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Vault {
-  vaultId: string;
-  token: string;
+  name: string;
+  ticker: string;
   amount: number;
 }
 
@@ -20,7 +20,7 @@ const vaultSlice = createSlice({
   reducers: {
     addSelectedVault(
       state,
-      action: PayloadAction<{ vaultId: string; token: string }>
+      action: PayloadAction<{ name: string, ticker: string }>
     ) {
       // Remove any vault with same vaultId AND amount === 0 or null
       state.selectedVault = state.selectedVault.filter(
@@ -30,22 +30,22 @@ const vaultSlice = createSlice({
 
       // Add the new one
       state.selectedVault.push({
-        vaultId: action.payload.vaultId,
-        token: action.payload.token,
+        name: action.payload.name,
+        ticker: action.payload.ticker,
         amount: 0,
       });
     },
     removeSelectedVault(state, action: PayloadAction<string>) {
       state.selectedVault = state.selectedVault.filter(
-        (vault) => vault.vaultId !== action.payload
+        (vault) => vault.name !== action.payload
       );
     },
     updateVaultAmount(
       state,
-      action: PayloadAction<{ vaultId: string; amount: number }>
+      action: PayloadAction<{ name: string; amount: number }>
     ) {
       const vault = state.selectedVault.find(
-        (v) => v.vaultId === action.payload.vaultId
+        (v) => v.name === action.payload.name
       );
       if (vault) {
         vault.amount = action.payload.amount;

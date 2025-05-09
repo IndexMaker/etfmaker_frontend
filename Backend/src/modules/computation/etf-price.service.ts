@@ -6,6 +6,7 @@ import { historicalPrices, rebalances } from '../../db/schema';
 import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm';
 import { ethers } from 'ethers';
 import * as path from 'path';
+import { IndexListEntry } from 'src/common/types/index.types';
 
 type Weight = [string, number];
 
@@ -387,5 +388,153 @@ export class EtfPriceService {
       console.error('Error fetching BTC historical data:', error);
       return null;
     }
+  }
+
+  // fetch Index Lists
+  async getIndexList(): Promise<IndexListEntry[]> {
+    const indexList: IndexListEntry[] = [];
+
+    // Assuming the index count is available via a contract function
+    const indexCount = await this.indexRegistry.indexDatasCount();
+    for (let indexId = 6; indexId <= indexCount; indexId++) {
+      // Fetch index data
+      const [
+        name,
+        ticker,
+        curator,
+        lastPrice,
+        lastWeightUpdateTimestamp,
+        lastPriceUpdateTimestamp,
+        curatorFee,
+      ] = await this.indexRegistry.getIndexDatas(indexId);
+
+      // Fetch collateral (logos) from token symbols (weights) related to the index
+      const weights = await this.indexRegistry.curatorWeights(
+        indexId,
+        lastWeightUpdateTimestamp,
+      );
+      const tokenLists = this.indexRegistryService.decodeWeights(weights); // Assuming you have a decodeWeights method
+      const tokenSymbols = tokenLists.map(([token]) => token);
+      const logos = await this.getLogosForSymbols(tokenSymbols);
+
+      // Fetch Total Supply for the ERC20 contract (assuming you have a way to get ERC20 contract address for the index)
+      const totalSupply = await this.getTotalSupplyForIndex(indexId);
+
+      // Calculate YTD return (you might need to fetch historical prices for this)
+      let ytdReturn = await this.calculateYtdReturn(indexId);
+      ytdReturn = Math.floor(ytdReturn * 100) / 100
+      indexList.push({
+        indexId,
+        name,
+        ticker,
+        curator,
+        totalSupply,
+        ytdReturn,
+        collateral: logos,
+        managementFee: Number(curatorFee) / 1e18, // Assuming fee is in the smallest unit
+      });
+    }
+
+    return indexList;
+  }
+
+  async getPriceForDate(
+    indexId: number,
+    targetDate: number,
+  ): Promise<number | null> {
+    const filter = this.indexRegistry.filters.CuratorWeightsSet(indexId);
+    const events = await this.indexRegistry.queryFilter(filter);
+    // Find the most recent rebalance event before target date
+    const rebalanceEvents = events
+      .map((event: any) => ({
+        timestamp: Number(event.args.timestamp),
+        weights: this.indexRegistryService.decodeWeights(event.args.weights),
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp);
+
+    // Find the applicable weights (last rebalance before target date)
+    const applicableWeights = rebalanceEvents
+      .filter((event) => {
+        return Number(event.timestamp) * 1000 <= targetDate})
+      .pop()?.weights;
+
+    if (!applicableWeights) return null;
+
+    // 2. Get price data for the target date
+    const targetTimestamp = Math.floor(targetDate / 1000);
+    const uniqueSymbols = [...new Set(applicableWeights.map((w) => w[0]))];
+    const coingeckoIdMap = await this.mapToCoingeckoIds(uniqueSymbols);
+
+    const tokenPrices = await this.getHistoricalPricesForPeriod(
+      coingeckoIdMap,
+      targetTimestamp,
+      targetTimestamp,
+    );
+
+    // 3. Calculate index price
+    return this.calculateIndexPriceFromDb(
+      applicableWeights,
+      tokenPrices,
+      targetTimestamp,
+    );
+  }
+
+  async getLogosForSymbols(symbols: string[]): Promise<string[]> {
+    const coingeckoIdMap = await this.mapToCoingeckoIds(symbols);
+    return Promise.all(
+      symbols.map(async (symbol) => {
+        const id = coingeckoIdMap[symbol];
+        if (!id) return '';
+        const data = await this.coinGeckoService.getCoinData(`/coins/${id}`);
+        return data.image?.thumb || '';
+      }),
+    );
+  }
+
+  async getTotalSupplyForIndex(indexId: number): Promise<number> {
+    const erc20Address = await this.getERC20AddressForIndex(indexId); // You must implement
+    const erc20 = new ethers.Contract(
+      erc20Address,
+      ['function totalSupply() view returns (uint256)'],
+      this.provider,
+    );
+    const supply = await erc20.totalSupply();
+    return Number(ethers.formatUnits(supply, 18));
+  }
+
+  async calculateYtdReturn(indexId: number): Promise<number> {
+    const now = new Date().setUTCHours(0, 0, 0, 0);
+    const jan1 = new Date(new Date().getFullYear(), 0, 1).setUTCHours(0, 0, 0, 0);
+
+    const latestPrice = await this.getPriceForDate(indexId, now);
+    const jan1Price = await this.getPriceForDate(indexId, jan1);
+    if (!jan1Price || jan1Price === 0) return 0;
+
+    return (((latestPrice || 0) - jan1Price) / jan1Price) * 100;
+  }
+
+  async getHistoricalPriceForDate(
+    indexId: number,
+    timestamp: number,
+  ): Promise<number> {
+    const rounded = timestamp - (timestamp % 86400);
+    const history = await this.getHistoricalData(indexId);
+    const entry = history.find((e) => {
+      const ts = Math.floor(new Date(e.date).getTime() / 1000);
+      return Math.abs(ts - rounded) < 43200;
+    });
+    return entry?.price ?? 0;
+  }
+
+  async getERC20AddressForIndex(indexId: number): Promise<string> {
+    const indexTokenAddressMap: Record<number, string> = {
+      6: '0xac2125c4a6c7e7562cdf605fcac9f32cd9effef2', // replace with actual deployed token addresses
+      7: '0x8fcf91497b456e63e15837db49411a0cce1ae1d0',
+    };
+    const address = indexTokenAddressMap[indexId];
+    if (!address) {
+      throw new Error(`ERC20 address not found for indexId: ${indexId}`);
+    }
+    return address;
   }
 }

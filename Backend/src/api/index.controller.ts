@@ -122,4 +122,10 @@ export class IndexController {
     const btcData = await this.etfPriceService.fetchCoinHistoricalData();
     return btcData;
   }
+
+  @Get('/getIndexLists')
+  async fetchIndexLists() {
+    const lists = await this.etfPriceService.getIndexList()
+    return lists
+  }
 }

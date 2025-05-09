@@ -17,23 +17,23 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import axios from "axios";
+import { IndexListEntry } from "@/types";
 
 type ColumnType = {
   id: string;
   title: string;
   visible: boolean;
-}
+};
 
-const initialColumns:ColumnType[] = [
-  { id: "vaultName", title: "Vault Name", visible: true },
-  { id: "token", title: "Token", visible: true },
+const initialColumns: ColumnType[] = [
+  { id: "name", title: "Index Name", visible: true },
+  { id: "ticker", title: "Ticker", visible: true },
   { id: "totalSupply", title: "Total Supply", visible: true },
-  { id: "instantApy", title: "Instant APY", visible: true },
-  { id: "vaultApy", title: "Vault APY", visible: true },
+  { id: "ytdReturn", title: "YTD return", visible: true },
   { id: "curator", title: "Curator", visible: true },
   { id: "collateral", title: "Collateral", visible: true },
-  { id: "rewards", title: "Rewards", visible: true },
-  { id: "performanceFee", title: "Performance Fee", visible: false },
+  { id: "managementFee", title: "Management Fee", visible: true },
   { id: "actions", title: "table.actions", visible: true },
 ];
 
@@ -45,7 +45,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const { t } = useLanguage();
   const [columns, setColumns] = useState(initialColumns);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortColumn, setSortColumn] = useState<string>("vaultName");
+  const [sortColumn, setSortColumn] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
   const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "reward">(
@@ -56,12 +56,33 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
     (state: RootState) => state.network
   );
 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [indexLists, setIndexLists] = useState<IndexListEntry[]>([]);
+  const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
+  useEffect(() => {
+    const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await axios(`${API_BASE_URL}/indices/getIndexLists`);
+        const data = response.data;
+        setIndexLists(data);
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   useEffect(() => {
     const termsAccepted = localStorage.getItem("termsAccepted");
-    if ((!termsAccepted || termsAccepted === 'false') && storedWallet) {
-      setShowHowEarnWorks(true)
+    if ((!termsAccepted || termsAccepted === "false") && storedWallet) {
+      setShowHowEarnWorks(true);
     }
-  }, [storedWallet])
+  }, [storedWallet]);
   // Function to handle sorting
   const handleSort = (columnId: string, direction: "asc" | "desc") => {
     setSortColumn(columnId);
@@ -71,22 +92,20 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   // Filter and sort vaults based on search query and sort settings
   const filteredAndSortedVaults = useMemo(() => {
     // First filter by search query
-    let filtered = vaults;
+    let filtered = indexLists;
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
 
-      filtered = vaults.filter((vault) => {
+      filtered = indexLists.filter((vault) => {
         // Search in multiple fields
         return (
           vault.name.toLowerCase().includes(query) ||
-          vault.token.toLowerCase().includes(query) ||
+          vault.ticker.toLowerCase().includes(query) ||
           vault.curator.toLowerCase().includes(query) ||
-          vault.totalSupply.toLowerCase().includes(query) ||
-          vault.instantApy.toLowerCase().includes(query) ||
-          vault.performanceFee.toLowerCase().includes(query) ||
-          vault.vaultApy.toLowerCase().includes(query) ||
-          vault.rewards.toLowerCase().includes(query)
+          vault.totalSupply.toString().toLowerCase().includes(query) ||
+          vault.ytdReturn.toString().toLowerCase().includes(query) ||
+          vault.managementFee.toString().toLowerCase().includes(query)
         );
       });
     }
@@ -98,34 +117,26 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
       // Extract the values to compare based on the sort column
       switch (sortColumn) {
-        case "vaultName":
+        case "name":
           valueA = a.name;
           valueB = b.name;
           break;
+        case "ticker":
+          valueA = a.ticker;
+          valueB = b.ticker;
+          break;
         case "totalSupply":
           // Sort by USD value for totalSupply
-          valueA = Number.parseFloat(a.totalSupply.replace(/[^0-9.-]+/g, ""));
-          valueB = Number.parseFloat(b.totalSupply.replace(/[^0-9.-]+/g, ""));
-          break;
-        case "instantApy":
-          valueA = Number.parseFloat(a.instantApy);
-          valueB = Number.parseFloat(b.instantApy);
-          break;
-        case "vaultApy":
-          valueA = Number.parseFloat(a.vaultApy);
-          valueB = Number.parseFloat(b.vaultApy);
+          valueA = (a.totalSupply);
+          valueB = (b.totalSupply);
           break;
         case "curator":
           valueA = a.curator;
           valueB = b.curator;
           break;
-        case "rewards":
-          valueA = a.rewards;
-          valueB = b.rewards;
-          break;
-        case "performanceFee":
-          valueA = Number.parseFloat(a.performanceFee);
-          valueB = Number.parseFloat(b.performanceFee);
+        case "managementFee":
+          valueA = (a.managementFee);
+          valueB = (b.managementFee);
           break;
         default:
           valueA = a.name;
@@ -141,7 +152,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
       }
       return 0;
     });
-  }, [searchQuery, sortColumn, sortDirection]);
+  }, [searchQuery, sortColumn, sortDirection, indexLists]);
   // Function to handle column visibility changes
   const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {
     setColumns(
@@ -264,7 +275,10 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                   </div>
                 </div>
                 <div className="gap-4 hidden sm:flex">
-                  <CustomButton disabled={true} className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30">
+                  <CustomButton
+                    disabled={true}
+                    className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30"
+                  >
                     {t("common.claim")}
                   </CustomButton>
                   {activeMyearnTab === "position" ? (

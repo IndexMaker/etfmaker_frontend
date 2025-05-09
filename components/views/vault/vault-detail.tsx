@@ -51,7 +51,12 @@ import { cn } from "@/lib/utils";
 import { PerformanceChart } from "@/components/elements/performance-chart";
 import { TimePeriodSelector } from "@/components/elements/time-period";
 import axios from "axios";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
 interface VaultDetailPageProps {
   vault: Vault;
 }
@@ -73,10 +78,12 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [indexData, setIndexData] = useState<IndexData[]>([]);
+  const [btcData, setBtcData] = useState<any[]>([]);
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
-    const API_BASE_URL = process.env.BACKEND_API || "https://miserable-georgie-hotcoding85-6ad5b67a.koyeb.app"
+    const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
     const fetchData = async () => {
       setIsLoading(true);
       try {
@@ -96,12 +103,26 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
     };
 
     fetchData();
+
+    const fetchBtcHistoricalData = async () => {
+      const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
+      setIsLoading(true);
+      try {
+        const response = await axios(
+          `${API_BASE_URL}/indices/fetchBtcHistoricalData`
+        );
+        const data = response.data;
+        setBtcData(data);
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchBtcHistoricalData();
   }, []);
 
-  const filteredData = (indexId: number) => {
-    const index = indexData.find((item) => item.indexId === indexId);
-    if (!index) return [];
-
+  const getCutoffDate = () => {
     const now = new Date();
     let cutoffDate = new Date(0); // All time
 
@@ -125,8 +146,19 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         cutoffDate = new Date(now.setFullYear(now.getFullYear() - 10));
         break;
     }
+    return cutoffDate;
+  };
 
-    return index.chartData.filter((item) => new Date(item.date) >= cutoffDate);
+  const filteredData = (indexId: number) => {
+    const index = indexData.find((item) => item.indexId === indexId);
+    if (!index) return [];
+    return index.chartData.filter(
+      (item) => new Date(item.date) >= getCutoffDate()
+    );
+  };
+
+  const filteredBtcData = () => {
+    return btcData.filter((item) => new Date(item.date) >= getCutoffDate());
   };
 
   const copyToClipboard = (text: string, type: string) => {
@@ -559,11 +591,15 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   variant="outline"
                   className="flex items-center justify-between w-full px-3 py-2 text-sm text-left rounded-md border border-secondary text-primary bg-background hover:bg-muted"
                 >
-                  {indexData.find((i) => i.indexId === selectedIndexId)?.name || "Select Index"}
+                  {indexData.find((i) => i.indexId === selectedIndexId)?.name ||
+                    "Select Index"}
                   <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-[400px] xs-[200px] bg-foreground border-none text-sm text-secondary">
+              <DropdownMenuContent
+                align="start"
+                className="w-[400px] xs-[200px] bg-foreground border-none text-sm text-secondary"
+              >
                 {indexData.map((index) => (
                   <DropdownMenuItem
                     key={index.indexId}
@@ -571,7 +607,9 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     className="flex items-center justify-between active:bg-[#fafafa20] p-4"
                   >
                     <span>{index.name}</span>
-                    {selectedIndexId === index.indexId && <Check className="h-4 w-4" />}
+                    {selectedIndexId === index.indexId && (
+                      <Check className="h-4 w-4" />
+                    )}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -581,6 +619,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
           <TimePeriodSelector
             selectedPeriod={selectedPeriod}
             onPeriodChange={setSelectedPeriod}
+            showComparison={showComparison}
+            setShowComparison={setShowComparison}
           />
 
           {selectedIndexId && (
@@ -588,6 +628,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
               <PerformanceChart
                 data={filteredData(selectedIndexId)}
                 indexId={selectedIndexId}
+                btcData={filteredBtcData()}
+                showComparison={showComparison}
               />
             </div>
           )}
