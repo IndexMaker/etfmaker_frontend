@@ -265,10 +265,6 @@ export const mockup_vaults: Vault[] = [
   },
 ];
 
-export function getVaultById(id: string): Vault | undefined {
-  return mockup_vaults.find((vault) => vault.id === id);
-}
-
 export interface Project {
   id: string;
   name: string;

@@ -96,15 +96,15 @@ export function Header({
 
   const breadcrumbItems = pathSegments.map((segment, index) => {
     if (segment === "vault") {
-      segment = "earn";
+      segment = "indexes";
     }
     const path =
-      segment === "earn"
+      segment === "indexes"
         ? "/"
         : `../${pathSegments.slice(0, index + 1).join("/")}`;
     const _segment = t("common." + segment);
     return {
-      name: _segment.charAt(0).toUpperCase() + segment.slice(1), // Capitalize first letter
+      name: segment.charAt(0).toUpperCase() + segment.slice(1), // Capitalize first letter
       href: path,
     };
   });

@@ -14,6 +14,7 @@ import Markets from "@/components/icons/market-created";
 import FundMaker from "@/components/icons/fundmaker";
 import APY from "@/components/icons/apy";
 import { useLanguage } from "@/contexts/language-context";
+import Cube from "@/components/icons/cube";
 
 export function AnalyticsPage() {
   const { t } = useLanguage();
@@ -117,7 +118,7 @@ export function AnalyticsPage() {
             <SMMetricCard
               title={t("common.fundmakerVaults")}
               value="153"
-              icon={<FundMaker className="h-3 w-3 text-blue-400" />}
+              icon={<Cube className="h-3 w-3 text-blue-400" />}
             />
           </div>
         </div>
@@ -154,7 +155,7 @@ export function AnalyticsPage() {
             <SMMetricCard
               title={t("common.fundmakerVaults")}
               value="145"
-              icon={<FundMaker className="h-3 w-3 text-blue-400" />}
+              icon={<Cube className="h-3 w-3 text-blue-400" />}
             />
           </div>
         </div>
@@ -259,12 +260,18 @@ function AnalyticsLink({ name, icon, url }: AnalyticsLinkProps) {
         variant="outline"
         className="bg-accent border-none hover:bg-muted text-[11px] text-primary rounded-[2px] flex items-center gap-1"
       >
-        <Image
-          src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}
-          width={15}
-          height={15}
-          alt="FundMaker"
-        />
+        {icon === "fundmaker" ? (
+          <div className="w-4 h-4">
+            <FundMaker className="w-4 h-4" color="#51a2ff" />
+          </div>
+        ) : (
+          <Image
+            src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}
+            width={15}
+            height={15}
+            alt="FundMaker"
+          />
+        )}
         <div>{name}</div>
         <ArrowUpRight className="ml-1 h-3 w-3" />
       </CustomButton>

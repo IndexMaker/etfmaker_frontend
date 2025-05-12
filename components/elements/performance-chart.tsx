@@ -36,7 +36,7 @@ interface ChartDataPoint {
 }
 
 interface PerformanceChartProps {
-  data: ChartDataPoint[];
+  data: ChartDataPoint[] | null;
   indexId: number;
   btcData: ChartDataPoint[];
   showComparison?: boolean;

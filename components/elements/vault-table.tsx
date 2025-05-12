@@ -283,7 +283,8 @@ export function VaultTable({
                             className="flex items-center gap-2"
                             onClick={() => assetDetail(vault)}
                           >
-                            <span>{shortenAddress(vault.curator)}</span>
+                            {/* <span>{shortenAddress(vault.curator)}</span> */}
+                            <span>{"OTC"}</span>
                           </div>
                         )}
                         {col.id === "collateral" && (
@@ -304,12 +305,12 @@ export function VaultTable({
                                             <span>Collateral</span>
                                             <div className="flex items-center">
                                               <Image
-                                                src={collateral}
+                                                src={collateral.logo}
                                                 alt={"Collateral"}
                                                 width={17}
                                                 height={17}
                                               />
-                                              <span>PT-U...025</span>
+                                              <span>{collateral.name}</span>
                                             </div>
                                           </div>
                                           <div className="flex justify-between border-b py-1 px-3 border-accent">
@@ -334,9 +335,9 @@ export function VaultTable({
                                     >
                                       <span className="hover:px-1 hover:transition-all">
                                         <div className="flex items-center gap-1">
-                                          {collateral !== "" && (
+                                          {collateral.logo !== "" && (
                                             <Image
-                                              src={collateral}
+                                              src={collateral.logo}
                                               alt={"Collateral"}
                                               width={17}
                                               height={17}
@@ -359,12 +360,12 @@ export function VaultTable({
                                               className="flex items-center gap-2"
                                             >
                                               <Image
-                                                src={collateral}
+                                                src={collateral.logo}
                                                 alt="Collateral"
                                                 width={17}
                                                 height={17}
                                               />
-                                              <span>PT-U...025</span>
+                                              <span>{collateral.name}</span>
                                             </div>
                                           ))}
                                       </div>

@@ -22,12 +22,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Vault } from "@/lib/types/vault";
 import { useEffect, useState } from "react";
 import Dashboard from "../Dashboard/dashboard";
 import { toast } from "sonner";
 import { VaultAllocationBreakdown } from "@/components/elements/vault-allocation-breakdown";
 import {
+  mockup_vaults,
   reallocations,
   supplyPositions,
   userActivities,
@@ -47,7 +47,7 @@ import { VaultActivity } from "@/components/elements/vault-activity";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { VaultLiteratureSection } from "./vault-literature";
-import { cn } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import { PerformanceChart } from "@/components/elements/performance-chart";
 import { TimePeriodSelector } from "@/components/elements/time-period";
 import axios from "axios";
@@ -57,27 +57,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
+import { IndexListEntry } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
 interface VaultDetailPageProps {
-  vault: Vault;
+  index: IndexListEntry | null;
+}
+interface ChartDataPoint {
+  name: string;
+  date: string;
+  value: number;
+  price?: number;
 }
 interface IndexData {
   name: string;
   indexId: number;
   rawData: any[];
-  chartData: {
-    name: string;
-    date: string;
-    value: number;
-    price?: number;
-  }[];
+  chartData: ChartDataPoint[];
 }
-export function VaultDetailPage({ vault }: VaultDetailPageProps) {
+export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const { t } = useLanguage();
+  const vault = mockup_vaults[0];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
-
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [indexData, setIndexData] = useState<IndexData[]>([]);
+  const [indexData, setIndexData] = useState<IndexData | null>(null);
   const [btcData, setBtcData] = useState<any[]>([]);
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
@@ -88,13 +91,10 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
       setIsLoading(true);
       try {
         const response = await axios(
-          `${API_BASE_URL}/indices/getHistoricalData`
+          `${API_BASE_URL}/indices/getHistoricalData/${index?.indexId}`
         );
         const data = response.data;
         setIndexData(data);
-        if (data.length > 0) {
-          setSelectedIndexId(data[0].indexId);
-        }
       } catch (error) {
         console.error("Error fetching performance data:", error);
       } finally {
@@ -102,7 +102,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
       }
     };
 
-    fetchData();
+    index?.indexId && fetchData();
 
     const fetchBtcHistoricalData = async () => {
       const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
@@ -119,8 +119,8 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         setIsLoading(false);
       }
     };
-    fetchBtcHistoricalData();
-  }, []);
+    index?.indexId && fetchBtcHistoricalData();
+  }, [index]);
 
   const getCutoffDate = () => {
     const now = new Date();
@@ -147,14 +147,6 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
         break;
     }
     return cutoffDate;
-  };
-
-  const filteredData = (indexId: number) => {
-    const index = indexData.find((item) => item.indexId === indexId);
-    if (!index) return [];
-    return index.chartData.filter(
-      (item) => new Date(item.date) >= getCutoffDate()
-    );
   };
 
   const filteredBtcData = () => {
@@ -245,217 +237,182 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
 
   return (
     <Dashboard>
-      <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
-        {/* Vault Header */}
-        <div
-          className={cn("flex gap-16 ", isMobile ? "flex-col" : "flex-row ")}
-        >
+      {index ? (
+        <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
+          {/* Vault Header */}
           <div
-            className={cn(
-              "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full overflow-ellipsis",
-              isMobile ? "w-full" : "w-[50%]"
-            )}
+            className={cn("flex gap-16 ", isMobile ? "flex-col" : "flex-row ")}
           >
             <div
               className={cn(
-                "h-[100px] min-w-[100px] rounded-full overflow-hidden bg-transparent p-[6.6px] flex items-center justify-center",
-                isMobile ? "" : ""
+                "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full overflow-ellipsis",
+                isMobile ? "w-full" : "w-[50%]"
               )}
             >
-              {vault.icon ? (
-                <Image
-                  src={vault.icon || "/placeholder.svg"}
-                  alt={vault.name}
-                  className="object-cover w-full h-full rounded-full"
-                  width={87}
-                  height={87}
-                />
-              ) : (
-                <div className="text-4xl">{vault.token.symbol.charAt(0)}</div>
-              )}
-            </div>
-            <div className="flex gap-6 flex-col">
-              <h1 className="text-[38px] min-w-[50%] h-[44px] text-primary text-center xl:text-left">
-                {vault.name}
-              </h1>
-              <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
-                <div className="flex items-center gap-2">
-                  <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                    {vault.token.icon ? (
-                      <Image
-                        src={
-                          vault.token.icon ||
-                          `https://cdn.morpho.org/assets/logos/${vault.token.symbol}.svg`
-                        }
-                        alt={vault.token.symbol}
-                        width={17}
-                        height={17}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="text-xs text-primary">
-                        {vault.token.symbol.charAt(0)}
-                      </div>
-                    )}
+              <div
+                className={cn(
+                  "h-[100px] min-w-[100px] rounded-full overflow-hidden bg-transparent p-[6.6px] flex items-center justify-center",
+                  isMobile ? "" : ""
+                )}
+              >
+                {vault.icon ? (
+                  <Image
+                    src={vault.icon || "/placeholder.svg"}
+                    alt={vault.name}
+                    className="object-cover w-full h-full rounded-full"
+                    width={87}
+                    height={87}
+                  />
+                ) : (
+                  <div className="text-4xl">
+                    {vault.token.symbol.charAt(0) || ""}
                   </div>
-                  <span className="text-secondary text-[20px]">
-                    {vault.token.symbol}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                    {vault.curator.icon ? (
-                      <Image
-                        src={
-                          vault.curator.icon ||
-                          `https://cdn.morpho.org/assets/logos/mevcapital.png`
-                        }
-                        width={17}
-                        height={17}
-                        alt={vault.curator.name}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <div className="text-xs">
-                        {vault.curator.name.charAt(0)}
-                      </div>
-                    )}
+                )}
+              </div>
+              <div className="flex gap-6 flex-col">
+                <h1 className="text-[38px] min-w-[50%] h-[44px] text-primary text-center xl:text-left">
+                  {index.name}
+                </h1>
+                <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
+                  <div className="flex items-center gap-2">
+                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                      {vault.token.icon ? (
+                        <Image
+                          src={
+                            vault.token.icon ||
+                            `https://cdn.morpho.org/assets/logos/${vault.token.symbol}.svg`
+                          }
+                          alt={vault.token.symbol}
+                          width={17}
+                          height={17}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="text-xs text-primary">
+                          {vault.token.symbol.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-secondary text-[20px]">
+                      {vault.token.symbol}
+                    </span>
                   </div>
-                  <span className="text-secondary text-[20px]">
-                    {vault.curator.name}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                      {vault.curator.icon ? (
+                        <Image
+                          src={
+                            vault.curator.icon ||
+                            `https://cdn.morpho.org/assets/logos/mevcapital.png`
+                          }
+                          width={17}
+                          height={17}
+                          alt={vault.curator.name}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className="text-xs">
+                          {vault.curator.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-secondary text-[20px]">
+                      {vault.curator.name}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {/* Vault Description */}
-          <div className="bg-foreground rounded-sm p-5  flex items-center">
-            <p className="text-secondary text-[13px] leading-[16px]">
-              {vault.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Vault Info */}
-        <div className="pt-20">
-          <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-            {t("common.vaultInfo")}
-          </h2>
-          {isMobile ? (
-            <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
-              <InfoMobileCard title={t("table.curator")}>
-                <div className="flex items-center flex-row">
-                  <CuratorInfo curator={vault.curator} />
-                </div>
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.token")}>
-                <TokenInfo token={vault.token} />
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.totalSupply")}>
-                <TokenValue token={vault.token} value={vault.totalSupply} />
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.instantAPY")}>
-                <div className="text-sm text-secondary">{vault.instantApy}</div>
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.performanceFee")}>
-                <div className="text-sm text-secondary">
-                  {vault.performanceFee}
-                </div>
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.vaultAddress")}>
-                <AddressInfo address={vault.vaultAddress || ""} />
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.liquidity")}>
-                <TokenValue token={vault.token} value={vault.liquidity} />
-              </InfoMobileCard>
-
-              <InfoMobileCard title={t("table.guardianAddress")}>
-                <AddressInfo address={vault.guardianAddress || ""} />
-              </InfoMobileCard>
+            {/* Vault Description */}
+            <div className="bg-foreground rounded-sm p-5  flex items-center">
+              <p className="text-secondary text-[13px] leading-[16px]">
+                {vault.description}
+              </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
-              {/* Curator */}
-              <InfoCard title={t("table.curator")}>
-                <div className="flex items-center gap-2">
-                  <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                    {vault.curator.icon ? (
-                      <Image
-                        src={vault.curator.icon || "/placeholder.svg"}
-                        alt={vault.curator.name}
-                        className="object-cover w-full h-full"
-                        width={17}
-                        height={17}
-                      />
-                    ) : (
-                      <div className="text-xs">
-                        {vault.curator.name.charAt(0)}
-                      </div>
+          </div>
+
+          {/* Vault Info */}
+          <div className="pt-20">
+            <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+              {t("common.vaultInfo")}
+            </h2>
+            {isMobile ? (
+              <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
+                <InfoMobileCard title={t("table.curator")}>
+                  <div className="flex items-center flex-row">
+                    <CuratorInfo curator={vault.curator} />
+                  </div>
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.token")}>
+                  <TokenInfo token={vault.token} />
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.totalSupply")}>
+                  <TokenValue token={vault.token} value={vault.totalSupply} />
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.instantAPY")}>
+                  <div className="text-sm text-secondary">
+                    {vault.instantApy}
+                  </div>
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.managementFee")}>
+                  <div className="text-sm text-secondary">
+                    {/* {vault.managementFee || ''} */}
+                  </div>
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.vaultAddress")}>
+                  <AddressInfo address={vault.vaultAddress || ""} />
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.liquidity")}>
+                  <TokenValue token={vault.token} value={vault.liquidity} />
+                </InfoMobileCard>
+
+                <InfoMobileCard title={t("table.guardianAddress")}>
+                  <AddressInfo address={vault.guardianAddress || ""} />
+                </InfoMobileCard>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
+                {/* Curator */}
+                <InfoCard title={t("table.curator")}>
+                  <div className="flex items-center gap-2">
+                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+                      {vault.curator.icon ? (
+                        <Image
+                          src={vault.curator.icon || "/placeholder.svg"}
+                          alt={vault.curator.name}
+                          className="object-cover w-full h-full"
+                          width={17}
+                          height={17}
+                        />
+                      ) : (
+                        <div className="text-xs">
+                          {vault.curator.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-secondary text-[15px] font-normal">
+                      {vault.curator.name}
+                    </span>
+                    {vault.curator.url && (
+                      <Link
+                        href={vault.curator.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ArrowUpRight className="h-4 w-4 text-secondary" />
+                      </Link>
                     )}
                   </div>
-                  <span className="text-secondary text-[15px] font-normal">
-                    {vault.curator.name}
-                  </span>
-                  {vault.curator.url && (
-                    <Link
-                      href={vault.curator.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ArrowUpRight className="h-4 w-4 text-secondary" />
-                    </Link>
-                  )}
-                </div>
-              </InfoCard>
+                </InfoCard>
 
-              {/* Token */}
-              <InfoCard title={t("table.token")}>
-                <div className="flex items-center gap-2">
-                  <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                    {vault.token.icon ? (
-                      <Image
-                        src={vault.token.icon || "/placeholder.svg"}
-                        alt={vault.token.symbol}
-                        className="object-cover w-full h-full"
-                        width={17}
-                        height={17}
-                      />
-                    ) : (
-                      <div className="text-xs">
-                        {vault.token.symbol.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <span className="text-secondary text-[15px] font-normal">
-                    {vault.token.symbol}
-                  </span>
-                  {vault.token.address && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                      onClick={() =>
-                        copyToClipboard(
-                          vault.token.address || "",
-                          "Token address"
-                        )
-                      }
-                    >
-                      <Copy className="h-3 w-3 text-secondary hover:text-primary" />
-                    </Button>
-                  )}
-                </div>
-              </InfoCard>
-
-              {/* Total Supply */}
-              <InfoCard title={t("table.totalSupply")}>
-                <div className="flex items-center gap-2">
+                {/* Token */}
+                <InfoCard title={t("table.token")}>
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
                       {vault.token.icon ? (
@@ -473,178 +430,186 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                       )}
                     </div>
                     <span className="text-secondary text-[15px] font-normal">
-                      {vault.totalSupply.amount}
+                      {vault.token.symbol}
                     </span>
-                  </div>
-                  <div className="text-[13px] text-secondary px-[2px] bg-accent">
-                    {vault.totalSupply.usdValue}
-                  </div>
-                </div>
-              </InfoCard>
-
-              {/* Instant APY */}
-              <InfoCard title={t("table.instantAPY")}>
-                <div className="text-[15px] text-secondary font-normal">
-                  {vault.instantApy}
-                </div>
-              </InfoCard>
-
-              {/* Performance Fee */}
-              <InfoCard
-                title={t("table.performanceFee")}
-                tooltip="The fee charged on earnings by the vault curator"
-              >
-                <div className="text-[15px] text-secondary font-normal">
-                  {vault.performanceFee}
-                </div>
-              </InfoCard>
-
-              {/* Vault Address */}
-              <InfoCard title={t("table.vaultAddress")}>
-                <div className="flex items-center gap-2">
-                  <span className="text-secondary text-[15px] font-normal">
-                    {vault.vaultAddress}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                    onClick={() =>
-                      copyToClipboard(vault.vaultAddress, "Vault address")
-                    }
-                  >
-                    <Copy className="h-3 w-3 text-secondary" />
-                  </Button>
-                </div>
-              </InfoCard>
-
-              {/* liquidity */}
-              <InfoCard
-                title={t("table.instantAPY")}
-                tooltip="The amount of tokens available for borrowing"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
-                      {vault.token.icon ? (
-                        <Image
-                          src={vault.token.icon || "/placeholder.svg"}
-                          alt={vault.token.symbol}
-                          className="object-cover w-full h-full"
-                          width={17}
-                          height={17}
-                        />
-                      ) : (
-                        <div className="text-xs">
-                          {vault.token.symbol.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    <span className="text-secondary text-[15px] font-normal">
-                      {vault.liquidity.amount}
-                    </span>
-                  </div>
-                  <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
-                    {vault.liquidity.usdValue}
-                  </div>
-                </div>
-              </InfoCard>
-
-              {/* Guardian Address */}
-              <InfoCard
-                title={t("table.guardianAddress")}
-                tooltip="The blockchain address of the vault guardian"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-secondary text-[15px] font-normal">
-                    {vault.guardianAddress}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                    onClick={() =>
-                      copyToClipboard(vault.guardianAddress, "Guardian address")
-                    }
-                  >
-                    <Copy className="h-3 w-3 text-secondary" />
-                  </Button>
-                </div>
-              </InfoCard>
-            </div>
-          )}
-        </div>
-
-        {/* Chart */}
-        <div className="pt-20">
-          <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-            Index Performance
-          </h2>
-
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-secondary mb-2">
-              Choose Index
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center justify-between w-full px-3 py-2 text-sm text-left rounded-md border border-secondary text-primary bg-background hover:bg-muted"
-                >
-                  {indexData.find((i) => i.indexId === selectedIndexId)?.name ||
-                    "Select Index"}
-                  <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                className="w-[400px] xs-[200px] bg-foreground border-none text-sm text-secondary"
-              >
-                {indexData.map((index) => (
-                  <DropdownMenuItem
-                    key={index.indexId}
-                    onClick={() => setSelectedIndexId(index.indexId)}
-                    className="flex items-center justify-between active:bg-[#fafafa20] p-4"
-                  >
-                    <span>{index.name}</span>
-                    {selectedIndexId === index.indexId && (
-                      <Check className="h-4 w-4" />
+                    {vault.token.address && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                        onClick={() =>
+                          copyToClipboard(
+                            vault.token.address || "",
+                            "Token address"
+                          )
+                        }
+                      >
+                        <Copy className="h-3 w-3 text-secondary hover:text-primary" />
+                      </Button>
                     )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  </div>
+                </InfoCard>
+
+                {/* Total Supply */}
+                <InfoCard title={t("table.totalSupply")}>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+                        {vault.token.icon ? (
+                          <Image
+                            src={vault.token.icon || "/placeholder.svg"}
+                            alt={vault.token.symbol}
+                            className="object-cover w-full h-full"
+                            width={17}
+                            height={17}
+                          />
+                        ) : (
+                          <div className="text-xs">
+                            {vault.token.symbol.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-secondary text-[15px] font-normal">
+                        {vault.totalSupply.amount}
+                      </span>
+                    </div>
+                    <div className="text-[13px] text-secondary px-[2px] bg-accent">
+                      {vault.totalSupply.usdValue}
+                    </div>
+                  </div>
+                </InfoCard>
+
+                {/* Instant APY */}
+                <InfoCard title={t("table.instantAPY")}>
+                  <div className="text-[15px] text-secondary font-normal">
+                    {vault.instantApy}
+                  </div>
+                </InfoCard>
+
+                {/* Performance Fee */}
+                <InfoCard
+                  title={t("table.managementFee")}
+                  tooltip="The fee charged on earnings by the vault curator"
+                >
+                  <div className="text-[15px] text-secondary font-normal">
+                    {vault.performanceFee}
+                  </div>
+                </InfoCard>
+
+                {/* Vault Address */}
+                <InfoCard title={t("table.vaultAddress")}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-secondary text-[15px] font-normal">
+                      {shortenAddress(index.curator)}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                      onClick={() =>
+                        copyToClipboard(index.curator, "Index address")
+                      }
+                    >
+                      <Copy className="h-3 w-3 text-secondary" />
+                    </Button>
+                  </div>
+                </InfoCard>
+
+                {/* liquidity */}
+                <InfoCard
+                  title={t("table.instantAPY")}
+                  tooltip="The amount of tokens available for borrowing"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
+                        {vault.token.icon ? (
+                          <Image
+                            src={vault.token.icon || "/placeholder.svg"}
+                            alt={vault.token.symbol}
+                            className="object-cover w-full h-full"
+                            width={17}
+                            height={17}
+                          />
+                        ) : (
+                          <div className="text-xs">
+                            {vault.token.symbol.charAt(0)}
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-secondary text-[15px] font-normal">
+                        {vault.liquidity.amount}
+                      </span>
+                    </div>
+                    <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
+                      {vault.liquidity.usdValue}
+                    </div>
+                  </div>
+                </InfoCard>
+
+                {/* Guardian Address */}
+                <InfoCard
+                  title={t("table.guardianAddress")}
+                  tooltip="The blockchain address of the vault guardian"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-secondary text-[15px] font-normal">
+                      {vault.guardianAddress}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                      onClick={() =>
+                        copyToClipboard(
+                          vault.guardianAddress,
+                          "Guardian address"
+                        )
+                      }
+                    >
+                      <Copy className="h-3 w-3 text-secondary" />
+                    </Button>
+                  </div>
+                </InfoCard>
+              </div>
+            )}
           </div>
 
-          <TimePeriodSelector
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
-            showComparison={showComparison}
-            setShowComparison={setShowComparison}
-          />
+          {/* Chart */}
+          <div className="pt-20">
+            <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+              Index Performance
+            </h2>
 
-          {selectedIndexId && (
-            <div className="bg-background p-4 rounded-lg shadow">
-              <PerformanceChart
-                data={filteredData(selectedIndexId)}
-                indexId={selectedIndexId}
-                btcData={filteredBtcData()}
-                showComparison={showComparison}
-              />
-            </div>
-          )}
-        </div>
+            <TimePeriodSelector
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+              showComparison={showComparison}
+              setShowComparison={setShowComparison}
+            />
 
-        {/* Vault Literature */}
-        <div className="pt-20">
-          <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-            {t("common.vaultInfo")}
-          </h2>
-          <VaultLiteratureSection literature={vault.documents} />
-        </div>
+            {indexData && (
+              <div className="bg-background p-4 rounded-lg shadow">
+                <PerformanceChart
+                  data={indexData.chartData}
+                  indexId={index.indexId}
+                  btcData={filteredBtcData()}
+                  showComparison={showComparison}
+                />
+              </div>
+            )}
+          </div>
 
-        {/* Documents Section */}
-        {/* <div>
+          {/* Vault Literature */}
+          <div className="pt-20">
+            <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+              {t("common.vaultInfo")}
+            </h2>
+            <VaultLiteratureSection literature={vault.documents} rebalanceData={indexData?.rawData ? indexData?.rawData : []} indexId={index.indexId} indexName={index.name} />
+          </div>
+
+          {/* Documents Section */}
+          {/* <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Documents</h2>
             <Button
@@ -707,181 +672,29 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
           )}
         </div> */}
 
-        <div className="pt-16">
-          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-            <div className="flex items-center gap-3">
-              <div>{t("common.vaultAllocationBreakdown")}</div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
-                    >
-                      <HelpCircle className="h-3 w-3 text-[#fffff80]" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">
-                      {t("common.vaultAllocationBreakdownNote")}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <CustomButton
-                  variant="secondary"
-                  onClick={() => setSearchQuery("")}
-                  className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                >
-                  {t("common.editProperties")}
-                </CustomButton>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                align="end"
-                sideOffset={5}
-              >
-                <div className="p-0 border-b border-zinc-700">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder={t("common.searchProperties")}
-                      className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="max-h-[400px] overflow-y-auto">
-                  {filteredColumns.map((column) => (
-                    <div
-                      key={column.id}
-                      className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                    >
-                      <span className="text-[12px]">
-                        {t("table." + column.id)}
-                      </span>
+          <div className="pt-16">
+            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+              <div className="flex items-center gap-3">
+                <div>{t("common.vaultAllocationBreakdown")}</div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() =>
-                          toggleColumnVisibility(column.id, !column.visible)
-                        }
-                        className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                        className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
                       >
-                        {visibleColumns.filter(
-                          (_column) => column.id === _column.id
-                        )[0].visible ? (
-                          <Eye className="h-4 w-4 text-card" />
-                        ) : (
-                          <EyeOff className="h-4 w-4 text-card" />
-                        )}
+                        <HelpCircle className="h-3 w-3 text-[#fffff80]" />
                       </Button>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </h1>
-          <VaultAllocationBreakdown
-            allocations={vaultAllocations}
-            visibleColumns={visibleColumns}
-          />
-        </div>
-
-        <div className="pt-16">
-          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-            <div className="flex items-center gap-3">
-              <div>{t("common.vaultReallocations")}</div>
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <CustomButton
-                  variant="secondary"
-                  onClick={() => setSearchQuery("")}
-                  className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                >
-                  {t("common.editProperties")}
-                </CustomButton>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                align="end"
-                sideOffset={5}
-              >
-                <div className="p-0 border-b border-zinc-700">
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="search"
-                      placeholder={t("common.searchProperties")}
-                      className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="max-h-[400px] overflow-y-auto">
-                  {filteredReallocationColumns.map((column) => (
-                    <div
-                      key={column.id}
-                      className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                    >
-                      <span className="text-[12px]">
-                        {t("table." + column.id)}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() =>
-                          toggleReAllocationColumnVisibility(
-                            column.id,
-                            !column.visible
-                          )
-                        }
-                        className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
-                      >
-                        {visibleReAllocationColumns.filter(
-                          (_column) => column.id === _column.id
-                        )[0].visible ? (
-                          <Eye className="h-4 w-4 text-card" />
-                        ) : (
-                          <EyeOff className="h-4 w-4 text-card" />
-                        )}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </h1>
-          <VaultReAllocation
-            reallocations={reallocations}
-            visibleColumns={visibleReAllocationColumns}
-          />
-        </div>
-
-        <div className="pt-16">
-          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-            <div className="flex items-center gap-3">
-              <div>{t("common.supplyPositions")}</div>
-            </div>
-          </h1>
-          <VaultSupply supplyPositions={supplyPositions} />
-        </div>
-
-        <div className="pt-16">
-          <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-            <div className="flex items-center gap-3">
-              <div>{t("common.userActivity")}</div>
-            </div>
-            <div className="flex items-center gap-4">
-              <TransactionTypeSelector />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        {t("common.vaultAllocationBreakdownNote")}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <Popover>
                 <PopoverTrigger asChild>
                   <CustomButton
@@ -893,7 +706,76 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   </CustomButton>
                 </PopoverTrigger>
                 <PopoverContent
-                  className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
+                  className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
+                  align="end"
+                  sideOffset={5}
+                >
+                  <div className="p-0 border-b border-zinc-700">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="search"
+                        placeholder={t("common.searchProperties")}
+                        className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {filteredColumns.map((column) => (
+                      <div
+                        key={column.id}
+                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                      >
+                        <span className="text-[12px]">
+                          {t("table." + column.id)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            toggleColumnVisibility(column.id, !column.visible)
+                          }
+                          className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                        >
+                          {visibleColumns.filter(
+                            (_column) => column.id === _column.id
+                          )[0].visible ? (
+                            <Eye className="h-4 w-4 text-card" />
+                          ) : (
+                            <EyeOff className="h-4 w-4 text-card" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </h1>
+            <VaultAllocationBreakdown
+              allocations={vaultAllocations}
+              visibleColumns={visibleColumns}
+            />
+          </div>
+
+          <div className="pt-16">
+            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+              <div className="flex items-center gap-3">
+                <div>{t("common.vaultReallocations")}</div>
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <CustomButton
+                    variant="secondary"
+                    onClick={() => setSearchQuery("")}
+                    className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                  >
+                    {t("common.editProperties")}
+                  </CustomButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
                   align="end"
                   sideOffset={5}
                 >
@@ -910,7 +792,7 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                     </div>
                   </div>
                   <div className="max-h-[400px] overflow-y-auto">
-                    {filteredActivityColumns.map((column) => (
+                    {filteredReallocationColumns.map((column) => (
                       <div
                         key={column.id}
                         className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
@@ -922,14 +804,14 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                           variant="ghost"
                           size="icon"
                           onClick={() =>
-                            toggleActivityColumnVisibility(
+                            toggleReAllocationColumnVisibility(
                               column.id,
                               !column.visible
                             )
                           }
                           className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                         >
-                          {visibleTransactionColumns.filter(
+                          {visibleReAllocationColumns.filter(
                             (_column) => column.id === _column.id
                           )[0].visible ? (
                             <Eye className="h-4 w-4 text-card" />
@@ -942,14 +824,143 @@ export function VaultDetailPage({ vault }: VaultDetailPageProps) {
                   </div>
                 </PopoverContent>
               </Popover>
-            </div>
-          </h1>
-          <VaultActivity
-            activities={userActivities}
-            visibleColumns={visibleTransactionColumns}
-          />
+            </h1>
+            <VaultReAllocation
+              reallocations={reallocations}
+              visibleColumns={visibleReAllocationColumns}
+            />
+          </div>
+
+          <div className="pt-16">
+            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+              <div className="flex items-center gap-3">
+                <div>{t("common.supplyPositions")}</div>
+              </div>
+            </h1>
+            <VaultSupply supplyPositions={supplyPositions} />
+          </div>
+
+          <div className="pt-16">
+            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+              <div className="flex items-center gap-3">
+                <div>{t("common.userActivity")}</div>
+              </div>
+              <div className="flex items-center gap-4">
+                <TransactionTypeSelector />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <CustomButton
+                      variant="secondary"
+                      onClick={() => setSearchQuery("")}
+                      className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                    >
+                      {t("common.editProperties")}
+                    </CustomButton>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
+                    align="end"
+                    sideOffset={5}
+                  >
+                    <div className="p-0 border-b border-zinc-700">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="search"
+                          placeholder={t("common.searchProperties")}
+                          className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {filteredActivityColumns.map((column) => (
+                        <div
+                          key={column.id}
+                          className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                        >
+                          <span className="text-[12px]">
+                            {t("table." + column.id)}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              toggleActivityColumnVisibility(
+                                column.id,
+                                !column.visible
+                              )
+                            }
+                            className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                          >
+                            {visibleTransactionColumns.filter(
+                              (_column) => column.id === _column.id
+                            )[0].visible ? (
+                              <Eye className="h-4 w-4 text-card" />
+                            ) : (
+                              <EyeOff className="h-4 w-4 text-card" />
+                            )}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </h1>
+            <VaultActivity
+              activities={userActivities}
+              visibleColumns={visibleTransactionColumns}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
+          <div
+            className={cn("flex gap-16", isMobile ? "flex-col" : "flex-row")}
+          >
+            {/* Left Column - Vault Info */}
+            <div
+              className={cn(
+                "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full flex-wrap",
+                isMobile ? "w-full" : "w-[50%]"
+              )}
+            >
+              {/* Avatar Skeleton */}
+              <Skeleton className="h-[100px] w-[100px] rounded-full" />
+
+              {/* Text Info Skeleton */}
+              <div className="flex gap-6 flex-col w-full">
+                {/* Title Skeleton */}
+                <Skeleton className="h-[44px] w-[200px] rounded-sm" />
+
+                {/* Token & Curator Info Skeleton */}
+                <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-[17px] w-[17px] rounded-full" />
+                    <Skeleton className="h-[20px] w-[60px] rounded-sm" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-[17px] w-[17px] rounded-full" />
+                    <Skeleton className="h-[20px] w-[80px] rounded-sm" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Description Skeleton */}
+            <div className="bg-foreground rounded-sm p-5 flex items-center w-full">
+              <div className="space-y-2 w-full">
+                <Skeleton className="h-[16px] w-full rounded-sm" />
+                <Skeleton className="h-[16px] w-4/5 rounded-sm" />
+                <Skeleton className="h-[16px] w-3/4 rounded-sm" />
+              </div>
+            </div>
+          </div>
+          <Skeleton className="h-[300px] mt-[10]"></Skeleton>
+        </div>
+      )}
     </Dashboard>
   );
 }

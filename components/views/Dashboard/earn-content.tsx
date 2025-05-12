@@ -10,15 +10,15 @@ import { CustomButton } from "@/components/ui/custom-button";
 import { ColumnVisibilityPopover } from "@/components/elements/column-visibility-popover";
 import { useEffect, useMemo, useState } from "react";
 import { useLanguage } from "@/contexts/language-context";
-import { vaults } from "@/lib/data";
 import Link from "next/link";
 import { HowEarnWorks } from "./how-earn-works";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { IndexListEntry } from "@/types";
+import { setIndices } from "@/redux/indexSlice";
 
 type ColumnType = {
   id: string;
@@ -33,8 +33,8 @@ const initialColumns: ColumnType[] = [
   { id: "ytdReturn", title: "YTD return", visible: true },
   { id: "curator", title: "Curator", visible: true },
   { id: "collateral", title: "Collateral", visible: true },
-  { id: "managementFee", title: "Management Fee", visible: true },
-  { id: "actions", title: "table.actions", visible: true },
+  { id: "managementFee", title: "Management Fee", visible: false },
+  { id: "actions", title: "", visible: false },
 ];
 
 interface EarnContentProps {
@@ -48,6 +48,8 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const [sortColumn, setSortColumn] = useState<string>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
+  const [totalManaged, setTotalManaged] = useState<number>(0)
+  const [totalVolumn, setTotalVolumn] = useState<number>(0)
   const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "reward">(
     "position"
   );
@@ -55,6 +57,8 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network
   );
+
+  const dispatch = useDispatch();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [indexLists, setIndexLists] = useState<IndexListEntry[]>([]);
@@ -67,6 +71,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
         const response = await axios(`${API_BASE_URL}/indices/getIndexLists`);
         const data = response.data;
         setIndexLists(data);
+        dispatch(setIndices(data))
       } catch (error) {
         console.error("Error fetching performance data:", error);
       } finally {
@@ -213,7 +218,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                 </CardHeader>
                 <CardContent className="p-0 h-[20px]">
                   <div className="font-normal text-secondary text-[15px] pb-2">
-                    $4,736,811,455
+                    ${totalManaged}
                   </div>
                 </CardContent>
               </Card>
@@ -233,7 +238,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                 </CardHeader>
                 <CardContent className="p-0 h-[20px]">
                   <div className="text-[15px] font-normal text-secondary mb-2">
-                    $1,706,255,566
+                    ${totalVolumn}
                   </div>
                 </CardContent>
               </Card>
