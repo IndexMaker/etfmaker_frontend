@@ -135,6 +135,46 @@ export class IndexRegistryService {
     }
   }
 
+  // private encodeWeights(symbolWeights: [string, number][]): string {
+  //   const bytesArray: Uint8Array[] = [];
+  
+  //   for (const [symbol, weight] of symbolWeights) {
+  //     // Encode symbol and pad/truncate to 20 bytes
+  //     const symbolBytesRaw = ethers.toUtf8Bytes(symbol);
+  //     const symbolBytes = new Uint8Array(20);
+  //     symbolBytes.set(symbolBytesRaw.slice(0, 20));
+  //     bytesArray.push(symbolBytes);
+  
+  //     // Encode weight as 2 bytes (uint16)
+  //     const weightBytes = new Uint8Array(2);
+  //     weightBytes[0] = (weight >> 8) & 0xff;
+  //     weightBytes[1] = weight & 0xff;
+  //     bytesArray.push(weightBytes);
+  //   }
+  
+  //   const finalBytes = Uint8Array.from(bytesArray.flatMap(byteArray => Array.from(byteArray)));
+  //   return ethers.hexlify(finalBytes);
+  // }
+
+  // decodeWeights(hexData: string): [string, number][] {
+  //   const bytes = ethers.getBytes(hexData);
+  //   const result: [string, number][] = [];
+  
+  //   for (let i = 0; i < bytes.length; i += 22) {
+  //     // Get symbol (20 bytes)
+  //     const symbolBytes = bytes.slice(i, i + 20);
+  //     const symbol = ethers.toUtf8String(symbolBytes).replace(/\0+$/, ''); // Trim null padding
+  
+  //     // Get weight (2 bytes)
+  //     const weightBytes = bytes.slice(i + 20, i + 22);
+  //     const weight = (weightBytes[0] << 8) | weightBytes[1];
+  
+  //     result.push([symbol, weight]);
+  //   }
+  
+  //   return result;
+  // }  
+
   private encodeWeights(symbolWeights: [string, number][]): string {
     const bytesArray: Uint8Array[] = [];
   
@@ -160,7 +200,6 @@ export class IndexRegistryService {
   decodeWeights(hexData: string): [string, number][] {
     const bytes = ethers.getBytes(hexData);
     const result: [string, number][] = [];
-  
     for (let i = 0; i < bytes.length; i += 14) {
       // Get symbol (12 bytes)
       const symbolBytes = bytes.slice(i, i + 12);

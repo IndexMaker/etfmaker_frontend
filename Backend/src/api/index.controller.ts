@@ -1,10 +1,11 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { EtfPriceService } from 'src/modules/computation/etf-price.service';
 import { MetricsService } from 'src/modules/computation/metrics.service';
 import { Top100Service } from 'src/modules/computation/top100.service';
 import { BinanceService } from 'src/modules/data-fetcher/binance.service';
+import { Response } from 'express';
 
 @ApiTags('indices')
 @Controller('indices')
@@ -41,14 +42,12 @@ export class IndexController {
     // SY100: Biweekly from 2022-01-01
     // let sy100Start = new Date('2019-01-01');
     // const now = new Date();
-
     // while (sy100Start < now) {
     //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
     //   await this.top100Service.rebalanceSY100(6, Math.floor(sy100Start.getTime() / 1000));
     //   sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
     // }
     // let syazStart = new Date('2019-01-01');
-
     // while (syazStart < now) {
     //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
     //   await this.top100Service.rebalanceSYAZ(7, Math.floor(syazStart.getTime() / 1000));
@@ -74,47 +73,87 @@ export class IndexController {
     return this.binanceService.fetchTradingPairs();
   }
 
-  @Get('/getHistoricalData')
-  async getHistoricalData() {
-    const indexIds = [6, 7]; // Or dynamically load this list if needed
-    const allData: any[] = [];
+  @Get('/getHistoricalData/:indexId')
+  async getHistoricalData(@Param('indexId') indexId: number) {
+    if (!indexId) return {};
+    const rawData = await this.etfPriceService.getHistoricalData(indexId);
 
-    for (const indexId of indexIds) {
-      const rawData = await this.etfPriceService.getHistoricalData(indexId);
-
-      // Calculate cumulative returns
-      let baseValue = 10000;
-      let indexName = '';
-      const chartData = rawData.map((entry, index) => {
-        indexName =  entry.name
-        if (index === 0)
-          return {
-            name: entry.name,
-            date: entry.date,
-            price: entry.price,
-            value: baseValue,
-          };
-
-        const prevPrice = rawData[index - 1].price;
-        const returnPct = (entry.price - prevPrice) / prevPrice;
-        baseValue = baseValue * (1 + returnPct);
-
+    // Calculate cumulative returns
+    let baseValue = 10000;
+    let indexName = '';
+    const chartData = rawData.map((entry, index) => {
+      indexName = entry.name;
+      if (index === 0)
         return {
+          name: entry.name,
           date: entry.date,
           price: entry.price,
           value: baseValue,
         };
-      });
 
-      allData.push({
-        name: indexName,
-        indexId,
-        rawData,
-        chartData,
-      });
-    }
+      const prevPrice = rawData[index - 1].price;
+      const returnPct = (entry.price - prevPrice) / prevPrice;
+      baseValue = baseValue * (1 + returnPct);
 
-    return allData;
+      return {
+        date: entry.date,
+        price: entry.price,
+        value: baseValue,
+      };
+    });
+
+    const response = {
+      name: indexName,
+      indexId,
+      rawData,
+      chartData,
+    };
+
+    return response;
+  }
+
+  @Get('/downloadRebalanceData/:indexId')
+  async downloadRebalanceData(
+    @Param('indexId') indexId: number,
+    @Res() res: Response
+  ) {
+    const rebalanceData = await this.etfPriceService.getRebalancedData(indexId);
+
+    // Prepare CSV headers
+    const headers = ['Timestamp', 'Date', 'Price', 'Weights'];
+
+    // Convert data to CSV rows
+    const csvRows: any[] = [];
+
+    // Add header row
+    csvRows.push(headers.join(','));
+
+    // Add data rows
+    rebalanceData.forEach((event) => {
+      const date = new Date(event.timestamp * 1000).toISOString();
+      const weightsString = JSON.stringify(event.weights).replace(/"/g, '""');
+
+      const row = [
+        event.timestamp,
+        `"${date}"`,
+        event.price,
+        `"${weightsString}"`,
+      ];
+
+      csvRows.push(row.join(','));
+    });
+
+    // Create CSV string
+    const csvString = csvRows.join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="rebalance_data_${indexId}.csv"`,
+    );
+
+    // Send CSV data
+    res.send(csvString);
   }
 
   @Get('/fetchBtcHistoricalData')
@@ -125,7 +164,7 @@ export class IndexController {
 
   @Get('/getIndexLists')
   async fetchIndexLists() {
-    const lists = await this.etfPriceService.getIndexList()
-    return lists
+    const lists = await this.etfPriceService.getIndexList();
+    return lists;
   }
 }

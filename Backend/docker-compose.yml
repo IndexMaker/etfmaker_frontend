@@ -6,9 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '5000:5000'
+      - '0.0.0.0:5000:5000'
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://postgres:root@postgres:5432/fundmaker?sslmode=disable  # Updated host to 'postgres'
       - COINGECKO_API_KEY=${COINGECKO_API_KEY}
       - COINMARKETCAP_API_KEY=${COINMARKETCAP_API_KEY}
       - BINANCE_API_KEY=${BINANCE_API_KEY}
@@ -24,9 +24,7 @@ services:
       - REDIS_URL=redis://redis:6379
     depends_on:
       - redis # Only depends on Redis now
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - postgres
 
   redis:
     image: redis:7
@@ -35,5 +33,22 @@ services:
     volumes:
       - redis-data:/data
 
+  postgres:  # New PostgreSQL service
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=fundmaker
+    ports:
+      - '5432:5432'  # Exposed for host access (optional)
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   redis-data:
+  postgres-data:  # New volume for PostgreSQL

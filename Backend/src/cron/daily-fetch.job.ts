@@ -116,18 +116,27 @@ export class DailyFetchJob {
     await this.coinGeckoService.storeTodayPricesUsingLastTokens();
   }
 
-  @Cron('30 0 */14 * *') // Every 2 weeks
+  @Cron('30 0 * * *')  // Triggers daily at 00:30 (but filters dates)
   async rebalanceSY100() {
-    await this.dbService.getDb().transaction(async (tx) => {
-      const top100Service = new Top100Service(
-        this.coinGeckoService,
-        this.binanceService,
-        new IndexRegistryService(),
-        new DbService(),
-      );
-      const timestamp = Math.floor((new Date()).getTime() / 1000)
-      await top100Service.rebalanceSY100(6, timestamp);
-    });
+    const today = new Date();
+    const firstRunDate = new Date('2024-05-20T00:30:00Z'); // Starting point: May 20, 2024
+
+    // Calculate days since May 20th
+    const daysSinceStart = Math.floor((today.getTime() - firstRunDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Only execute if it's a biweekly interval (0, 14, 28... days since May 20th)
+    if (daysSinceStart >= 0 && daysSinceStart % 14 === 0) {
+      await this.dbService.getDb().transaction(async (tx) => {
+        const top100Service = new Top100Service(
+          this.coinGeckoService,
+          this.binanceService,
+          new IndexRegistryService(),
+          new DbService(),
+        );
+        const timestamp = Math.floor(today.getTime() / 1000);
+        await top100Service.rebalanceSY100(6, timestamp);
+      });
+    }
   }
 
   @Cron('30 0 * * *')

@@ -6,7 +6,7 @@ import { historicalPrices, rebalances } from '../../db/schema';
 import { and, asc, eq, gte, inArray, lte } from 'drizzle-orm';
 import { ethers } from 'ethers';
 import * as path from 'path';
-import { IndexListEntry } from 'src/common/types/index.types';
+import { IndexListEntry, RebalanceData } from 'src/common/types/index.types';
 
 type Weight = [string, number];
 
@@ -144,16 +144,15 @@ export class EtfPriceService {
 
     const filteredData: HistoricalEntry[] = [];
     const dateMap = new Map<string, HistoricalEntry>();
-
-    // Process in reverse order to keep the last entry for each date
-    for (let i = historicalData.length - 1; i >= 0; i--) {
-      const entry = historicalData[i];
-      const dateKey = entry.date.toISOString().split('T')[0];
-
-      if (!dateMap.has(dateKey)) {
-        dateMap.set(dateKey, entry);
-      }
-    }
+    historicalData.forEach(entry => {
+        const dateKey = entry.date.toISOString().split('T')[0];
+        const existing = dateMap.get(dateKey);
+        
+        // Keep only the latest entry for each date
+        if (!existing || entry.date.getTime() > existing.date.getTime()) {
+            dateMap.set(dateKey, entry);
+        }
+    });
 
     // Convert back to array and sort chronologically
     filteredData.push(...dateMap.values());
@@ -182,6 +181,31 @@ export class EtfPriceService {
     });
 
     return scaledData;
+  }
+
+  async getRebalancedData(indexId: number): Promise<any[]> {
+    const filter = this.indexRegistry.filters.CuratorWeightsSet(indexId);
+    const events = await this.indexRegistry.queryFilter(filter);
+
+    // Process events in reverse chronological order
+    const reversedEvents = events
+      .map((event: any) => ({
+        timestamp: Number(event.args.timestamp),
+        date: new Date(Number(event.args.timestamp) * 1000), // Convert to Date object
+        price: Number(event.args.price) / 1e6,
+        weights: this.indexRegistryService.decodeWeights(event.args.weights),
+      }))
+      .sort((a, b) => a.timestamp - b.timestamp); // Reverse sort (newest first)
+
+    const eventsByDate = new Map<string, any>();
+
+    reversedEvents.forEach((event) => {
+      const dateKey = event.date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      eventsByDate.set(dateKey, event); // This automatically keeps the last entry for each date
+    });
+
+    // Convert back to array
+    return Array.from(eventsByDate.values());
   }
 
   private async getHistoricalPricesForPeriod(
@@ -396,7 +420,7 @@ export class EtfPriceService {
 
     // Assuming the index count is available via a contract function
     const indexCount = await this.indexRegistry.indexDatasCount();
-    for (let indexId = 6; indexId <= indexCount; indexId++) {
+    for (let indexId = 6; indexId <= 7; indexId++) {
       // Fetch index data
       const [
         name,
@@ -422,7 +446,7 @@ export class EtfPriceService {
 
       // Calculate YTD return (you might need to fetch historical prices for this)
       let ytdReturn = await this.calculateYtdReturn(indexId);
-      ytdReturn = Math.floor(ytdReturn * 100) / 100
+      ytdReturn = Math.floor(ytdReturn * 100) / 100;
       indexList.push({
         indexId,
         name,
@@ -455,7 +479,8 @@ export class EtfPriceService {
     // Find the applicable weights (last rebalance before target date)
     const applicableWeights = rebalanceEvents
       .filter((event) => {
-        return Number(event.timestamp) * 1000 <= targetDate})
+        return Number(event.timestamp) * 1000 <= targetDate;
+      })
       .pop()?.weights;
 
     if (!applicableWeights) return null;
@@ -479,14 +504,24 @@ export class EtfPriceService {
     );
   }
 
-  async getLogosForSymbols(symbols: string[]): Promise<string[]> {
+  async getLogosForSymbols(
+    symbols: string[],
+  ): Promise<{ name: string; logo: string }[]> {
     const coingeckoIdMap = await this.mapToCoingeckoIds(symbols);
+
     return Promise.all(
       symbols.map(async (symbol) => {
         const id = coingeckoIdMap[symbol];
-        if (!id) return '';
+        if (!id) return { name: symbol, logo: '' };
+        const _symbol = symbol
+          .replace(/^bi\./, '')
+          .replace(/(USDT|USDC)$/i, '')
+          .toUpperCase();
         const data = await this.coinGeckoService.getCoinData(`/coins/${id}`);
-        return data.image?.thumb || '';
+        return {
+          name: _symbol,
+          logo: data.image?.thumb || '',
+        };
       }),
     );
   }
@@ -504,12 +539,17 @@ export class EtfPriceService {
 
   async calculateYtdReturn(indexId: number): Promise<number> {
     const now = new Date().setUTCHours(0, 0, 0, 0);
-    const jan1 = new Date(new Date().getFullYear(), 0, 1).setUTCHours(0, 0, 0, 0);
+    const jan1 = new Date(new Date().getFullYear(), 0, 1).setUTCHours(
+      0,
+      0,
+      0,
+      0,
+    );
 
     const latestPrice = await this.getPriceForDate(indexId, now);
     const jan1Price = await this.getPriceForDate(indexId, jan1);
     if (!jan1Price || jan1Price === 0) return 0;
-
+    console.log(latestPrice);
     return (((latestPrice || 0) - jan1Price) / jan1Price) * 100;
   }
 
