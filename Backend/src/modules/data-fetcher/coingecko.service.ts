@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { DbService } from 'src/db/db.service';
 import { coinSymbols, historicalPrices, tokenMetadata } from 'src/db/schema';
 import { ethers } from 'ethers';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 @Injectable()
 export class CoinGeckoService {
   private readonly logger = new Logger(CoinGeckoService.name);
@@ -351,7 +351,10 @@ export class CoinGeckoService {
     }
   }
 
-  async getA16zPortfolioTokens(options: { ids?: string } = {}): Promise<any[]> {
+  async getPortfolioTokens(
+    category,
+    options: { ids?: string } = {},
+  ): Promise<any[]> {
     // Fetch a16z Portfolio tokens from CoinGecko
     const response = await firstValueFrom(
       this.httpService.get(
@@ -359,7 +362,7 @@ export class CoinGeckoService {
         {
           params: {
             vs_currency: 'usd',
-            category: 'andreessen-horowitz-a16z-portfolio',
+            category: category,
             order: 'market_cap_desc',
             page: 1,
             per_page: 250,
@@ -595,13 +598,13 @@ export class CoinGeckoService {
     return selected.price;
   }
 
-  async storeTodayPricesUsingLastTokens() {
+  async storeMissingPricesUntilToday() {
     // Normalize today's date to UTC midnight
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
     const todayTimestamp = Math.floor(now.getTime() / 1000);
 
-    // Step 1: Get latest (most recent) timestamp entry for each unique token
+    // Step 1: Get latest timestamp entry for each unique token
     const result = await this.dbService.getDb().execute(sql`
       SELECT DISTINCT ON (coin_id)
         coin_id,
@@ -620,25 +623,74 @@ export class CoinGeckoService {
     if (!latestPrices || latestPrices.length === 0) {
       return;
     }
-    // Step 2: For each token, fetch & store today's price using your existing function
+
+    // Step 2: For each token, fetch & store missing prices from last timestamp to today
     for (const { coin_id, symbol } of latestPrices) {
       try {
-        const price = await this.getOrFetchTokenPriceAtTimestamp(
-          coin_id,
-          symbol,
+        // Get the last recorded timestamp (normalized to UTC midnight)
+        const lastTimestamp = await this.getLastNormalizedTimestamp(coin_id);
+
+        if (!lastTimestamp) continue;
+
+        // Generate all missing timestamps (daily intervals)
+        const missingTimestamps = this.generateDailyTimestamps(
+          lastTimestamp + 86400, // Start from next day
           todayTimestamp,
         );
-        if (price !== null) {
-          this.logger.log(
-            `Stored price for ${symbol} on ${now.toISOString()}: $${price}`,
+
+        // Fetch and store prices for each missing day
+        for (const timestamp of missingTimestamps) {
+          const price = await this.getOrFetchTokenPriceAtTimestamp(
+            coin_id,
+            symbol,
+            timestamp,
           );
+
+          if (price !== null) {
+            this.logger.log(
+              `Stored price for ${symbol} on ${new Date(timestamp * 1000).toISOString()}: $${price}`,
+            );
+          }
         }
       } catch (err) {
         this.logger.error(
-          `Error storing today's price for ${symbol}: ${err.message}`,
+          `Error processing prices for ${symbol}: ${err.message}`,
         );
       }
     }
+  }
+
+  // Helper: Get last normalized (UTC midnight) timestamp for a coin
+  private async getLastNormalizedTimestamp(
+    coinId: string,
+  ): Promise<number | null> {
+    const result = await this.dbService
+      .getDb()
+      .select({ timestamp: historicalPrices.timestamp })
+      .from(historicalPrices)
+      .where(eq(historicalPrices.coinId, coinId))
+      .orderBy(desc(historicalPrices.timestamp))
+      .limit(1);
+
+    if (!result.length) return null;
+
+    // Normalize to UTC midnight
+    const date = new Date(result[0].timestamp * 1000);
+    date.setUTCHours(0, 0, 0, 0);
+    return Math.floor(date.getTime() / 1000);
+  }
+
+  // Helper: Generate daily timestamps between two dates (inclusive)
+  private generateDailyTimestamps(start: number, end: number): number[] {
+    const timestamps: number[] = [];
+    let current = start;
+
+    while (current <= end) {
+      timestamps.push(current);
+      current += 86400; // Add 1 day in seconds
+    }
+
+    return timestamps;
   }
 
   async getCoinData(path: string): Promise<any> {

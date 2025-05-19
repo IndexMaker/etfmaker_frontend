@@ -78,7 +78,7 @@ export function VaultTable({
   };
 
   const assetDetail = (vault: IndexListEntry) => {
-    router.push("./vault/" + vault?.name);
+    router.push("./vault/" + vault?.ticker);
   };
 
   // Determine if a column is sortable
@@ -359,12 +359,12 @@ export function VaultTable({
                                               key={index}
                                               className="flex items-center gap-2"
                                             >
-                                              <Image
+                                              {/* <Image
                                                 src={collateral.logo}
                                                 alt="Collateral"
                                                 width={17}
                                                 height={17}
-                                              />
+                                              /> */}
                                               <span>{collateral.name}</span>
                                             </div>
                                           ))}

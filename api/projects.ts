@@ -1,6 +1,6 @@
 import { Project } from "@/types";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API;
 
 export const fetchProjects = async (): Promise<Project[]> => {
   const response = await fetch(`${API_BASE_URL}/projects`);

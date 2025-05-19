@@ -7,6 +7,7 @@ import { useCallback, useState } from "react";
 import axios from "axios";
 import { Spinner } from "@/components/elements/spinner";
 import { cn } from "@/lib/utils";
+import { downloadRebalanceData } from "@/api/indices";
 
 interface VaultLiteratureProps {
   literature: VaultDocument[];
@@ -31,29 +32,11 @@ export function VaultLiteratureSection({
     );
   }
 
-  const downloadRebalanceData = useCallback(async () => {
+  const _downloadRebalanceData = useCallback(async () => {
     if (!indexId) return;
-    const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
     setIsLoading(true);
-    try {
-      const response = await axios(
-        `${API_BASE_URL}/indices/downloadRebalanceData/${indexId}`
-      );
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `rebalance_data_${indexName ? indexName : indexId}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Error fetching performance data:", error);
-      setIsLoading(false);
-    } finally {
-      setIsLoading(false);
-    }
+    await downloadRebalanceData(indexId)
+    setIsLoading(false)
   }, [indexId]);
 
   return (
@@ -90,7 +73,7 @@ export function VaultLiteratureSection({
             )}
             onClick={(e) => {
               e.preventDefault(); // Prevent default navigation
-              downloadRebalanceData(); // Call your function
+              _downloadRebalanceData(); // Call your function
             }}
           >
             <div className="flex-shrink-0 w-12 h-14 border border-zinc-700 rounded-sm relative overflow-hidden">

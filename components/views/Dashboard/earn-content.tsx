@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import axios from "axios";
 import { IndexListEntry } from "@/types";
 import { setIndices } from "@/redux/indexSlice";
+import { fetchAllIndices } from "@/api/indices";
 
 type ColumnType = {
   id: string;
@@ -63,13 +64,14 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [indexLists, setIndexLists] = useState<IndexListEntry[]>([]);
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
+
+  const storedIndexes = useSelector((state: RootState) => state.index.indices);
   useEffect(() => {
-    const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await axios(`${API_BASE_URL}/indices/getIndexLists`);
-        const data = response.data;
+        const response = await fetchAllIndices()
+        const data = response;
         setIndexLists(data);
         dispatch(setIndices(data))
       } catch (error) {
@@ -79,7 +81,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
       }
     };
 
-    fetchData();
+    if (storedIndexes.length === 0) fetchData();
   }, []);
 
   useEffect(() => {
@@ -97,12 +99,12 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   // Filter and sort vaults based on search query and sort settings
   const filteredAndSortedVaults = useMemo(() => {
     // First filter by search query
-    let filtered = indexLists;
+    let filtered = storedIndexes;
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
 
-      filtered = indexLists.filter((vault) => {
+      filtered = storedIndexes.filter((vault) => {
         // Search in multiple fields
         return (
           vault.name.toLowerCase().includes(query) ||
@@ -157,7 +159,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
       }
       return 0;
     });
-  }, [searchQuery, sortColumn, sortDirection, indexLists]);
+  }, [searchQuery, sortColumn, sortDirection, storedIndexes]);
   // Function to handle column visibility changes
   const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {
     setColumns(

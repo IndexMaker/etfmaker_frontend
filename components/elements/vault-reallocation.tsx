@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import { ReAllocation } from "@/lib/data";
 import { Button } from "../ui/button";
 import LeftArrow from "../icons/left-arrow";
@@ -57,7 +57,7 @@ export function VaultReAllocation({
               height={17}
               alt="user"
             />
-            <div>{allocation.user}</div>
+            <div>{shortenAddress(allocation.user)}</div>
             <div>
               <RightArrow
                 className="rotate-135 text-[#FFFFFF99]"
@@ -70,7 +70,7 @@ export function VaultReAllocation({
       case "hash":
         return (
           <div className="flex items-center gap-2">
-            <div>{allocation.hash}</div>
+            <div>{shortenAddress(allocation.hash)}</div>
             <RightArrow
               className="rotate-135 text-[#FFFFFF99]"
               width="13px"

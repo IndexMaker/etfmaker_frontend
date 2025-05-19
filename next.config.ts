@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/api/:path*",
-        destination: "http://localhost:5001/:path*", // Proxy to NestJS backend
+        source: '/:path*',
+        destination: 'http://3.75.48.179/:path*',
       },
     ];
   },

@@ -40,19 +40,61 @@ export class IndexController {
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
     // SY100: Biweekly from 2022-01-01
-    // let sy100Start = new Date('2019-01-01');
-    // const now = new Date();
+    // let sy100Start = new Date('2022-02-07');
+    const now = new Date();
+
     // while (sy100Start < now) {
     //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
-    //   await this.top100Service.rebalanceSY100(6, Math.floor(sy100Start.getTime() / 1000));
+    //   await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
     //   sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
     // }
+    
+    // // SYAZ: Daily from 2019-01-01
     // let syazStart = new Date('2019-01-01');
-    // while (syazStart < now) {
-    //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
-    //   await this.top100Service.rebalanceSYAZ(7, Math.floor(syazStart.getTime() / 1000));
-    //   syazStart.setDate(syazStart.getDate() + 1); // daily
-    // }
+    // // while (syazStart < now) {
+    // //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
+    // //   await this.top100Service.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, Math.floor(syazStart.getTime() / 1000));
+    // //   syazStart.setDate(syazStart.getDate() + 1); // daily
+    // // }
+
+    // await this.top100Service.simulateRebalances(syazStart, now, 'andreessen-horowitz-a16z-portfolio', 22);
+
+    // // SYL2: Daily from 2019-01-01
+    // let syl2Start = new Date('2019-01-01');
+    // // while (syl2Start < now) {
+    // //   console.log(`Simulating SYL2 rebalance at ${syl2Start.toISOString()}`);
+    // //   await this.top100Service.rebalanceETF('layer-2', 23, Math.floor(syl2Start.getTime() / 1000));
+    // //   syl2Start.setDate(syl2Start.getDate() + 1); // daily
+    // // }
+    // await this.top100Service.simulateRebalances(syl2Start, now, 'layer-2', 23);
+
+    // // SYAI: Daily from 2019-01-01
+    // let syaiStart = new Date('2019-01-01');
+    // // while (syaiStart < now) {
+    // //   console.log(`Simulating SYAI rebalance at ${syaiStart.toISOString()}`);
+    // //   await this.top100Service.rebalanceETF('artificial-intelligence', 24, Math.floor(syaiStart.getTime() / 1000));
+    // //   syaiStart.setDate(syaiStart.getDate() + 1); // daily
+    // // }
+
+    // await this.top100Service.simulateRebalances(syaiStart, now, 'artificial-intelligence', 24);
+
+    // // SYME: Daily from 2019-01-01
+    // let symeStart = new Date('2019-01-01');
+    // // while (symeStart < now) {
+    // //   console.log(`Simulating SYME rebalance at ${symeStart.toISOString()}`);
+    // //   await this.top100Service.rebalanceETF('meme-token', 25, Math.floor(symeStart.getTime() / 1000));
+    // //   symeStart.setDate(symeStart.getDate() + 1); // daily
+    // // }
+
+    // await this.top100Service.simulateRebalances(symeStart, now, 'meme-token', 25);
+    // // SYDF: Daily from 2019-01-01
+    // let sydfStart = new Date('2019-01-01');
+    // // while (sydfStart < now) {
+    // //   console.log(`Simulating SYDF rebalance at ${sydfStart.toISOString()}`);
+      // await this.top100Service.rebalanceETF('decentralized-finance-defi', 26, Math.floor(now.getTime() / 1000));
+    // //   sydfStart.setDate(sydfStart.getDate() + 1); // daily
+    // // }
+    // await this.top100Service.simulateRebalances(sydfStart, now, 'decentralized-finance-defi', 26);
   }
 
   @ApiOperation({ summary: 'Get index data' })
@@ -77,7 +119,7 @@ export class IndexController {
   async getHistoricalData(@Param('indexId') indexId: number) {
     if (!indexId) return {};
     const rawData = await this.etfPriceService.getHistoricalData(indexId);
-
+    const formattedTransactions = await this.etfPriceService.getIndexTransactions(indexId);
     // Calculate cumulative returns
     let baseValue = 10000;
     let indexName = '';
@@ -107,6 +149,7 @@ export class IndexController {
       indexId,
       rawData,
       chartData,
+      formattedTransactions
     };
 
     return response;

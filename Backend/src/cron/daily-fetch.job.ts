@@ -20,7 +20,7 @@ export class DailyFetchJob {
   ) {
   }
 
-  @Cron('10 0 * * *')
+  @Cron('44 22 * * *')
   async handleDailyFetch() {
     // Fetch market cap
     // const cgMarketCaps = await this.coinGeckoService.getMarketCap();
@@ -113,7 +113,7 @@ export class DailyFetchJob {
     // await this.indexService.listenToEvents(process.env.INDEX_REGISTRY_ADDRESS || '', 8453); // Base
 
     // store daily token's price
-    await this.coinGeckoService.storeTodayPricesUsingLastTokens();
+    await this.coinGeckoService.storeMissingPricesUntilToday();
   }
 
   @Cron('30 0 * * *')  // Triggers daily at 00:30 (but filters dates)
@@ -134,13 +134,13 @@ export class DailyFetchJob {
           new DbService(),
         );
         const timestamp = Math.floor(today.getTime() / 1000);
-        await top100Service.rebalanceSY100(6, timestamp);
+        await top100Service.rebalanceSY100(21, timestamp);
       });
     }
   }
 
   @Cron('30 0 * * *')
-  async rebalanceSYAZ() {
+  async rebalanceAllETFs() {
     await this.dbService.getDb().transaction(async (tx) => {
       const top100Service = new Top100Service(
         this.coinGeckoService,  
@@ -148,8 +148,14 @@ export class DailyFetchJob {
         new IndexRegistryService(),
         new DbService(),
       );
-      const timestamp = Math.floor((new Date()).getTime() / 1000)
-      await top100Service.rebalanceSYAZ(7, timestamp);
+      const timestamp = Math.floor((new Date()).getTime() / 1000);
+      
+      // Rebalance all ETFs
+      await top100Service.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, timestamp); // SYAZ
+      await top100Service.rebalanceETF('layer-2',23, timestamp); // SYL2
+      await top100Service.rebalanceETF('artificial-intelligence', 24, timestamp); // SYAI
+      await top100Service.rebalanceETF('meme-token', 25, timestamp); // SYME
+      await top100Service.rebalanceETF('decentralized-finance-defi', 26, timestamp); // SYDF
     });
   }
 }

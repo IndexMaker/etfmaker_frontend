@@ -274,11 +274,17 @@ export class Top100Service {
     return { weights: weightsForContract, price: etfPrice };
   }
 
-  async rebalanceSYAZ(
+  async rebalanceETF(
+    etfType:
+      | 'andreessen-horowitz-a16z-portfolio'
+      | 'layer-2'
+      | 'artificial-intelligence'
+      | 'meme-token'
+      | 'decentralized-finance-defi',
     indexId: number,
     rebalanceTimestamp: number,
   ): Promise<void> {
-    console.log('Starting SYAZ rebalance...');
+    console.log(`Starting ${etfType} rebalance...`);
     const artifactPath = path.resolve(
       __dirname,
       '../../../../artifacts/contracts/src/ETFMaker/IndexRegistry.sol/IndexRegistry.json',
@@ -289,30 +295,21 @@ export class Top100Service {
       IndexRegistryArtifact.abi,
       this.signer,
     );
-    const indexCount = await indexRegistry.indexDatasCount();
-    const indexes: any[] = [];
 
-    for (let i = 0; i < Number(indexCount); i++) {
-      const indexData = await indexRegistry.getIndexDatas(i.toString());
-      // Only if valid
-      indexes.push({
-        id: i,
-        data: indexData,
-      });
-    }
-    const name = 'SYAZ';
-    const symbol = 'SYAZ';
+    const name = this.getETFName(etfType);
+    const symbol = this.getETFSymbol(etfType);
     const custodyId = ethers.keccak256(ethers.toUtf8Bytes(name));
 
     if (!(await this.indexExists(indexId, indexRegistry))) {
-      this.logger.log('SYAZ does not exist, deploying...');
-      const { weights, etfPrice } = await this.fetchSYAZWeights(
+      this.logger.log(`${symbol} does not exist, deploying...`);
+      const { weights, etfPrice } = await this.fetchETFWeights(
+        etfType,
         indexId,
         rebalanceTimestamp,
       );
-      await this.deployIndex(name, symbol, custodyId, indexId, weights);
-      // Update smart contract
+
       if (weights && etfPrice) {
+        await this.deployIndex(name, symbol, custodyId, indexId, weights);
         await this.indexRegistryService.setCuratorWeights(
           indexId,
           weights,
@@ -322,13 +319,13 @@ export class Top100Service {
         );
       }
     } else {
-      this.logger.log('SYAZ exists, updating weights...');
-      const { weights, etfPrice } = await this.fetchSYAZWeights(
+      this.logger.log(`${symbol} exists, updating weights...`);
+      const { weights, etfPrice } = await this.fetchETFWeights(
+        etfType,
         indexId,
         rebalanceTimestamp,
       );
 
-      // Update smart contract
       if (weights && etfPrice) {
         await this.indexRegistryService.setCuratorWeights(
           indexId,
@@ -338,6 +335,59 @@ export class Top100Service {
           8453,
         );
       }
+    }
+  }
+
+  async simulateRebalances(
+    startDate: Date,
+    now: Date,
+    etfType:
+      | 'andreessen-horowitz-a16z-portfolio'
+      | 'layer-2'
+      | 'artificial-intelligence'
+      | 'meme-token'
+      | 'decentralized-finance-defi',
+    indexId: number,
+  ) {
+    // First get all tokens in the ETF with their listing dates
+    const allTokens = await this.coinGeckoService.getPortfolioTokens(
+      etfType,
+    );
+    const binancePairs = await this.binanceService.fetchTradingPairs();
+
+    // Create a map of token symbols to their listing dates
+    const tokenListingDates = new Map<string, Date>();
+
+    for (const token of allTokens) {
+      const symbolUpper = token.symbol.toUpperCase();
+      const pair = binancePairs.find(
+        (p) =>
+          p.symbol.startsWith(symbolUpper) &&
+          (p.symbol.endsWith('USDC') || p.symbol.endsWith('USDT')),
+      );
+
+      if (pair) {
+        const listingTimestamp =
+          await this.binanceService.getListingTimestampFromS3(pair.symbol);
+        if (listingTimestamp) {
+          tokenListingDates.set(token.symbol, new Date(listingTimestamp));
+        }
+      }
+    }
+
+    // Now find all unique listing dates after our start date
+    const listingDates = Array.from(tokenListingDates.values())
+      .filter((date) => date >= startDate && date <= now)
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    // Add the initial start date
+    const rebalanceDates = [startDate, ...listingDates];
+    // Process each rebalance date
+    for (const rebalanceDate of rebalanceDates) {
+      console.log(
+        `Simulating ${etfType} rebalance at ${rebalanceDate.toISOString()}`,
+      );
+      await this.rebalanceETF(etfType, indexId, Math.floor(rebalanceDate.getTime() / 1000))
     }
   }
 
@@ -404,10 +454,15 @@ export class Top100Service {
     return deployedAddress;
   }
 
-  async fetchSYAZWeights(indexId: number, rebalanceTimestamp: number) {
+  async fetchETFWeights(
+    etfType: string,
+    indexId: number,
+    rebalanceTimestamp: number,
+  ) {
     try {
-      // Fetch a16z Portfolio tokens from CoinGecko
-      const a16zTokens = await this.coinGeckoService.getA16zPortfolioTokens();
+      // Get tokens based on ETF type
+      let tokens;
+      tokens = await this.coinGeckoService.getPortfolioTokens(etfType);
 
       const binancePairs = await this.binanceService.fetchTradingPairs();
       const activePairs = binancePairs.filter(
@@ -427,11 +482,12 @@ export class Top100Service {
           }
         }
       });
+
       const eligibleTokens: any[] = [];
       // Filter for tokens listed on Binance
-      const binanceA16ZTokens = a16zTokens.filter((token) => {
+      const binanceTokens = tokens.filter((token) => {
         const symbolUpper = token.symbol.toUpperCase();
-        const pair = tokenToPairMap.get(symbolUpper); // Get the full pair (e.g., BTCUSDC)
+        const pair = tokenToPairMap.get(symbolUpper);
 
         // Ensure the pair exists AND ends with USDC or USDT
         if (!pair) return false;
@@ -445,7 +501,7 @@ export class Top100Service {
         return quoteAsset !== null; // Only allow USDC/USDT pairs
       });
 
-      for (const coin of binanceA16ZTokens) {
+      for (const coin of binanceTokens) {
         const symbolUpper = coin.symbol.toUpperCase();
         const pair = tokenToPairMap.get(symbolUpper);
         if (pair) {
@@ -485,10 +541,11 @@ export class Top100Service {
 
       if (eligibleTokens.length === 0) {
         this.logger.log(
-          'No eligible tokens in A16Z portfolio - skipping rebalance',
+          `No eligible tokens in ${etfType} portfolio - skipping rebalance`,
         );
         return { weights: null, etfPrice: null };
       }
+
       // Get current active composition
       const currentComposition = await this.dbService
         .getDb()
@@ -516,7 +573,9 @@ export class Top100Service {
 
       // Skip rebalance if no changes
       if (!hasNewTokens && !hasRemovedTokens && currentComposition.length > 0) {
-        this.logger.log('No changes in A16Z portfolio - skipping rebalance');
+        this.logger.log(
+          `No changes in ${etfType} portfolio - skipping rebalance`,
+        );
         return { weights: null, etfPrice: null };
       }
 
@@ -537,16 +596,13 @@ export class Top100Service {
 
       // Compute ETF price
       const prices = await Promise.all(
-        eligibleTokens.map(
-          (coin) =>
-            // this.coinGeckoService.getLivePrice(coin.id),
-            coin.historical_price,
-        ),
+        eligibleTokens.map((coin) => coin.historical_price),
       );
       const etfPrice = prices.reduce(
         (sum, price, i) => sum + price * (weightPerToken / 10000),
         0,
       );
+
       // Begin transaction
       await this.dbService.getDb().transaction(async (tx) => {
         // Mark previous compositions as invalid
@@ -582,12 +638,13 @@ export class Top100Service {
               token.historical_price,
             ]),
           ),
-          timestamp: rebalanceTimestamp, // Use the passed timestamp
+          timestamp: rebalanceTimestamp,
         });
       });
+
       return { weights, etfPrice };
     } catch (error) {
-      console.error('Error fetching SYAZ weights:', error);
+      console.error(`Error fetching ${etfType} weights:`, error);
       throw error;
     }
   }
@@ -600,5 +657,27 @@ export class Top100Service {
     } catch (error) {
       return false;
     }
+  }
+
+  private getETFName(etfType: string): string {
+    const names = {
+      'andreessen-horowitz-a16z-portfolio': 'A16Z Crypto Portfolio',
+      'layer-2': 'Layer 2 Tokens',
+      'artificial-intelligence': 'Artificial Intelligence Tokens',
+      'meme-token': 'Meme Tokens',
+      'decentralized-finance-defi': 'Decentralized Finance Tokens',
+    };
+    return names[etfType] || '';
+  }
+
+  private getETFSymbol(etfType: string): string {
+    const symbols = {
+      'andreessen-horowitz-a16z-portfolio': 'SYAZ',
+      'layer-2': 'SYL2',
+      'artificial-intelligence': 'SYAI',
+      'meme-token': 'SYME',
+      'decentralized-finance-defi': 'SYDF',
+    };
+    return symbols[etfType] || '';
   }
 }

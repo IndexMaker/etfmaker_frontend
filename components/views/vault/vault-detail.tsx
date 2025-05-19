@@ -51,14 +51,9 @@ import { cn, shortenAddress } from "@/lib/utils";
 import { PerformanceChart } from "@/components/elements/performance-chart";
 import { TimePeriodSelector } from "@/components/elements/time-period";
 import axios from "axios";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
 import { IndexListEntry } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { fetchBtcHistoricalData, fetchHistoricalData } from "@/api/indices";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -68,11 +63,12 @@ interface ChartDataPoint {
   value: number;
   price?: number;
 }
-interface IndexData {
+export interface IndexData {
   name: string;
   indexId: number;
   rawData: any[];
   chartData: ChartDataPoint[];
+  formattedTransactions: any[];
 }
 export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const { t } = useLanguage();
@@ -86,15 +82,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [showComparison, setShowComparison] = useState(false);
 
   useEffect(() => {
-    const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
-    const fetchData = async () => {
+    const fetchData = async (indexId: number) => {
       setIsLoading(true);
       try {
-        const response = await axios(
-          `${API_BASE_URL}/indices/getHistoricalData/${index?.indexId}`
-        );
-        const data = response.data;
-        setIndexData(data);
+        const response = await fetchHistoricalData(indexId);
+        const data = response;
+        data && setIndexData(data);
       } catch (error) {
         console.error("Error fetching performance data:", error);
       } finally {
@@ -102,16 +95,13 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       }
     };
 
-    index?.indexId && fetchData();
+    index?.indexId && fetchData(index.indexId);
 
-    const fetchBtcHistoricalData = async () => {
-      const API_BASE_URL = process.env.BACKEND_API || "http://localhost:5001";
+    const _fetchBtcHistoricalData = async () => {
       setIsLoading(true);
       try {
-        const response = await axios(
-          `${API_BASE_URL}/indices/fetchBtcHistoricalData`
-        );
-        const data = response.data;
+        const response = await fetchBtcHistoricalData()
+        const data = response;
         setBtcData(data);
       } catch (error) {
         console.error("Error fetching performance data:", error);
@@ -119,7 +109,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
         setIsLoading(false);
       }
     };
-    index?.indexId && fetchBtcHistoricalData();
+    index?.indexId && _fetchBtcHistoricalData();
   }, [index]);
 
   const getCutoffDate = () => {
@@ -150,7 +140,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   };
 
   const filteredBtcData = () => {
-    return btcData.filter((item) => new Date(item.date) >= getCutoffDate());
+    return btcData ? btcData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
   };
 
   const copyToClipboard = (text: string, type: string) => {
@@ -605,7 +595,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
               {t("common.vaultInfo")}
             </h2>
-            <VaultLiteratureSection literature={vault.documents} rebalanceData={indexData?.rawData ? indexData?.rawData : []} indexId={index.indexId} indexName={index.name} />
+            <VaultLiteratureSection
+              literature={vault.documents}
+              rebalanceData={indexData?.rawData ? indexData?.rawData : []}
+              indexId={index.indexId}
+              indexName={index.name}
+            />
           </div>
 
           {/* Documents Section */}
@@ -826,7 +821,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               </Popover>
             </h1>
             <VaultReAllocation
-              reallocations={reallocations}
+              reallocations={indexData?.formattedTransactions || []}
               visibleColumns={visibleReAllocationColumns}
             />
           </div>
@@ -913,6 +908,128 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               activities={userActivities}
               visibleColumns={visibleTransactionColumns}
             />
+          </div>
+
+          {/* TOS */}
+          <div className="pt-16">
+            <div className="grid grid-cols-1">
+              <div className="col-span-1">
+                <h4 className="text-[13px] pb-2 pt-3 font-bold text-primary">
+                  Note on the Fund management company and the fund
+                </h4>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  Multi Units Luxembourg, RCS B115129 and Lyxor Index Fund, RCS
+                  B117500, both Luxembourg SICAV located 9, rue de Bitbourg,
+                  L-1273 Luxembourg, and managed by Amundi Asset Management.
+                  Lyxor SICAV, Luxembourg SICAV, RCS B140772, located 5, Allée
+                  Scheffer, L-2520 Luxembourg, managed by Amundi Luxembourg
+                  S.A..
+                </p>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  The Fund is described in a Key Information Document (KID), or
+                  Key Investor Information Document (KIID) for UK investors, and
+                  prospectus. The Funds KID, or KIID for UK investors, must be
+                  made available to potential subscribers prior to subscription.
+                </p>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  The Funds reference material (KIID, prospectus, annual and
+                  semi-annual reports) can be obtained from Amundi on request,
+                  or obtained via the amundietf.com website. <br></br>
+                  For Professional Clients only. In the United Kingdom (the
+                  "UK"), this website is being issued by Amundi (UK) Limited, 77
+                  Coleman Street, London EC2R 5BJ, UK. Amundi (UK) Limited is
+                  authorised and regulated by the Financial Conduct Authority
+                  ("FCA") and entered on the FCA's Financial Services Register
+                  under number 114503. This may be checked at
+                  https://register.fca.org.uk/ and further information of its
+                  authorisation is available on request. Each fund and its
+                  relevant sub-fund(s) under its respective fund range that is
+                  referred to in this website (each, a "Fund") is a recognised
+                  collective investment scheme for the purposes of Section 264
+                  of the Financial Services and Markets Act 2000 (the "FSMA") or
+                  an unregulated collective investment scheme under the
+                  Financial Services and Markets Act 2000 (the "FSMA"). This
+                  website is addressed only to those persons in the UK falling
+                  within one or more of the following exemptions from the
+                  restrictions in Section 238 FSMA:<br></br>- Authorised firms
+                  under FSMA and certain other investment professionals falling
+                  within article 14 of the FSMA (Promotion of Collective
+                  Investment Schemes) (Exemptions) Order 2001, as amended (the
+                  "CIS Order") and their directors, officers and employees
+                  acting for such entities in relation to investment.<br></br>-
+                  High value entities falling within article 22 CIS Order and
+                  their directors, officers and employees acting for such
+                  entities in relation to investment;<br></br>- Other persons
+                  who are in accordance with the Rules of the FCA prior to 1
+                  November 2007 classified as Intermediate Customers or Market
+                  Counterparties or on or thereafter classified as Professional
+                  Clients or Eligible Counterparties.<br></br>
+                  The distribution of this website's information to any person
+                  in the UK not falling within one of the above categories is
+                  not permitted by Amundi (UK) Limited and may contravene FSMA.
+                  No person in the UK falling outside those categories should
+                  rely or act on it for any purposes whatsoever. <br></br>
+                  This website's information is only directed at persons who are
+                  Professional Clients (as defined in the FCA's Handbook of
+                  Rules and Guidance), must not be distributed to the public and
+                  must not be relied or acted upon by any other persons for any
+                  purposes whatsoever. <br></br>
+                  Potential investors in the UK should be aware that none of the
+                  protections afforded by the UK regulatory system will apply to
+                  an investment in a Fund and that compensation will not be
+                  available under the UK Financial Services Compensation Scheme.{" "}
+                  <br></br>
+                </p>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  Regarding Funds admitted on a regulated market, the listing is
+                  subject to a volatility control mechanisms to ensure that the
+                  ETF price does not deviate significantly from a reference
+                  price set by the listing rules of the relevant regulated
+                  market, notably through the implementation of a trading halt
+                  mechanism in case of significant deviation from this reference
+                  price.
+                </p>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  The Fund offers no capital guarantee. Investors may not get
+                  back the full amount of their initial investment, particularly
+                  in the event that the benchmark index falls. Subscribing to a
+                  UCITS may involve risks. Potential investors are advised to
+                  read the Funds risk profile, which is described in detail in
+                  the prospectus. The amount that is reasonable to invest in the
+                  Fund will depend on the personal circumstances of each
+                  investor. To determine this amount, investors should take into
+                  account their financial situation, personal assets, and
+                  current and future requirements, as well as considering their
+                  willingness to accept risks or conversely their preference to
+                  invest cautiously. Investors are also strongly recommended to
+                  sufficiently diversify their investments so as to avoid being
+                  exposed solely to the risks of this Fund. Investors should
+                  therefore seek advice in this regard from their usual advisors
+                  (legal, tax, financial and/or accounting) before purchasing
+                  any units of the Fund.
+                </p>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  The source of the data contained in this document is Amundi
+                  Asset Management unless otherwise stated.
+                </p>
+                <p className="text-[13px] mb-0 pb-4 font-bold text-secondary">
+                  Policy regarding portfolio transparency and warning on
+                  secondary market
+                </p>
+                <p className="text-[13px] mb-0 pb-4 text-secondary">
+                  The policy regarding portfolio transparency and information on
+                  the funds assets are available on amundietf.com. Indicative
+                  net asset value is published by stock exchanges. Shares
+                  purchased on the secondary market cannot usually be sold
+                  directly back to the fund. Investors must buy and sell shares
+                  on a secondary market with the assistance of an intermediary
+                  (e.g. a stockbroker) and may incur fees for doing so.
+                  Investors may pay more than the current net asset value when
+                  buying shares and may receive less than the current net asset
+                  value when selling them.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       ) : (
