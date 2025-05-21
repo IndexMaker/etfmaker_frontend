@@ -3,10 +3,10 @@ import { IndexData } from "@/components/views/vault/vault-detail";
 import { IndexListEntry } from "@/types";
 import axios from "axios";
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API;
 
 export const fetchAllIndices = async (): Promise<IndexListEntry[]> => {
-  const response = await fetch(`/indices/getIndexLists`);
+  const response = await fetch(`${API_BASE_URL}/indices/getIndexLists`);
 
   if (!response.ok) {
     console.log("Failed to fetch indices");

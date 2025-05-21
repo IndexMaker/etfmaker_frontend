@@ -47,13 +47,14 @@ import { VaultActivity } from "@/components/elements/vault-activity";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import { VaultLiteratureSection } from "./vault-literature";
-import { cn, shortenAddress } from "@/lib/utils";
+import { cn, getERC20AddressForIndex, shortenAddress } from "@/lib/utils";
 import { PerformanceChart } from "@/components/elements/performance-chart";
 import { TimePeriodSelector } from "@/components/elements/time-period";
 import axios from "axios";
 import { IndexListEntry } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchBtcHistoricalData, fetchHistoricalData } from "@/api/indices";
+import FundMaker from "@/components/icons/fundmaker";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -63,6 +64,7 @@ interface ChartDataPoint {
   value: number;
   price?: number;
 }
+const USDC_ADDRESS_IN_BASE = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
 export interface IndexData {
   name: string;
   indexId: number;
@@ -138,6 +140,10 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     }
     return cutoffDate;
   };
+
+  const filteredChartData = () => {
+    return indexData && indexData.chartData ? indexData.chartData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
+  }
 
   const filteredBtcData = () => {
     return btcData ? btcData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
@@ -261,53 +267,31 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               </div>
               <div className="flex gap-6 flex-col">
                 <h1 className="text-[38px] min-w-[50%] h-[44px] text-primary text-center xl:text-left">
-                  {index.name}
+                  {index.ticker}
                 </h1>
                 <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                      {vault.token.icon ? (
                         <Image
                           src={
-                            vault.token.icon ||
-                            `https://cdn.morpho.org/assets/logos/${vault.token.symbol}.svg`
+                            `https://cdn.morpho.org/assets/logos/usdc.svg`
                           }
                           alt={vault.token.symbol}
                           width={17}
                           height={17}
                           className="object-cover w-full h-full"
                         />
-                      ) : (
-                        <div className="text-xs text-primary">
-                          {vault.token.symbol.charAt(0)}
-                        </div>
-                      )}
                     </div>
                     <span className="text-secondary text-[20px]">
-                      {vault.token.symbol}
+                      {"USDC" }
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                      {vault.curator.icon ? (
-                        <Image
-                          src={
-                            vault.curator.icon ||
-                            `https://cdn.morpho.org/assets/logos/mevcapital.png`
-                          }
-                          width={17}
-                          height={17}
-                          alt={vault.curator.name}
-                          className="object-cover w-full h-full"
-                        />
-                      ) : (
-                        <div className="text-xs">
-                          {vault.curator.name.charAt(0)}
-                        </div>
-                      )}
+                        <FundMaker className="w-[17px] h-[17px]" />
                     </div>
                     <span className="text-secondary text-[20px]">
-                      {vault.curator.name}
+                      {"SYMMIO"}
                     </span>
                   </div>
                 </div>
@@ -330,7 +314,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
                 <InfoMobileCard title={t("table.curator")}>
                   <div className="flex items-center flex-row">
-                    <CuratorInfo curator={vault.curator} />
+                    <CuratorInfo curator={index.curator} />
                   </div>
                 </InfoMobileCard>
 
@@ -339,27 +323,27 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.totalSupply")}>
-                  <TokenValue token={vault.token} value={vault.totalSupply} />
+                  <TokenValue token={vault.token} value={index.totalSupply} />
                 </InfoMobileCard>
 
-                <InfoMobileCard title={t("table.instantAPY")}>
+                <InfoMobileCard title={t("table.ytdReturn")}>
                   <div className="text-sm text-secondary">
-                    {vault.instantApy}
+                    {index.ytdReturn}
                   </div>
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.managementFee")}>
                   <div className="text-sm text-secondary">
-                    {/* {vault.managementFee || ''} */}
+                    {index.managementFee || ''}%
                   </div>
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.vaultAddress")}>
-                  <AddressInfo address={vault.vaultAddress || ""} />
+                  <AddressInfo address={(getERC20AddressForIndex(index.indexId)) || ""} />
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.liquidity")}>
-                  <TokenValue token={vault.token} value={vault.liquidity} />
+                  <TokenValue token={vault.token} value={index.totalSupply} />
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.guardianAddress")}>
@@ -372,26 +356,14 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 <InfoCard title={t("table.curator")}>
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                      {vault.curator.icon ? (
-                        <Image
-                          src={vault.curator.icon || "/placeholder.svg"}
-                          alt={vault.curator.name}
-                          className="object-cover w-full h-full"
-                          width={17}
-                          height={17}
-                        />
-                      ) : (
-                        <div className="text-xs">
-                          {vault.curator.name.charAt(0)}
-                        </div>
-                      )}
+                      <FundMaker className="h-5 w-5" />
                     </div>
                     <span className="text-secondary text-[15px] font-normal">
-                      {vault.curator.name}
+                      {"SYMMIO"}
                     </span>
-                    {vault.curator.url && (
+                    {(
                       <Link
-                        href={vault.curator.url}
+                        href={`https://basescan.org/address/${index.curator}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
@@ -405,31 +377,25 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 <InfoCard title={t("table.token")}>
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                      {vault.token.icon ? (
-                        <Image
-                          src={vault.token.icon || "/placeholder.svg"}
-                          alt={vault.token.symbol}
-                          className="object-cover w-full h-full"
-                          width={17}
-                          height={17}
-                        />
-                      ) : (
-                        <div className="text-xs">
-                          {vault.token.symbol.charAt(0)}
-                        </div>
-                      )}
+                      <Image
+                        src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+                        alt={"USDC"}
+                        className="object-cover w-full h-full"
+                        width={17}
+                        height={17}
+                      />
                     </div>
                     <span className="text-secondary text-[15px] font-normal">
-                      {vault.token.symbol}
+                      {"USDC"}
                     </span>
-                    {vault.token.address && (
+                    {USDC_ADDRESS_IN_BASE && (
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                         onClick={() =>
                           copyToClipboard(
-                            vault.token.address || "",
+                            USDC_ADDRESS_IN_BASE || "",
                             "Token address"
                           )
                         }
@@ -445,34 +411,28 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
                       <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        {vault.token.icon ? (
-                          <Image
-                            src={vault.token.icon || "/placeholder.svg"}
-                            alt={vault.token.symbol}
-                            className="object-cover w-full h-full"
-                            width={17}
-                            height={17}
-                          />
-                        ) : (
-                          <div className="text-xs">
-                            {vault.token.symbol.charAt(0)}
-                          </div>
-                        )}
+                        <Image
+                          src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+                          alt={"USDC"}
+                          className="object-cover w-full h-full"
+                          width={17}
+                          height={17}
+                        />
                       </div>
                       <span className="text-secondary text-[15px] font-normal">
-                        {vault.totalSupply.amount}
+                        {index.totalSupply} USDC
                       </span>
                     </div>
                     <div className="text-[13px] text-secondary px-[2px] bg-accent">
-                      {vault.totalSupply.usdValue}
+                      {index.totalSupply}
                     </div>
                   </div>
                 </InfoCard>
 
                 {/* Instant APY */}
-                <InfoCard title={t("table.instantAPY")}>
+                <InfoCard title={t("table.ytdReturn")}>
                   <div className="text-[15px] text-secondary font-normal">
-                    {vault.instantApy}
+                    {index.ytdReturn}
                   </div>
                 </InfoCard>
 
@@ -482,7 +442,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   tooltip="The fee charged on earnings by the vault curator"
                 >
                   <div className="text-[15px] text-secondary font-normal">
-                    {vault.performanceFee}
+                    {index.managementFee} %
                   </div>
                 </InfoCard>
 
@@ -490,14 +450,14 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 <InfoCard title={t("table.vaultAddress")}>
                   <div className="flex items-center gap-2">
                     <span className="text-secondary text-[15px] font-normal">
-                      {shortenAddress(index.curator)}
+                      {shortenAddress(getERC20AddressForIndex(index.indexId))}
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                       onClick={() =>
-                        copyToClipboard(index.curator, "Index address")
+                        copyToClipboard(getERC20AddressForIndex(index.indexId), "Index address")
                       }
                     >
                       <Copy className="h-3 w-3 text-secondary" />
@@ -507,32 +467,26 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
 
                 {/* liquidity */}
                 <InfoCard
-                  title={t("table.instantAPY")}
+                  title={t("table.liquidity")}
                   tooltip="The amount of tokens available for borrowing"
                 >
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
                       <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
-                        {vault.token.icon ? (
-                          <Image
-                            src={vault.token.icon || "/placeholder.svg"}
-                            alt={vault.token.symbol}
-                            className="object-cover w-full h-full"
-                            width={17}
-                            height={17}
-                          />
-                        ) : (
-                          <div className="text-xs">
-                            {vault.token.symbol.charAt(0)}
-                          </div>
-                        )}
+                        <Image
+                          src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+                          alt={"USDC"}
+                          className="object-cover w-full h-full"
+                          width={17}
+                          height={17}
+                        />
                       </div>
                       <span className="text-secondary text-[15px] font-normal">
-                        {vault.liquidity.amount}
+                        {index.totalSupply} USDC
                       </span>
                     </div>
                     <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
-                      {vault.liquidity.usdValue}
+                      {index.totalSupply}
                     </div>
                   </div>
                 </InfoCard>
@@ -581,7 +535,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             {indexData && (
               <div className="bg-background p-4 rounded-lg shadow">
                 <PerformanceChart
-                  data={indexData.chartData}
+                  data={filteredChartData()}
                   indexId={index.indexId}
                   btcData={filteredBtcData()}
                   showComparison={showComparison}
@@ -667,7 +621,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
           )}
         </div> */}
 
-          <div className="pt-16">
+          {/* <div className="pt-16">
             <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
               <div className="flex items-center gap-3">
                 <div>{t("common.vaultAllocationBreakdown")}</div>
@@ -752,7 +706,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               allocations={vaultAllocations}
               visibleColumns={visibleColumns}
             />
-          </div>
+          </div> */}
 
           <div className="pt-16">
             <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
@@ -1040,7 +994,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             {/* Left Column - Vault Info */}
             <div
               className={cn(
-                "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full flex-wrap",
+                "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full",
                 isMobile ? "w-full" : "w-[50%]"
               )}
             >
@@ -1145,31 +1099,17 @@ function InfoMobileCard({ title, tooltip, children }: InfoCardProps) {
 const CuratorInfo = ({
   curator,
 }: {
-  curator: {
-    name: string;
-    icon: string;
-    url?: string;
-  };
+  curator: string
 }) => (
   <div className="flex items-center gap-2">
     <div className="relative h-5 w-5 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-      {curator.icon ? (
-        <Image
-          src={curator.icon}
-          alt={curator.name}
-          className="w-full h-full"
-          width={20}
-          height={20}
-        />
-      ) : (
-        <div className="text-[11px]">{curator.name.charAt(0)}</div>
-      )}
+      <FundMaker className="h-5 w-5" />
     </div>
     <span className="text-secondary text-[13px] font-normal">
-      {curator.name}
+      {"SYMMIO"}
     </span>
-    {curator.url && (
-      <Link href={curator.url} target="_blank">
+    {(
+      <Link href={`https://basescan.org/address/${curator}`}>
         <ArrowUpRight className="h-4 w-4 text-zinc-400" />
       </Link>
     )}
@@ -1189,18 +1129,18 @@ const TokenInfo = ({
     <div className="relative h-5 w-5 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
       {token.icon ? (
         <Image
-          src={token.icon}
-          alt={token.symbol}
+          src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+          alt={"USDC"}
           className="w-full h-full"
           width={20}
           height={20}
         />
       ) : (
-        <div className="text-[11px]">{token.symbol.charAt(0)}</div>
+        <div className="text-[11px]">{"USDC"}</div>
       )}
     </div>
     <span className="text-secondary text-[13px] font-normal">
-      {token.symbol}
+      {"USDC"}
     </span>
   </div>
 );
@@ -1214,17 +1154,14 @@ const TokenValue = ({
     icon: string;
     address?: string;
   };
-  value: {
-    amount: string;
-    usdValue: string;
-  };
+  value: number
 }) => (
   <div className="flex flex-row items-center lg:items-center gap-1 lg:gap-2">
     <div className="flex items-center gap-2">
       <div className="relative h-5 w-5 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
         {token.icon ? (
           <Image
-            src={token.icon}
+            src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
             alt={token.symbol}
             className="w-full h-full"
             width={20}
@@ -1235,17 +1172,17 @@ const TokenValue = ({
         )}
       </div>
       <span className="text-secondary text-[13px] font-normal">
-        {value.amount}
+        {value} USDC
       </span>
     </div>
     <div className="text-[11px] text-secondary px-1 bg-accent">
-      {value.usdValue}
+      {value}
     </div>
   </div>
 );
 
 const AddressInfo = ({ address }: { address: string }) => (
   <div className="flex items-center gap-2">
-    <span className="text-secondary text-[13px] font-normal">{address}</span>
+    <a href={`https://basescan.org/address/${address}`} target="_blank" className="text-secondary text-[13px] font-normal">{shortenAddress(address)}</a>
   </div>
 );

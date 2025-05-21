@@ -16,16 +16,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import InstantAPY from "../icons/instantApy";
 import Image from "next/image";
-import { VaultInfo } from "@/lib/data";
 import CustomTooltip from "./custom-tooltip";
 import { useState } from "react";
 import RightArrow from "../icons/right-arrow";
 import LeftArrow from "../icons/left-arrow";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
-import { cn, shortenAddress } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { IndexListEntry } from "@/types";
@@ -78,7 +76,8 @@ export function VaultTable({
   };
 
   const assetDetail = (vault: IndexListEntry) => {
-    router.push("./vault/" + vault?.ticker);
+    if (!vault.ticker) return
+    router.push("/vault/" + vault?.ticker);
   };
 
   // Determine if a column is sortable
@@ -310,24 +309,18 @@ export function VaultTable({
                                                 width={17}
                                                 height={17}
                                               />
-                                              <span>{collateral.name}</span>
+                                              <span> {collateral.name}</span>
                                             </div>
                                           </div>
                                           <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                            <span>LLTV</span>
-                                            <span className="font-bold">
-                                              91.5%
-                                            </span>
-                                          </div>
-                                          <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                            <span className="">Oracle</span>
-                                            <a
+                                            <span className="">Binance</span>
+                                            {/* <a
                                               target="_blank"
                                               href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
                                               className="hover:bg-[afafaf20]"
                                             >
                                               Exchange rate
-                                            </a>
+                                            </a> */}
                                             <Copy className="w-[15px] h-[15px]" />
                                           </div>
                                         </div>
