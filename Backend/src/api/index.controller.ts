@@ -42,7 +42,7 @@ export class IndexController {
     // SY100: Biweekly from 2022-01-01
     // let sy100Start = new Date('2022-02-07');
     const now = new Date();
-
+    now.setUTCHours(0, 0, 0, 0);
     // while (sy100Start < now) {
     //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
     //   await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
@@ -138,6 +138,7 @@ export class IndexController {
       baseValue = baseValue * (1 + returnPct);
 
       return {
+        name: entry.name,
         date: entry.date,
         price: entry.price,
         value: baseValue,
@@ -201,8 +202,14 @@ export class IndexController {
 
   @Get('/fetchBtcHistoricalData')
   async fetchBtcHistoricalData(): Promise<any> {
-    const btcData = await this.etfPriceService.fetchCoinHistoricalData();
+    const btcData = await this.etfPriceService.fetchCoinHistoricalData('bitcoin');
     return btcData;
+  }
+
+  @Get('/fetchEthHistoricalData')
+  async fetchEthHistoricalData(): Promise<any> {
+    const ethData = await this.etfPriceService.fetchCoinHistoricalData('ethereum');
+    return ethData;
   }
 
   @Get('/getIndexLists')

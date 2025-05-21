@@ -10,6 +10,9 @@ import {
   integer,
   doublePrecision,
   json,
+  numeric,
+  primaryKey,
+  date,
 } from 'drizzle-orm/pg-core';
 
 export const compositions = pgTable('compositions', {
@@ -17,7 +20,9 @@ export const compositions = pgTable('compositions', {
   indexId: varchar('index_id', { length: 66 }).notNull(),
   tokenAddress: varchar('token_address', { length: 66 }).notNull(),
   weight: decimal('weight', { precision: 7, scale: 4 }).notNull(),
-  rebalanceTimestamp: bigint('rebalance_timestamp', { mode: 'number' }).notNull(),
+  rebalanceTimestamp: bigint('rebalance_timestamp', {
+    mode: 'number',
+  }).notNull(),
   validUntil: timestamp('valid_until'),
   createdAt: timestamp('created_at').defaultNow(),
 });
@@ -103,10 +108,10 @@ export const projects = pgTable('projects', {
 
 export const historicalPrices = pgTable('historical_prices', {
   id: serial('id').primaryKey(),
-  coinId: text('coin_id').notNull(),          // e.g., 'ethereum'
-  symbol: text('symbol').notNull(),           // e.g., 'ETH'
-  timestamp: integer('timestamp').notNull(),  // Unix timestamp (daily granularity)
-  price: doublePrecision('price').notNull(),  // USD price
+  coinId: text('coin_id').notNull(), // e.g., 'ethereum'
+  symbol: text('symbol').notNull(), // e.g., 'ETH'
+  timestamp: integer('timestamp').notNull(), // Unix timestamp (daily granularity)
+  price: doublePrecision('price').notNull(), // USD price
 });
 
 export const coinSymbols = pgTable('coin_symbols', {
@@ -115,3 +120,17 @@ export const coinSymbols = pgTable('coin_symbols', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+export const dailyPrices = pgTable(
+  'daily_prices',
+  {
+    indexId: text('index_id').notNull(),
+    date: date('date').notNull(),
+    price: numeric('price').notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+  },
+  (table) => ({
+    primaryKey: primaryKey({ columns: [table.indexId, table.date] }),
+  }),
+);

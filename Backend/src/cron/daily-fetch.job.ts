@@ -6,6 +6,7 @@ import { CoinMarketCapService } from 'src/modules/data-fetcher/coinmarketcap.ser
 import { BinanceService } from 'src/modules/data-fetcher/binance.service';
 import { IndexService } from 'src/modules/blockchain/index.service';
 import { Top100Service } from 'src/modules/computation/top100.service';
+import { EtfPriceService } from 'src/modules/computation/etf-price.service';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { binanceListings, tokenCategories, tokenOhlc } from 'src/db/schema';
 
@@ -17,10 +18,11 @@ export class DailyFetchJob {
     private binanceService: BinanceService,
     private dbService: DbService,
     private indexService: IndexService,
+    private etfPriceservice: EtfPriceService
   ) {
   }
 
-  @Cron('44 22 * * *')
+  @Cron('34 9 * * *')
   async handleDailyFetch() {
     // Fetch market cap
     // const cgMarketCaps = await this.coinGeckoService.getMarketCap();
@@ -113,7 +115,8 @@ export class DailyFetchJob {
     // await this.indexService.listenToEvents(process.env.INDEX_REGISTRY_ADDRESS || '', 8453); // Base
 
     // store daily token's price
-    await this.coinGeckoService.storeMissingPricesUntilToday();
+    // await this.coinGeckoService.storeMissingPricesUntilToday();
+    await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
   }
 
   @Cron('30 0 * * *')  // Triggers daily at 00:30 (but filters dates)

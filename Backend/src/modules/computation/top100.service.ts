@@ -350,9 +350,7 @@ export class Top100Service {
     indexId: number,
   ) {
     // First get all tokens in the ETF with their listing dates
-    const allTokens = await this.coinGeckoService.getPortfolioTokens(
-      etfType,
-    );
+    const allTokens = await this.coinGeckoService.getPortfolioTokens(etfType);
     const binancePairs = await this.binanceService.fetchTradingPairs();
 
     // Create a map of token symbols to their listing dates
@@ -375,19 +373,47 @@ export class Top100Service {
       }
     }
 
+    // Normalize to UTC midnight
+    const normalizeToUTCMidnight = (date: Date): Date => {
+      const isMidnight =
+        date.getUTCHours() === 0 &&
+        date.getUTCMinutes() === 0 &&
+        date.getUTCSeconds() === 0 &&
+        date.getUTCMilliseconds() === 0;
+
+      if (isMidnight) return date;
+
+      // Move to next day at 00:00:00 UTC
+      return new Date(
+        Date.UTC(
+          date.getUTCFullYear(),
+          date.getUTCMonth(),
+          date.getUTCDate() + 1,
+        ),
+      );
+    };
+
     // Now find all unique listing dates after our start date
     const listingDates = Array.from(tokenListingDates.values())
       .filter((date) => date >= startDate && date <= now)
+      .map(normalizeToUTCMidnight) // <- normalize here
       .sort((a, b) => a.getTime() - b.getTime());
 
-    // Add the initial start date
-    const rebalanceDates = [startDate, ...listingDates];
+    const rebalanceDates = [
+      normalizeToUTCMidnight(startDate), // <- also normalize startDate
+      ...listingDates,
+    ];
+
     // Process each rebalance date
     for (const rebalanceDate of rebalanceDates) {
       console.log(
         `Simulating ${etfType} rebalance at ${rebalanceDate.toISOString()}`,
       );
-      await this.rebalanceETF(etfType, indexId, Math.floor(rebalanceDate.getTime() / 1000))
+      await this.rebalanceETF(
+        etfType,
+        indexId,
+        Math.floor(rebalanceDate.getTime() / 1000),
+      );
     }
   }
 
