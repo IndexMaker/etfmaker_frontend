@@ -53,7 +53,7 @@ import { TimePeriodSelector } from "@/components/elements/time-period";
 import axios from "axios";
 import { IndexListEntry } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchBtcHistoricalData, fetchHistoricalData } from "@/api/indices";
+import { fetchBtcHistoricalData, fetchEthHistoricalData, fetchHistoricalData } from "@/api/indices";
 import FundMaker from "@/components/icons/fundmaker";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
@@ -80,8 +80,10 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [indexData, setIndexData] = useState<IndexData | null>(null);
   const [btcData, setBtcData] = useState<any[]>([]);
+  const [ethData, setEthData] = useState<any[]>([]);
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+  const [showETHComparison, setShowETHComparison] = useState(false);
 
   useEffect(() => {
     const fetchData = async (indexId: number) => {
@@ -112,6 +114,20 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       }
     };
     index?.indexId && _fetchBtcHistoricalData();
+
+    const _fetchEthHistoricalData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetchEthHistoricalData()
+        const data = response;
+        setEthData(data);
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    index?.indexId && _fetchEthHistoricalData();
   }, [index]);
 
   const getCutoffDate = () => {
@@ -147,6 +163,10 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
 
   const filteredBtcData = () => {
     return btcData ? btcData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
+  };
+
+  const filteredEthData = () => {
+    return ethData ? ethData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
   };
 
   const copyToClipboard = (text: string, type: string) => {
@@ -529,7 +549,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               selectedPeriod={selectedPeriod}
               onPeriodChange={setSelectedPeriod}
               showComparison={showComparison}
+              showETHComparison={showETHComparison}
               setShowComparison={setShowComparison}
+              setShowETHComparison={setShowETHComparison}
             />
 
             {indexData && (
@@ -538,7 +560,10 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   data={filteredChartData()}
                   indexId={index.indexId}
                   btcData={filteredBtcData()}
+                  ticker={index.ticker || ''}
+                  ethData={filteredEthData()}
                   showComparison={showComparison}
+                  showETHComparison={showETHComparison}
                 />
               </div>
             )}

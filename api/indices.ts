@@ -43,6 +43,18 @@ export const fetchBtcHistoricalData = async (): Promise<any[]> => {
   return response.json();
 };
 
+export const fetchEthHistoricalData = async (): Promise<any[]> => {
+  const response = await fetch(
+    `${API_BASE_URL}/indices/fetchEthHistoricalData`
+  );
+
+  if (!response.ok) {
+    console.log("Failed to fetch ETH historical data");
+  }
+
+  return response.json();
+};
+
 export const fetchHistoricalData = async (
   indexId: string | number
 ): Promise<IndexData> => {

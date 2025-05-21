@@ -20,13 +20,17 @@ interface TimePeriodSelectorProps {
   onPeriodChange: (period: string) => void;
   setShowComparison: (showComparison: boolean) => void;
   showComparison: boolean;
+  setShowETHComparison: (showETHComparison: boolean) => void;
+  showETHComparison: boolean;
 }
 
 export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
   selectedPeriod,
   onPeriodChange,
   showComparison,
-  setShowComparison
+  setShowComparison,
+  setShowETHComparison,
+  showETHComparison
 }) => {
   return (
     <div className="flex gap-2 justify-between flex-wrap">
@@ -45,12 +49,18 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
           </button>
         ))}
       </div>
-      <div>
+      <div className="flex gap-2">
         <CustomButton
           onClick={() => setShowComparison(!showComparison)}
-          className="px-[8px] py-[5px] font-medium transition-colors text-white bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
+          className="h-[26px] px-[8px] py-[5px] font-medium transition-colors text-white bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
         >
           {showComparison ? "Hide BTC Comparison" : "Show BTC Comparison"}
+        </CustomButton>
+        <CustomButton
+          onClick={() => setShowETHComparison(!showETHComparison)}
+          className="h-[26px] px-[8px] py-[5px] font-medium transition-colors text-white bg-[#e95f6a] hover:bg-red-700 text-[11px] rounded-[3px] cursor-pointer"
+        >
+          {showETHComparison ? "Hide ETH Comparison" : "Show ETH Comparison"}
         </CustomButton>
       </div>
     </div>
