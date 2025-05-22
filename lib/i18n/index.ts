@@ -47,7 +47,7 @@ export const translations: Translations = {
       url: "URL",
       marketInsights: "Market Insights",
       responsibleInvesting: "Responsible Investing",
-
+      vaultAssets: "Index Assets",
       integrationDocs: "Integration Docs",
       social: "Social",
       docs: "Docs",
@@ -107,7 +107,7 @@ export const translations: Translations = {
       maxSupplyConfirmation: "You will not have ETH left to pay for gas.",
       iUnderstand: "I understand",
       undoMaxSupply: "Undo max supply",
-      ecosystem: "Ecosystem"
+      ecosystem: "Ecosystem",
     },
     table: {
       name: "Index Name",
@@ -117,6 +117,7 @@ export const translations: Translations = {
       netAPY: "Net APY",
       supplyAPY: "Vault APY",
       ytdReturn: "YTD Return",
+      assetname: "Asset Name",
       curator: "Curator",
       collateral: "Collateral",
       rewards: "Rewards",
@@ -144,6 +145,9 @@ export const translations: Translations = {
       user: "User",
       supply: "Supply",
       share: "Share",
+      market_cap: "Market Cap",
+      weights: "Weight",
+      sector: "Sector",
     },
     type: {
       all: "All Transaction Types",
@@ -163,10 +167,8 @@ export const translations: Translations = {
         "DELV Fixed Borrow enables existing DeFi borrowers on FundMaker to fix their interest rates and gain predictability on borrow costs.",
       "defi-saver":
         "Advanced DeFi Management. All the essential tools for creating, tracking, and managing your DeFi portfolio.",
-      
     },
   },
-
 };
 
 // Get translation for a key

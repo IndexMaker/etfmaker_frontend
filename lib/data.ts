@@ -313,6 +313,15 @@ export interface VaultAllocation {
   marketId?: string;
 }
 
+export interface VaultAsset {
+  id: number;
+  ticker: string;
+  assetname: string;
+  sector: string;
+  market_cap: number;
+  weights: number;
+}
+
 export const vaultAllocations: VaultAllocation[] = [
   {
     id: "1",

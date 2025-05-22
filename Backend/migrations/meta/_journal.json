@@ -50,6 +50,13 @@
       "when": 1746490130608,
       "tag": "0006_luxuriant_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1747904664874,
+      "tag": "0007_ancient_wither",
+      "breakpoints": true
     }
   ]
 }

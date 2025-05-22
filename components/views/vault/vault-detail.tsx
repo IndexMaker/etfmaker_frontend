@@ -5,9 +5,7 @@ import { useMediaQuery } from "react-responsive";
 import Link from "next/link";
 import {
   ArrowUpRight,
-  Check,
   CheckCircle,
-  ChevronDown,
   Copy,
   Eye,
   EyeOff,
@@ -25,13 +23,11 @@ import {
 import { useEffect, useState } from "react";
 import Dashboard from "../Dashboard/dashboard";
 import { toast } from "sonner";
-import { VaultAllocationBreakdown } from "@/components/elements/vault-allocation-breakdown";
 import {
+  VaultAsset,
   mockup_vaults,
-  reallocations,
   supplyPositions,
   userActivities,
-  vaultAllocations,
 } from "@/lib/data";
 import {
   Popover,
@@ -50,11 +46,16 @@ import { VaultLiteratureSection } from "./vault-literature";
 import { cn, getERC20AddressForIndex, shortenAddress } from "@/lib/utils";
 import { PerformanceChart } from "@/components/elements/performance-chart";
 import { TimePeriodSelector } from "@/components/elements/time-period";
-import axios from "axios";
 import { IndexListEntry } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchBtcHistoricalData, fetchEthHistoricalData, fetchHistoricalData } from "@/api/indices";
+import {
+  fetchBtcHistoricalData,
+  fetchEthHistoricalData,
+  fetchHistoricalData,
+  fetchVaultAssets,
+} from "@/api/indices";
 import FundMaker from "@/components/icons/fundmaker";
+import { VaultAssets } from "@/components/elements/vault-assets";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -64,7 +65,7 @@ interface ChartDataPoint {
   value: number;
   price?: number;
 }
-const USDC_ADDRESS_IN_BASE = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+const USDC_ADDRESS_IN_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 export interface IndexData {
   name: string;
   indexId: number;
@@ -84,7 +85,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [showETHComparison, setShowETHComparison] = useState(false);
-
+  const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([])
   useEffect(() => {
     const fetchData = async (indexId: number) => {
       setIsLoading(true);
@@ -104,11 +105,11 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     const _fetchBtcHistoricalData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchBtcHistoricalData()
+        const response = await fetchBtcHistoricalData();
         const data = response;
         setBtcData(data);
       } catch (error) {
-        console.error("Error fetching performance data:", error);
+        console.error("Error fetching btc data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -118,16 +119,30 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     const _fetchEthHistoricalData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchEthHistoricalData()
+        const response = await fetchEthHistoricalData();
         const data = response;
         setEthData(data);
       } catch (error) {
-        console.error("Error fetching performance data:", error);
+        console.error("Error fetching eth data:", error);
       } finally {
         setIsLoading(false);
       }
     };
     index?.indexId && _fetchEthHistoricalData();
+
+    const _fetchVaultAssets = async (_indexId: number) => {
+      setIsLoading(true);
+      try {
+        const response = await fetchVaultAssets(_indexId);
+        const data = response;
+        setIndexAssets(data);
+      } catch (error) {
+        console.error("Error fetching eth data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    index?.indexId && _fetchVaultAssets(index?.indexId);
   }, [index]);
 
   const getCutoffDate = () => {
@@ -158,15 +173,23 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   };
 
   const filteredChartData = () => {
-    return indexData && indexData.chartData ? indexData.chartData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
-  }
+    return indexData && indexData.chartData
+      ? indexData.chartData.filter(
+          (item) => new Date(item.date) >= getCutoffDate()
+        )
+      : [];
+  };
 
   const filteredBtcData = () => {
-    return btcData ? btcData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
+    return btcData
+      ? btcData.filter((item) => new Date(item.date) >= getCutoffDate())
+      : [];
   };
 
   const filteredEthData = () => {
-    return ethData ? ethData.filter((item) => new Date(item.date) >= getCutoffDate()) : [];
+    return ethData
+      ? ethData.filter((item) => new Date(item.date) >= getCutoffDate())
+      : [];
   };
 
   const copyToClipboard = (text: string, type: string) => {
@@ -179,19 +202,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
 
   // Default visible columns
   const [visibleColumns, setVisibleColumns] = useState([
-    { id: "percentage", name: "Allocation %", visible: true },
-    { id: "vaultSupply", name: "Vault Supply", visible: true },
-    { id: "collateral", name: "Collateral", visible: true },
-    { id: "netAPY", name: "Net APY", visible: true },
-    { id: "oracle", name: "Oracle", visible: true },
-    { id: "supplyCap", name: "Supply Cap", visible: false },
-    { id: "capPercentage", name: "Cap %", visible: false },
-    { id: "supplyAPY", name: "Supply APY", visible: false },
-    { id: "rewards", name: "Rewards", visible: false },
-    { id: "totalCollateral", name: "Total Collateral", visible: false },
-    { id: "utilization", name: "Utilization", visible: false },
-    { id: "rateAtUTarget", name: "Rate at uTarget", visible: false },
-    { id: "marketId", name: "Market ID", visible: false },
+    // { id: "id", name: "Id", visible: true },
+    { id: "ticker", name: "Ticker", visible: true },
+    { id: "assetname", name: "Asset Name", visible: true },
+    { id: "sector", name: "Sector", visible: true },
+    { id: "market_cap", name: "Market Cap", visible: true },
+    { id: "weights", name: "Weight", visible: true },
   ]);
 
   const [visibleReAllocationColumns, setVisibleReAllocationColumns] = useState([
@@ -292,23 +308,19 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                        <Image
-                          src={
-                            `https://cdn.morpho.org/assets/logos/usdc.svg`
-                          }
-                          alt={vault.token.symbol}
-                          width={17}
-                          height={17}
-                          className="object-cover w-full h-full"
-                        />
+                      <Image
+                        src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
+                        alt={vault.token.symbol}
+                        width={17}
+                        height={17}
+                        className="object-cover w-full h-full"
+                      />
                     </div>
-                    <span className="text-secondary text-[20px]">
-                      {"USDC" }
-                    </span>
+                    <span className="text-secondary text-[20px]">{"USDC"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                        <FundMaker className="w-[17px] h-[17px]" />
+                      <FundMaker className="w-[17px] h-[17px]" />
                     </div>
                     <span className="text-secondary text-[20px]">
                       {"SYMMIO"}
@@ -354,12 +366,14 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
 
                 <InfoMobileCard title={t("table.managementFee")}>
                   <div className="text-sm text-secondary">
-                    {index.managementFee || ''}%
+                    {index.managementFee || ""}%
                   </div>
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.vaultAddress")}>
-                  <AddressInfo address={(getERC20AddressForIndex(index.indexId)) || ""} />
+                  <AddressInfo
+                    address={getERC20AddressForIndex(index.indexId) || ""}
+                  />
                 </InfoMobileCard>
 
                 <InfoMobileCard title={t("table.liquidity")}>
@@ -381,7 +395,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     <span className="text-secondary text-[15px] font-normal">
                       {"SYMMIO"}
                     </span>
-                    {(
+                    {
                       <Link
                         href={`https://basescan.org/address/${index.curator}`}
                         target="_blank"
@@ -389,7 +403,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       >
                         <ArrowUpRight className="h-4 w-4 text-secondary" />
                       </Link>
-                    )}
+                    }
                   </div>
                 </InfoCard>
 
@@ -477,7 +491,10 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       size="icon"
                       className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                       onClick={() =>
-                        copyToClipboard(getERC20AddressForIndex(index.indexId), "Index address")
+                        copyToClipboard(
+                          getERC20AddressForIndex(index.indexId),
+                          "Index address"
+                        )
                       }
                     >
                       <Copy className="h-3 w-3 text-secondary" />
@@ -560,7 +577,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   data={filteredChartData()}
                   indexId={index.indexId}
                   btcData={filteredBtcData()}
-                  ticker={index.ticker || ''}
+                  ticker={index.ticker || ""}
                   ethData={filteredEthData()}
                   showComparison={showComparison}
                   showETHComparison={showETHComparison}
@@ -732,6 +749,93 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               visibleColumns={visibleColumns}
             />
           </div> */}
+
+          <div className="pt-16">
+            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+              <div className="flex items-center gap-3">
+                <div>{t("common.vaultAssets")}</div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
+                      >
+                        <HelpCircle className="h-3 w-3 text-[#fffff80]" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs">
+                        {t("common.vaultAllocationBreakdownNote")}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <CustomButton
+                    variant="secondary"
+                    onClick={() => setSearchQuery("")}
+                    className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                  >
+                    {t("common.editProperties")}
+                  </CustomButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
+                  align="end"
+                  sideOffset={5}
+                >
+                  <div className="p-0 border-b border-zinc-700">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        type="search"
+                        placeholder={t("common.searchProperties")}
+                        className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-[400px] overflow-y-auto">
+                    {filteredColumns.map((column) => (
+                      <div
+                        key={column.id}
+                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                      >
+                        <span className="text-[12px]">
+                          {t("table." + column.id)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            toggleColumnVisibility(column.id, !column.visible)
+                          }
+                          className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                        >
+                          {visibleColumns.filter(
+                            (_column) => column.id === _column.id
+                          )[0].visible ? (
+                            <Eye className="h-4 w-4 text-card" />
+                          ) : (
+                            <EyeOff className="h-4 w-4 text-card" />
+                          )}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </h1>
+            <VaultAssets
+              assets={indexAssets}
+              visibleColumns={visibleColumns}
+            />
+          </div>
 
           <div className="pt-16">
             <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
@@ -1121,23 +1225,17 @@ function InfoMobileCard({ title, tooltip, children }: InfoCardProps) {
   );
 }
 
-const CuratorInfo = ({
-  curator,
-}: {
-  curator: string
-}) => (
+const CuratorInfo = ({ curator }: { curator: string }) => (
   <div className="flex items-center gap-2">
     <div className="relative h-5 w-5 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
       <FundMaker className="h-5 w-5" />
     </div>
-    <span className="text-secondary text-[13px] font-normal">
-      {"SYMMIO"}
-    </span>
-    {(
+    <span className="text-secondary text-[13px] font-normal">{"SYMMIO"}</span>
+    {
       <Link href={`https://basescan.org/address/${curator}`}>
         <ArrowUpRight className="h-4 w-4 text-zinc-400" />
       </Link>
-    )}
+    }
   </div>
 );
 
@@ -1164,9 +1262,7 @@ const TokenInfo = ({
         <div className="text-[11px]">{"USDC"}</div>
       )}
     </div>
-    <span className="text-secondary text-[13px] font-normal">
-      {"USDC"}
-    </span>
+    <span className="text-secondary text-[13px] font-normal">{"USDC"}</span>
   </div>
 );
 
@@ -1179,7 +1275,7 @@ const TokenValue = ({
     icon: string;
     address?: string;
   };
-  value: number
+  value: number;
 }) => (
   <div className="flex flex-row items-center lg:items-center gap-1 lg:gap-2">
     <div className="flex items-center gap-2">
@@ -1200,14 +1296,18 @@ const TokenValue = ({
         {value} USDC
       </span>
     </div>
-    <div className="text-[11px] text-secondary px-1 bg-accent">
-      {value}
-    </div>
+    <div className="text-[11px] text-secondary px-1 bg-accent">{value}</div>
   </div>
 );
 
 const AddressInfo = ({ address }: { address: string }) => (
   <div className="flex items-center gap-2">
-    <a href={`https://basescan.org/address/${address}`} target="_blank" className="text-secondary text-[13px] font-normal">{shortenAddress(address)}</a>
+    <a
+      href={`https://basescan.org/address/${address}`}
+      target="_blank"
+      className="text-secondary text-[13px] font-normal"
+    >
+      {shortenAddress(address)}
+    </a>
   </div>
 );
