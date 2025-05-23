@@ -127,6 +127,7 @@ export const dailyPrices = pgTable(
     indexId: text('index_id').notNull(),
     date: date('date').notNull(),
     price: numeric('price').notNull(),
+    quantities: jsonb('quantities'), // Store token quantities as JSON
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow(),
   },

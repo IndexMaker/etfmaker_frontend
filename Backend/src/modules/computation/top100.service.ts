@@ -310,6 +310,7 @@ export class Top100Service {
 
       if (weights && etfPrice) {
         await this.deployIndex(name, symbol, custodyId, indexId, weights);
+        console.log(weights, etfPrice);
         await this.indexRegistryService.setCuratorWeights(
           indexId,
           weights,
@@ -325,7 +326,7 @@ export class Top100Service {
         indexId,
         rebalanceTimestamp,
       );
-
+      console.log(weights, etfPrice);
       if (weights && etfPrice) {
         await this.indexRegistryService.setCuratorWeights(
           indexId,
@@ -352,13 +353,15 @@ export class Top100Service {
     // First get all tokens in the ETF with their listing dates
     const allTokens = await this.coinGeckoService.getPortfolioTokens(etfType);
     const binancePairs = await this.binanceService.fetchTradingPairs();
-
+    const activePairs = binancePairs.filter(
+      (pair) => pair.status === 'TRADING',
+    );
     // Create a map of token symbols to their listing dates
     const tokenListingDates = new Map<string, Date>();
 
     for (const token of allTokens) {
       const symbolUpper = token.symbol.toUpperCase();
-      const pair = binancePairs.find(
+      const pair = activePairs.find(
         (p) =>
           p.symbol.startsWith(symbolUpper) &&
           (p.symbol.endsWith('USDC') || p.symbol.endsWith('USDT')),
@@ -584,15 +587,26 @@ export class Top100Service {
           ),
         );
 
-      // Check if we need to rebalance
-      const currentTokenSet = new Set(eligibleTokens.map((t) => t.binancePair));
+      const uniqueTokens = eligibleTokens.reduce((acc, token) => {
+        if (!acc.some((t) => t.binancePair === token.binancePair)) {
+          acc.push(token);
+        }
+        return acc;
+      }, []);
+
+      // Create a Set of the binancePairs from uniqueTokens
+      const currentTokenSet = new Set(uniqueTokens.map((t) => t.binancePair));
+
       const previousTokenSet = new Set(
         currentComposition.map((c) => c.tokenAddress),
       );
 
+      // Check for new tokens (present in current but not previous)
       const hasNewTokens = [...currentTokenSet].some(
         (t) => !previousTokenSet.has(t),
       );
+
+      // Check for removed tokens (present in previous but not current)
       const hasRemovedTokens = [...previousTokenSet].some(
         (t) => !currentTokenSet.has(t),
       );

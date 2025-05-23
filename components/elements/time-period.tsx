@@ -34,17 +34,15 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
 }) => {
   const handleComparisonToggle = () => {
     if (!showComparison && !showETHComparison) {
-      // Initial state - show BTC
+      // Initial state (ETF only) - show BTC with ETF
       setShowComparison(true);
       setShowETHComparison(false);
     } else if (showComparison && !showETHComparison) {
-      // BTC shown - show ETH (keep BTC visible)
-      setShowETHComparison(true);
-    } else if (showComparison && showETHComparison) {
-      // Both shown - hide BTC
+      // BTC with ETF shown - switch to ETH with ETF
       setShowComparison(false);
-    } else {
-      // Only ETH shown - hide ETH (back to initial state)
+      setShowETHComparison(true);
+    } else if (!showComparison && showETHComparison) {
+      // ETH with ETF shown - back to ETF only
       setShowETHComparison(false);
     }
   };
@@ -52,10 +50,8 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
   const getButtonText = () => {
     if (showComparison && !showETHComparison) {
       return "Show ETH Comparison";
-    } else if (showComparison && showETHComparison) {
-      return "Hide BTC Comparison";
     } else if (!showComparison && showETHComparison) {
-      return "Hide ETH Comparison";
+      return "Hide Comparison";
     } else {
       return "Show BTC Comparison";
     }
@@ -64,8 +60,6 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
   const getButtonColor = () => {
     if (showComparison && !showETHComparison) {
       return "bg-[#2470ff] hover:bg-blue-700"; // BTC blue
-    } else if (showComparison && showETHComparison) {
-      return "bg-[#e95f6a] hover:bg-red-700"; // ETH red (both visible)
     } else if (!showComparison && showETHComparison) {
       return "bg-[#e95f6a] hover:bg-red-700"; // ETH red
     } else {

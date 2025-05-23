@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { DbService } from 'src/db/db.service';
-import { coinSymbols, historicalPrices, tokenMetadata } from 'src/db/schema';
+import { coinSymbols, historicalPrices, tokenCategories, tokenMetadata } from 'src/db/schema';
 import { ethers } from 'ethers';
 import { and, desc, eq, sql } from 'drizzle-orm';
 @Injectable()
@@ -395,6 +395,39 @@ export class CoinGeckoService {
       ),
     );
     return response.data;
+  }
+
+  
+  // Helper functions
+  async fetchCoinGeckoMarkets(coinIds: string[]) {
+    const response = await fetch(
+      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds.join(',')}`
+    );
+    return await response.json();
+  }
+  
+  async getOrCreateCategory(coinId: string): Promise<string> {
+    if (!coinId) return 'Uncategorized';
+    // Try to get existing category
+    const existing = await this.dbService.getDb().query.tokenCategories.findFirst({
+      where: eq(tokenCategories.coinId, coinId),
+    });
+    
+    if (existing) {
+      return existing.categories[0] || 'Uncategorized';
+    }
+    
+    const categories = await this.getCategories(coinId)
+    // Store new category if we have data
+    const sector = categories[0] || 'Uncategorized';
+    if (categories.length > 0) {
+      await this.dbService.getDb().insert(tokenCategories).values({
+        coinId,
+        categories: JSON.stringify(categories),
+      }).onConflictDoNothing();
+    }
+  
+    return sector;
   }
 
   async getCategories(coinId: string): Promise<string[]> {
