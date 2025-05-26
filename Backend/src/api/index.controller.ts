@@ -40,15 +40,15 @@ export class IndexController {
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
     // SY100: Biweekly from 2022-01-01
-    // let sy100Start = new Date('2022-02-07');
+    let sy100Start = new Date('2025-05-21');
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
-    // while (sy100Start < now) {
-    //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
-    //   await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
-    //   sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
-    // }
-    
+    while (sy100Start < now) {
+      console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
+      await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
+      sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
+    }
+
     // // SYAZ: Daily from 2019-01-01
     // let syazStart = new Date('2019-01-01');
     // // while (syazStart < now) {
@@ -88,13 +88,19 @@ export class IndexController {
 
     // await this.top100Service.simulateRebalances(symeStart, now, 'meme-token', 25);
     // // SYDF: Daily from 2019-01-01
-    // let sydfStart = new Date('2019-01-01');
+    // let sydfStart = new Date(1608940800000);
+    let sydfStart = new Date('2021-01-20');
     // // while (sydfStart < now) {
     // //   console.log(`Simulating SYDF rebalance at ${sydfStart.toISOString()}`);
-      // await this.top100Service.rebalanceETF('decentralized-finance-defi', 26, Math.floor(now.getTime() / 1000));
+    // await this.top100Service.rebalanceETF('decentralized-finance-defi', 26, Math.floor(now.getTime() / 1000));
     // //   sydfStart.setDate(sydfStart.getDate() + 1); // daily
     // // }
-    // await this.top100Service.simulateRebalances(sydfStart, now, 'decentralized-finance-defi', 26);
+    // await this.top100Service.simulateRebalances(
+    //   sydfStart,
+    //   now,
+    //   'decentralized-finance-defi',
+    //   27,
+    // );
   }
 
   @ApiOperation({ summary: 'Get index data' })
@@ -119,7 +125,8 @@ export class IndexController {
   async getHistoricalData(@Param('indexId') indexId: number) {
     if (!indexId) return {};
     const rawData = await this.etfPriceService.getHistoricalData(indexId);
-    const formattedTransactions = await this.etfPriceService.getIndexTransactions(indexId);
+    const formattedTransactions =
+      await this.etfPriceService.getIndexTransactions(indexId);
     // Calculate cumulative returns
     let baseValue = 10000;
     let indexName = '';
@@ -150,7 +157,7 @@ export class IndexController {
       indexId,
       rawData,
       chartData,
-      formattedTransactions
+      formattedTransactions,
     };
 
     return response;
@@ -159,7 +166,7 @@ export class IndexController {
   @Get('/downloadRebalanceData/:indexId')
   async downloadRebalanceData(
     @Param('indexId') indexId: number,
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     const rebalanceData = await this.etfPriceService.getRebalancedData(indexId);
 
@@ -198,17 +205,76 @@ export class IndexController {
 
     // Send CSV data
     res.send(csvString);
+
+    // const rebalanceData =
+    //   await this.etfPriceService.getTempRebalancedData(indexId);
+
+    // // Prepare CSV headers
+    // const headers = [
+    //   'Index',
+    //   'IndexId',
+    //   'Rebalance Date',
+    //   'Index Price',
+    //   'Weights',
+    //   'Asset Prices',
+    // ];
+
+    // // Convert data to CSV rows
+    // const csvRows: any[] = [];
+
+    // // Add header row
+    // csvRows.push(headers.join(','));
+
+    // // Add data rows
+    // rebalanceData.forEach((event) => {
+    //   const date = event.rebalanceDate.toISOString().split('T')[0];
+    //   const weightsString = JSON.stringify(event.weights).replace(/"/g, '""');
+    //   const pricesString = JSON.stringify(event.assetPrices).replace(
+    //     /"/g,
+    //     '""',
+    //   );
+    //   const row = [
+    //     event.index,
+    //     event.indexId,
+    //     date,
+    //     event.indexPrice,
+    //     `"${weightsString}"`,
+    //     `"${pricesString}"`,
+    //   ];
+
+    //   csvRows.push(row.join(','));
+    // });
+
+    // // Create CSV string
+    // const csvString = csvRows.join('\n');
+
+    // res.setHeader('Content-Type', 'text/csv');
+    // res.setHeader(
+    //   'Content-Disposition',
+    //   `attachment; filename="rebalance_data_${indexId}.csv"`,
+    // );
+
+    // // Send CSV data
+    // res.send(csvString);
   }
 
   @Get('/fetchBtcHistoricalData')
   async fetchBtcHistoricalData(): Promise<any> {
-    const btcData = await this.etfPriceService.fetchCoinHistoricalData('bitcoin');
+    const btcData =
+      await this.etfPriceService.fetchCoinHistoricalData('bitcoin');
     return btcData;
   }
 
   @Get('/fetchEthHistoricalData')
   async fetchEthHistoricalData(): Promise<any> {
-    const ethData = await this.etfPriceService.fetchCoinHistoricalData('ethereum');
+    const ethData =
+      await this.etfPriceService.fetchCoinHistoricalData('ethereum');
+    return ethData;
+  }
+
+  @Get('/fetchVaultAssets/:indexId')
+  async fetchVaultAssets(@Param('indexId') indexId: number): Promise<any> {
+    const ethData = await this.etfPriceService.fetchVaultAssets(indexId);
     return ethData;
   }
 

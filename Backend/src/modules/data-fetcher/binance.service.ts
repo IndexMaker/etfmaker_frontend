@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { DbService } from '../../db/db.service';
-import { binancePairs } from '../../db/schema';
-import { eq, and } from 'drizzle-orm';
+import { binanceListings, binancePairs } from '../../db/schema';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import axios from 'axios';
 import { parseStringPromise } from 'xml2js';
 import AdmZip from 'adm-zip';
@@ -28,37 +28,53 @@ export class BinanceService {
 
   async fetchTradingPairs(): Promise<BinancePair[]> {
     try {
+      const db = this.dbService.getDb();
+
+      const pairs = await db
+        .select()
+        .from(binancePairs)
+        .where(eq(binancePairs.status, 'TRADING'));
+
+      this.logger.log(`Fetched ${pairs.length} trading pairs from database`);
+      return pairs;
+    } catch (error) {
+      this.logger.error(
+        `Error fetching trading pairs from DB: ${error.message}`,
+      );
+      return [];
+    }
+  }
+
+  async storeTradingPairs(): Promise<void> {
+    try {
+      // Fetch from Binance API
       const response = await firstValueFrom(this.httpService.get(this.apiUrl));
       const data = response.data;
 
-      const pairs = data.symbols.map((symbol: any) => ({
+      const pairs: BinancePair[] = data.symbols.map((symbol: any) => ({
         symbol: symbol.symbol,
         quoteAsset: symbol.quoteAsset,
         status: symbol.status,
       }));
 
-      this.logger.log(`Fetched ${pairs.length} trading pairs from Binance`);
-      return pairs;
-    } catch (error) {
-      this.logger.error(`Error fetching trading pairs: ${error.message}`);
-      return [];
-    }
-  }
+      const db = this.dbService.getDb();
 
-  async storeTradingPairs(pairs: BinancePair[]): Promise<void> {
-    try {
-      await this.dbService
-        .getDb()
-        .insert(binancePairs)
-        .values(
-          pairs.map((pair) => ({
-            symbol: pair.symbol,
-            quoteAsset: pair.quoteAsset,
-            status: pair.status,
-            fetchedAt: new Date(),
-          })),
-        );
-      this.logger.log(`Stored ${pairs.length} trading pairs in database`);
+      // Truncate the table
+      await db.execute(sql`TRUNCATE TABLE ${binancePairs}`);
+
+      // Insert fresh pairs
+      await db.insert(binancePairs).values(
+        pairs.map((pair) => ({
+          symbol: pair.symbol,
+          quoteAsset: pair.quoteAsset,
+          status: pair.status,
+          fetchedAt: new Date(),
+        })),
+      );
+
+      this.logger.log(
+        `Fetched and stored ${pairs.length} trading pairs from Binance`,
+      );
     } catch (error) {
       this.logger.error(`Error storing trading pairs: ${error.message}`);
     }
@@ -103,7 +119,7 @@ export class BinanceService {
       );
 
       // Store current pairs for future comparison
-      await this.storeTradingPairs(currentPairs);
+      await this.storeTradingPairs();
 
       this.logger.log(
         `Detected ${listings.length} listings and ${delistings.length} delistings`,
@@ -188,6 +204,72 @@ export class BinanceService {
       return null;
     }
   }
+
+  async storePairListingTimestamps(): Promise<void> {
+    try {
+      const db = this.dbService.getDb();
+
+      // Fetch TRADING pairs from DB
+      const allPairs = await this.fetchTradingPairs();
+
+      // Filter for USDT/USDC quote assets
+      const filteredPairs = allPairs.filter((pair) =>
+        ['USDT', 'USDC'].includes(pair.quoteAsset),
+      );
+
+      if (filteredPairs.length === 0) {
+        this.logger.warn('No USDT/USDC trading pairs found');
+        return;
+      }
+
+      const pairSymbols = filteredPairs.map((pair) => pair.symbol);
+
+      // Fetch already stored listing symbols
+      const existingListings = await db
+        .select({ pair: binanceListings.pair })
+        .from(binanceListings)
+        .where(inArray(binanceListings.pair, pairSymbols));
+
+      const existingSymbols = new Set(existingListings.map((l) => l.pair));
+
+      const listings: any[] = [];
+
+      for (const pair of filteredPairs) {
+        if (existingSymbols.has(pair.symbol)) {
+          this.logger.log(`Skipping ${pair.symbol}, already in DB`);
+          continue;
+        }
+
+        const timestamp = await this.getListingTimestampFromS3(pair.symbol);
+
+        if (timestamp) {
+          listings.push({
+            pair: pair.symbol,
+            action: 'listing',
+            timestamp,
+            createdAt: new Date(),
+          });
+          this.logger.log(
+            `Fetched listing timestamp for ${pair.symbol}: ${timestamp}`,
+          );
+        } else {
+          this.logger.warn(`No listing timestamp found for ${pair.symbol}`);
+        }
+      }
+
+      if (listings.length > 0) {
+        await db.insert(binanceListings).values(listings);
+        this.logger.log(
+          `Stored ${listings.length} new listing timestamps in DB`,
+        );
+      } else {
+        this.logger.log('No new listing timestamps to store');
+      }
+    } catch (error) {
+      this.logger.error(`Error storing listing timestamps: ${error.message}`);
+    }
+  }
+
   async getListedTokens(): Promise<string[]> {
     try {
       const pairs = await this.fetchTradingPairs();

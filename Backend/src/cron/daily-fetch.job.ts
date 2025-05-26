@@ -22,7 +22,11 @@ export class DailyFetchJob {
   ) {
   }
 
-  @Cron('34 9 * * *')
+  // @Cron('44 8 * * *')
+  // async temp() {
+  //   await this.binanceService.storePairListingTimestamps();
+  // }
+  @Cron('10 0 * * *')
   async handleDailyFetch() {
     // Fetch market cap
     // const cgMarketCaps = await this.coinGeckoService.getMarketCap();
@@ -117,6 +121,8 @@ export class DailyFetchJob {
     // store daily token's price
     // await this.coinGeckoService.storeMissingPricesUntilToday();
     await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
+    await this.binanceService.storeTradingPairs();
+    await this.binanceService.storePairListingTimestamps()
   }
 
   @Cron('30 0 * * *')  // Triggers daily at 00:30 (but filters dates)

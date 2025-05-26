@@ -352,8 +352,6 @@ export class EtfPriceService {
         startDate.getTime() / 1000,
         endDate.getTime() / 1000,
       );
-      (i === 44 || i === 45) &&
-        console.log(currentQuantities, lastKnownPrice, startDate);
 
       for (let d = startDate; d < endDate; d.setUTCDate(d.getUTCDate() + 1)) {
         const date = d;
@@ -1285,7 +1283,6 @@ export class EtfPriceService {
     const latestPrice = await this.getPriceForDate(indexId, now);
     const jan1Price = await this.getPriceForDate(indexId, jan1);
     if (!jan1Price || jan1Price === 0) return 0;
-    console.log(latestPrice);
     return (((latestPrice || 0) - jan1Price) / jan1Price) * 100;
   }
 

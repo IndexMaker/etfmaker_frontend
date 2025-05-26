@@ -2,18 +2,43 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { DbService } from 'src/db/db.service';
-import { coinSymbols, historicalPrices, tokenCategories, tokenMetadata } from 'src/db/schema';
+import {
+  coinSymbols,
+  historicalPrices,
+  tokenCategories,
+  tokenMetadata,
+} from 'src/db/schema';
 import { ethers } from 'ethers';
 import { and, desc, eq, sql } from 'drizzle-orm';
+import axios from 'axios';
 @Injectable()
 export class CoinGeckoService {
   private readonly logger = new Logger(CoinGeckoService.name);
   private priceCache: Record<string, Array<[number, number]>> = {};
-
+  private readonly COINGECKO_API = 'https://api.coingecko.com/api/v3';
   constructor(
     private httpService: HttpService,
     private dbService: DbService,
   ) {}
+
+  async getAllCoinsList(): Promise<
+    { id: string; symbol: string; name: string }[]
+  > {
+    try {
+      const response = await axios.get(
+        `${this.COINGECKO_API}/coins/list?include_platform=false`,
+      );
+      const coins = response.data as {
+        id: string;
+        symbol: string;
+        name: string;
+      }[];
+
+      return coins;
+    } catch (error) {
+      throw new Error(`Failed to fetch CoinGecko coin list: ${error.message}`);
+    }
+  }
 
   async getSymbolToIdsMap(): Promise<Record<string, string>> {
     // Try to get from database first
@@ -397,52 +422,65 @@ export class CoinGeckoService {
     return response.data;
   }
 
-  
   // Helper functions
   async fetchCoinGeckoMarkets(coinIds: string[]) {
     const response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds.join(',')}`
+      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds.join(',')}`,
     );
     return await response.json();
   }
-  
+
   async getOrCreateCategory(coinId: string): Promise<string> {
     if (!coinId) return 'Uncategorized';
     // Try to get existing category
-    const existing = await this.dbService.getDb().query.tokenCategories.findFirst({
-      where: eq(tokenCategories.coinId, coinId),
-    });
-    
+    const existing = await this.dbService
+      .getDb()
+      .query.tokenCategories.findFirst({
+        where: eq(tokenCategories.coinId, coinId),
+      });
+
     if (existing) {
       return existing.categories[0] || 'Uncategorized';
     }
-    
-    const categories = await this.getCategories(coinId)
+
+    const categories = await this.getCategories(coinId);
     // Store new category if we have data
     const sector = categories[0] || 'Uncategorized';
     if (categories.length > 0) {
-      await this.dbService.getDb().insert(tokenCategories).values({
-        coinId,
-        categories: JSON.stringify(categories),
-      }).onConflictDoNothing();
+      await this.dbService
+        .getDb()
+        .insert(tokenCategories)
+        .values({
+          coinId,
+          categories: JSON.stringify(categories),
+        })
+        .onConflictDoNothing();
     }
-  
+
     return sector;
   }
 
   async getCategories(coinId: string): Promise<string[]> {
-    // const cacheKey = `categories:${coinId}`;
-    // const cached = await this.cacheManager.get<string[]>(cacheKey);
-    // if (cached) {
-    //   return cached;
-    // }
+    if (!coinId) return [];
 
+    const db = this.dbService.getDb();
+
+    // Step 1: Try to get from DB
+    const existing = await db.query.tokenCategories.findFirst({
+      where: eq(tokenCategories.coinId, coinId),
+    });
+
+    if (existing) {
+      // Directly return the JSONB array
+      return existing.categories || [];
+    }
+
+    // Step 2: If not in DB, fetch from CoinGecko
     try {
       const response = await firstValueFrom(
         this.httpService.get(
           `https://pro-api.coingecko.com/api/v3/coins/${coinId}`,
           {
-            params: {},
             headers: {
               accept: 'application/json',
               'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
@@ -450,8 +488,20 @@ export class CoinGeckoService {
           },
         ),
       );
+
       const categories = response.data.categories || [];
-      // await this.cacheManager(cacheKey, categories, { ttl: 24 * 60 * 60 }); // Cache for 24 hours
+
+      // Step 3: Save to DB (insert raw array into jsonb column)
+      if (categories.length > 0) {
+        await db
+          .insert(tokenCategories)
+          .values({
+            coinId,
+            categories: JSON.stringify(categories), // <- array inserted as-is into JSONB column
+          })
+          .onConflictDoNothing();
+      }
+
       return categories;
     } catch (error) {
       this.logger.error(

@@ -17,6 +17,14 @@ export interface IndexListEntry {
   curator: string;
   totalSupply: number;
   ytdReturn: number;
-  collateral: {name: string, logo: string}[]; // URLs to token logos
+  collateral: { name: string; logo: string }[]; // URLs to token logos
   managementFee: number;
+}
+export interface VaultAsset {
+  id: number;
+  ticker: string;
+  assetname: string;
+  sector: string;
+  market_cap: number;
+  weights: string;
 }

@@ -57,6 +57,13 @@
       "when": 1747904664874,
       "tag": "0007_ancient_wither",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1748273640839,
+      "tag": "0008_yellow_cyclops",
+      "breakpoints": true
     }
   ]
 }

@@ -135,3 +135,26 @@ export const dailyPrices = pgTable(
     primaryKey: primaryKey({ columns: [table.indexId, table.date] }),
   }),
 );
+
+export const tempCompositions = pgTable('temp_compositions', {
+  id: serial('id').primaryKey(),
+  indexId: varchar('index_id', { length: 66 }).notNull(),
+  tokenAddress: varchar('token_address', { length: 66 }).notNull(),
+  coin_id: varchar('coin_id', { length: 66 }).notNull(),
+  weight: decimal('weight', { precision: 7, scale: 4 }).notNull(),
+  rebalanceTimestamp: bigint('rebalance_timestamp', {
+    mode: 'number',
+  }).notNull(),
+  validUntil: timestamp('valid_until'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const tempRebalances = pgTable('temp_rebalances', {
+  id: serial('id').primaryKey(),
+  indexId: varchar('index_id', { length: 66 }).notNull(),
+  weights: text('weights').notNull(), // Store as hex string
+  prices: jsonb('prices').notNull(),
+  timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
+  coins: jsonb('coins').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
