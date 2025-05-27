@@ -13,6 +13,7 @@ import {
   numeric,
   primaryKey,
   date,
+  unique,
 } from 'drizzle-orm/pg-core';
 
 export const compositions = pgTable('compositions', {
@@ -115,8 +116,8 @@ export const historicalPrices = pgTable('historical_prices', {
 });
 
 export const coinSymbols = pgTable('coin_symbols', {
-  symbol: text('symbol').primaryKey(),
-  coinId: text('coin_id').notNull(),
+  coinId: text('coin_id').primaryKey(),
+  symbol: text('symbol').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
@@ -149,12 +150,22 @@ export const tempCompositions = pgTable('temp_compositions', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-export const tempRebalances = pgTable('temp_rebalances', {
-  id: serial('id').primaryKey(),
-  indexId: varchar('index_id', { length: 66 }).notNull(),
-  weights: text('weights').notNull(), // Store as hex string
-  prices: jsonb('prices').notNull(),
-  timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
-  coins: jsonb('coins').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-});
+export const tempRebalances = pgTable(
+  'temp_rebalances',
+  {
+    id: serial('id').primaryKey(),
+    indexId: varchar('index_id', { length: 66 }).notNull(),
+    weights: text('weights').notNull(),
+    prices: jsonb('prices').notNull(),
+    timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
+    coins: jsonb('coins').notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    // Add this unique constraint
+    uniqueIndexTimestamp: unique('unique_index_timestamp').on(
+      table.indexId,
+      table.timestamp,
+    ),
+  }),
+);

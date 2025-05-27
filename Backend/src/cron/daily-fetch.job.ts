@@ -9,6 +9,7 @@ import { Top100Service } from 'src/modules/computation/top100.service';
 import { EtfPriceService } from 'src/modules/computation/etf-price.service';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { binanceListings, tokenCategories, tokenOhlc } from 'src/db/schema';
+import { BitgetService } from 'src/modules/data-fetcher/bitget.service';
 
 @Injectable()
 export class DailyFetchJob {
@@ -18,14 +19,16 @@ export class DailyFetchJob {
     private binanceService: BinanceService,
     private dbService: DbService,
     private indexService: IndexService,
+    private bitgetService: BitgetService,
     private etfPriceservice: EtfPriceService
   ) {
   }
 
-  // @Cron('44 8 * * *')
-  // async temp() {
-  //   await this.binanceService.storePairListingTimestamps();
-  // }
+  @Cron('18 10 * * *')
+  async temp() {
+    // await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(21);
+  }
   @Cron('10 0 * * *')
   async handleDailyFetch() {
     // Fetch market cap
@@ -139,6 +142,7 @@ export class DailyFetchJob {
         const top100Service = new Top100Service(
           this.coinGeckoService,
           this.binanceService,
+          this.bitgetService,
           new IndexRegistryService(),
           new DbService(),
         );
@@ -154,6 +158,7 @@ export class DailyFetchJob {
       const top100Service = new Top100Service(
         this.coinGeckoService,  
         this.binanceService,
+        this.bitgetService,
         new IndexRegistryService(),
         new DbService(),
       );

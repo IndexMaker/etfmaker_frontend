@@ -1,0 +1,1 @@
+ALTER TABLE "temp_rebalances" ADD CONSTRAINT "unique_index_timestamp" UNIQUE("index_id","timestamp");

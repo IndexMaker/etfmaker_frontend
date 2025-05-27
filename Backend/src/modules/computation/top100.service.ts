@@ -2,11 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CoinGeckoService } from '../data-fetcher/coingecko.service';
 import { BinanceService } from '../data-fetcher/binance.service';
 import { IndexRegistryService } from '../blockchain/index-registry.service';
-import { binanceListings, compositions, rebalances, tempCompositions, tempRebalances } from '../../db/schema';
+import {
+  binanceListings,
+  compositions,
+  rebalances,
+  tempCompositions,
+  tempRebalances,
+} from '../../db/schema';
 import { ethers } from 'ethers';
 import { DbService } from 'src/db/db.service';
 import * as path from 'path';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { BitgetService } from '../data-fetcher/bitget.service';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 @Injectable()
@@ -23,6 +30,7 @@ export class Top100Service {
   constructor(
     private coinGeckoService: CoinGeckoService,
     private binanceService: BinanceService,
+    private bitgetService: BitgetService,
     private indexRegistryService: IndexRegistryService,
     private dbService: DbService,
   ) {
@@ -224,7 +232,6 @@ export class Top100Service {
     // 6. Sort by market cap rank and pick top 100
     const topTokens = Array.from(selectedBySymbol.values())
       .sort((a, b) => a.market_cap_rank - b.market_cap_rank)
-      .slice(0, 500);
 
     const eligibleTokens: {
       symbol: string;
@@ -316,23 +323,43 @@ export class Top100Service {
         })),
       );
 
-      await tx.insert(tempRebalances).values({
-        indexId: indexId.toString(),
-        weights: JSON.stringify(weightsForContract), // e.g., [ [ "bi.BTCUSDT", 100 ] ]
-        prices: Object.fromEntries(
-          eligibleTokens.map((token) => [
-            token.binancePair,
-            token.historical_price,
-          ]),
-        ),
-        timestamp: rebalanceTimestamp,
-        coins: Object.fromEntries(
-          eligibleTokens.map((token, index) => [
-            token.coin,
-            index < remainder ? baseWeight + 1 : baseWeight,
-          ]),
-        ),
-      });
+      await tx
+        .insert(tempRebalances)
+        .values({
+          indexId: indexId.toString(),
+          weights: JSON.stringify(weightsForContract),
+          prices: Object.fromEntries(
+            eligibleTokens.map((token) => [
+              token.binancePair,
+              token.historical_price,
+            ]),
+          ),
+          timestamp: rebalanceTimestamp,
+          coins: Object.fromEntries(
+            eligibleTokens.map((token, index) => [
+              token.coin,
+              index < remainder ? baseWeight + 1 : baseWeight,
+            ]),
+          ),
+        })
+        .onConflictDoUpdate({
+          target: [tempRebalances.indexId, tempRebalances.timestamp], // the columns that determine uniqueness
+          set: {
+            weights: JSON.stringify(weightsForContract),
+            prices: Object.fromEntries(
+              eligibleTokens.map((token) => [
+                token.binancePair,
+                token.historical_price,
+              ]),
+            ),
+            coins: Object.fromEntries(
+              eligibleTokens.map((token, index) => [
+                token.coin,
+                index < remainder ? baseWeight + 1 : baseWeight,
+              ]),
+            ),
+          },
+        });
     });
 
     return { weights: weightsForContract, price: etfPrice };
@@ -730,23 +757,43 @@ export class Top100Service {
         );
 
         // Record rebalance event
-        await tx.insert(tempRebalances).values({
-          indexId: indexId.toString(),
-          weights: JSON.stringify(weights), // e.g., [ [ "bi.BTCUSDT", 100 ] ]
-          prices: Object.fromEntries(
-            eligibleTokens.map((token) => [
-              token.binancePair,
-              token.historical_price,
-            ]),
-          ),
-          timestamp: rebalanceTimestamp,
-          coins: Object.fromEntries(
-            eligibleTokens.map((token, index) => [
-              token.coin,
-              weights[index][1],
-            ]),
-          ),
-        });
+        await tx
+          .insertInto(tempRebalances)
+          .values({
+            indexId: indexId.toString(),
+            weights: JSON.stringify(weights),
+            prices: Object.fromEntries(
+              eligibleTokens.map((token) => [
+                token.binancePair,
+                token.historical_price,
+              ]),
+            ),
+            timestamp: rebalanceTimestamp,
+            coins: Object.fromEntries(
+              eligibleTokens.map((token, index) => [
+                token.coin,
+                weights[index][1],
+              ]),
+            ),
+          })
+          .onConflict((oc) =>
+            oc.columns(['indexId', 'timestamp']).doUpdateSet({
+              weights: JSON.stringify(weights),
+              prices: Object.fromEntries(
+                eligibleTokens.map((token) => [
+                  token.binancePair,
+                  token.historical_price,
+                ]),
+              ),
+              coins: Object.fromEntries(
+                eligibleTokens.map((token, index) => [
+                  token.coin,
+                  weights[index][1],
+                ]),
+              ),
+            }),
+          )
+          .execute();
       });
 
       return { weights, etfPrice };

@@ -1,6 +1,6 @@
 {
-  "id": "e256a4fa-27ea-4748-85eb-c518fd1091cd",
-  "prevId": "54850806-2fc4-47fb-84b7-c57fb2b51757",
+  "id": "ee2b2bcd-c47a-4f19-aa8c-cad7ada1613a",
+  "prevId": "9700fc6b-3d5f-484d-905d-37e8614a8d48",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -96,14 +96,14 @@
       "name": "coin_symbols",
       "schema": "",
       "columns": {
-        "symbol": {
-          "name": "symbol",
+        "coin_id": {
+          "name": "coin_id",
           "type": "text",
           "primaryKey": true,
           "notNull": true
         },
-        "coin_id": {
-          "name": "coin_id",
+        "symbol": {
+          "name": "symbol",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -545,7 +545,16 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "unique_index_timestamp": {
+          "name": "unique_index_timestamp",
+          "nullsNotDistinct": false,
+          "columns": [
+            "index_id",
+            "timestamp"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

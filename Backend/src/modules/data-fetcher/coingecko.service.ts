@@ -25,8 +25,16 @@ export class CoinGeckoService {
     { id: string; symbol: string; name: string }[]
   > {
     try {
-      const response = await axios.get(
-        `${this.COINGECKO_API}/coins/list?include_platform=false`,
+      const response = await firstValueFrom(
+        this.httpService.get(
+          'https://pro-api.coingecko.com/api/v3/coins/list',
+          {
+            headers: {
+              accept: 'application/json',
+              'x-cg-pro-api-key': process.env.COINGECKO_API_KEY!,
+            },
+          },
+        ),
       );
       const coins = response.data as {
         id: string;
@@ -236,6 +244,38 @@ export class CoinGeckoService {
     return mainstreamKeywords.some((k) =>
       name.toLowerCase().includes(k.toLowerCase()),
     );
+  }
+
+  async getHistoricalMarketCapsByIds(
+    ids: string[],
+    date: string,
+  ): Promise<any[]> {
+    // Format: dd-mm-yyyy (e.g., "01-01-2020")
+    const historicalData = await Promise.all(
+      ids.map(async (id) => {
+        const response = await firstValueFrom(
+          this.httpService.get(
+            `https://pro-api.coingecko.com/api/v3/coins/${id}/history`,
+            {
+              params: {
+                date,
+                localization: 'false',
+              },
+              headers: {
+                'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+              },
+            },
+          ),
+        );
+        return {
+          id,
+          market_cap: response.data.market_data?.market_cap?.usd,
+          price: response.data.market_data?.current_price?.usd,
+          date,
+        };
+      }),
+    );
+    return historicalData;
   }
 
   async getMarketCapsByIds(ids: string[]): Promise<any[]> {
@@ -792,6 +832,58 @@ export class CoinGeckoService {
         `Failed to fetch CoinGecko data for path: ${path}`,
         error.message,
       );
+      return null;
+    }
+  }
+
+  async getBinanceSymbolFromCoinGecko(coinId: string): Promise<string | null> {
+    try {
+      // Fetch coin details from CoinGecko API
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `https://pro-api.coingecko.com/api/v3/coins/${coinId}`,
+          {
+            headers: {
+              accept: 'application/json',
+              'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+            },
+          },
+        ),
+      );
+
+      if (!response.data) {
+        console.error(`Failed to fetch CoinGecko data for ${coinId}`);
+        return null;
+      }
+
+      const data = await response.data;
+      const symbol = data.symbol?.toLowerCase();
+
+      if (symbol) {
+        // Store the new mapping in the database using Drizzle
+        await this.dbService
+          .getDb()
+          .insert(coinSymbols)
+          .values({
+            coinId: coinId,
+            symbol: symbol,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: coinSymbols.coinId,
+            set: {
+              symbol: symbol,
+              updatedAt: new Date(),
+            },
+          });
+
+        return symbol;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error fetching symbol for ${coinId}:`, error);
       return null;
     }
   }
