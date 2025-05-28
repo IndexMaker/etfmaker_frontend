@@ -40,7 +40,7 @@ export class IndexController {
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
     // SY100: Biweekly from 2022-01-01
-    let sy100Start = new Date('2019-09-09');
+    let sy100Start = new Date('2019-01-01');
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
     while (sy100Start < now) {

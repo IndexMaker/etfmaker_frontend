@@ -122,16 +122,17 @@ export class DailyFetchJob {
     // await this.indexService.listenToEvents(process.env.INDEX_REGISTRY_ADDRESS || '', 8453); // Base
 
     // store daily token's price
-    // await this.coinGeckoService.storeMissingPricesUntilToday();
-    await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
+    await this.coinGeckoService.storeMissingPricesUntilToday();
+    // await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
     await this.binanceService.storeTradingPairs();
     await this.binanceService.storePairListingTimestamps()
+    await this.bitgetService.syncListings()
   }
 
   @Cron('30 0 * * *')  // Triggers daily at 00:30 (but filters dates)
   async rebalanceSY100() {
     const today = new Date();
-    const firstRunDate = new Date('2024-05-20T00:30:00Z'); // Starting point: May 20, 2024
+    const firstRunDate = new Date('2024-05-26T00:00:00'); // Starting point: May 20, 2024
 
     // Calculate days since May 20th
     const daysSinceStart = Math.floor((today.getTime() - firstRunDate.getTime()) / (1000 * 60 * 60 * 24));

@@ -14,6 +14,7 @@ import {
   primaryKey,
   date,
   unique,
+  boolean,
 } from 'drizzle-orm/pg-core';
 
 export const compositions = pgTable('compositions', {
@@ -169,3 +170,16 @@ export const tempRebalances = pgTable(
     ),
   }),
 );
+
+export const bitgetListings = pgTable('bitget_listings', {
+  id: serial('id').primaryKey(),
+  symbol: varchar('symbol', { length: 50 }).notNull(), // e.g., "VELOUSDT"
+  baseAsset: varchar('base_asset', { length: 50 }).notNull(), // e.g., "VELO"
+  quoteAsset: varchar('quote_asset', { length: 50 }).notNull(), // e.g., "USDT"
+  productType: varchar('product_type', { length: 50 }).notNull(), // "umcbl" or "cmcbl"
+  status: boolean('status').notNull(), // true if active
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});

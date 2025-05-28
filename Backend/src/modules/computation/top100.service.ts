@@ -4,6 +4,7 @@ import { BinanceService } from '../data-fetcher/binance.service';
 import { IndexRegistryService } from '../blockchain/index-registry.service';
 import {
   binanceListings,
+  bitgetListings,
   compositions,
   rebalances,
   tempCompositions,
@@ -139,227 +140,220 @@ export class Top100Service {
     indexId: number,
     rebalanceTimestamp: number,
   ): Promise<{ weights: [string, number][]; price: number }> {
-    const activePairs = await this.binanceService.fetchTradingPairs();
-
-    // 1. Build Binance tradable tokens map: SYMBOL -> preferred pair (USDC > USDT)
-    const tokenToPairMap = new Map<string, string>();
-    for (const pair of activePairs) {
-      const quote = pair.quoteAsset;
-      const base = pair.symbol.replace(quote, '');
-      if (quote === 'USDC' || quote === 'USDT') {
-        if (!tokenToPairMap.has(base) || quote === 'USDC') {
-          tokenToPairMap.set(base, `bi.${pair.symbol}`);
-        }
-      }
-    }
-
     const db = this.dbService.getDb();
-
-    // 2. Filter only pairs listed before the rebalance timestamp
-    const tokenToActualPair = Array.from(tokenToPairMap.entries()).map(
-      ([token, pairString]) => {
-        const pair = pairString.split('.')[1]; // e.g., BTCUSDT
-        return { token, pair };
-      },
-    );
-
-    const listingPairs = tokenToActualPair.map((entry) => entry.pair);
-    const listings = await db
-      .select({
-        pair: binanceListings.pair,
-        timestamp: binanceListings.timestamp,
-      })
-      .from(binanceListings)
-      .where(inArray(binanceListings.pair, listingPairs));
-
-    const listingsMap = new Map<string, number>(
-      listings.map((entry) => [entry.pair, entry.timestamp]),
-    );
-
-    const filteredTokenToPairMap = new Map<string, string>();
-    for (const { token, pair } of tokenToActualPair) {
-      const timestampMs = listingsMap.get(pair);
-      if (!timestampMs) continue;
-      if (Math.floor(timestampMs / 1000) <= rebalanceTimestamp) {
-        filteredTokenToPairMap.set(token, `bi.${pair}`);
-      }
-    }
-
-    if (filteredTokenToPairMap.size === 0) {
-      throw new Error('No tokens listed before the rebalancing timestamp.');
-    }
-
-    const potentialSymbols = Array.from(filteredTokenToPairMap.keys());
-
-    // 3. Get all matching CoinGecko coins for each symbol
-    const allCoinGeckoCoins = await this.coinGeckoService.getAllCoinsList(); // [{ id, symbol, name }]
-    const coinMap: Record<string, any[]> = {};
-    for (const coin of allCoinGeckoCoins) {
-      const sym = coin.symbol.toUpperCase();
-      if (!coinMap[sym]) coinMap[sym] = [];
-      coinMap[sym].push(coin);
-    }
-
-    const flatCoinList = potentialSymbols.flatMap(
-      (symbol) => coinMap[symbol] || [],
-    );
-    const coinIds = [...new Set(flatCoinList.map((c) => c.id))];
-
-    // 4. Fetch market caps for all candidates
     const chunkSize = 250;
-    const marketCapResults: any[] = [];
-    for (let i = 0; i < coinIds.length; i += chunkSize) {
-      const chunk = coinIds.slice(i, i + chunkSize);
-      const chunkData = await this.coinGeckoService.getMarketCapsByIds(chunk);
-      marketCapResults.push(
-        ...chunkData.filter((c) => c.market_cap_rank !== null),
-      );
-    }
-
-    // 5. Select the top CoinGecko ID by market cap for each symbol
-    const selectedBySymbol = new Map<string, any>();
-    for (const coin of marketCapResults) {
-      const symbol = coin.symbol.toUpperCase();
-      const existing = selectedBySymbol.get(symbol);
-      if (
-        filteredTokenToPairMap.has(symbol) &&
-        (!existing || coin.market_cap_rank < existing.market_cap_rank)
-      ) {
-        selectedBySymbol.set(symbol, coin);
-      }
-    }
-
-    // 6. Sort by market cap rank and pick top 100
-    const topTokens = Array.from(selectedBySymbol.values())
-      .sort((a, b) => a.market_cap_rank - b.market_cap_rank)
-
-    const eligibleTokens: {
+    let eligibleTokens: {
       symbol: string;
       coin: string;
-      binancePair: string;
+      exchangePair: string;
       historical_price: number;
     }[] = [];
-    for (const coin of topTokens) {
-      const symbolUpper = coin.symbol.toUpperCase();
-      const pair = filteredTokenToPairMap.get(symbolUpper);
-      if (!pair) continue;
 
-      const categories = await this.coinGeckoService.getCategories(coin.id);
-      const isBlacklisted =
-        categories.some((c) => this.blacklistedCategories.includes(c)) ||
-        this.blacklistedToken.includes(symbolUpper);
-      if (isBlacklisted) {
-        this.logger.warn(
-          `Excluded ${coin.id} (categories: ${categories.join(', ')})`,
-        );
-        continue;
+    // 1. Prefetch all Binance listings and Bitget pairs
+    const [_binanceListings, bitgetPairs] = await Promise.all([
+      db
+        .select({
+          pair: binanceListings.pair,
+          timestamp: binanceListings.timestamp,
+        })
+        .from(binanceListings),
+
+      db
+        .select({
+          base_asset: bitgetListings.baseAsset,
+          quote_asset: bitgetListings.quoteAsset,
+        })
+        .from(bitgetListings),
+    ]);
+
+    // Create lookup maps
+    const binanceListingMap = new Map<string, number>();
+    for (const listing of _binanceListings) {
+      binanceListingMap.set(listing.pair, listing.timestamp);
+    }
+
+    const bitgetPairMap = new Map<string, Set<string>>(); // symbol -> Set<quote_asset>
+    for (const pair of bitgetPairs) {
+      if (!bitgetPairMap.has(pair.base_asset)) {
+        bitgetPairMap.set(pair.base_asset, new Set());
       }
+      bitgetPairMap.get(pair.base_asset)!.add(pair.quote_asset);
+    }
+    // 2. Process coins by market cap rank until we get 100
+    let page = 1;
+    const includedSymbols = new Set<string>();
 
-      await this.coinGeckoService.storeDailyPricesForToken(
-        coin.id,
-        coin.symbol,
-        rebalanceTimestamp,
+    const MINIMUM_MARKET_CAP = 100000; // $100 million for example
+    let continueProcessing = true;
+    while (eligibleTokens.length < 100 && continueProcessing) {
+      const marketCapChunk = await this.coinGeckoService.getMarketCapsByRank(
+        page,
+        chunkSize,
       );
 
-      const h_price =
-        await this.coinGeckoService.getOrFetchTokenPriceAtTimestamp(
+      if (marketCapChunk.length === 0) break;
+
+      for (const coin of marketCapChunk) {
+        if (eligibleTokens.length >= 100) break;
+        if (coin.market_cap < MINIMUM_MARKET_CAP) {
+          continueProcessing = false;
+          break;
+        }
+        const symbolUpper = coin.symbol.toUpperCase();
+        if (includedSymbols.has(symbolUpper)) continue;
+
+        // Try to find the best available pair
+        let selectedPair: string | null = null;
+
+        // Check Binance USDC
+        const binanceUsdcPair = `${symbolUpper}USDC`;
+        const binanceUsdcTimestamp = binanceListingMap.get(binanceUsdcPair);
+        if (
+          binanceUsdcTimestamp &&
+          Math.floor(binanceUsdcTimestamp / 1000) <= rebalanceTimestamp
+        ) {
+          selectedPair = `bi.${binanceUsdcPair}`;
+        }
+
+        // Check Binance USDT
+        if (!selectedPair) {
+          const binanceUsdtPair = `${symbolUpper}USDT`;
+          const binanceUsdtTimestamp = binanceListingMap.get(binanceUsdtPair);
+          if (
+            binanceUsdtTimestamp &&
+            Math.floor(binanceUsdtTimestamp / 1000) <= rebalanceTimestamp
+          ) {
+            selectedPair = `bi.${binanceUsdtPair}`;
+          }
+        }
+
+        // Check Bitget USDC
+        if (!selectedPair && bitgetPairMap.get(symbolUpper)?.has('USDC')) {
+          selectedPair = `bg.${symbolUpper}USDC`;
+        }
+
+        // Check Bitget USDT
+        if (!selectedPair && bitgetPairMap.get(symbolUpper)?.has('USDT')) {
+          selectedPair = `bg.${symbolUpper}USDT`;
+        }
+
+        if (!selectedPair) continue;
+
+        // Check blacklist
+        const categories = await this.coinGeckoService.getCategories(coin.id);
+        const isBlacklisted =
+          categories.some((c) => this.blacklistedCategories.includes(c)) ||
+          this.blacklistedToken.includes(symbolUpper);
+        if (isBlacklisted) {
+          this.logger.warn(
+            `Excluded ${coin.id} (categories: ${categories.join(', ')})`,
+          );
+          continue;
+        }
+
+        // Get historical price
+        const h_price =
+          await this.coinGeckoService.getOrFetchTokenPriceAtTimestamp(
+            coin.id,
+            coin.symbol,
+            rebalanceTimestamp,
+          );
+
+        if (!h_price) continue;
+
+        await this.coinGeckoService.storeDailyPricesForToken(
           coin.id,
           coin.symbol,
           rebalanceTimestamp,
         );
-      if (!h_price) continue;
 
-      eligibleTokens.push({
-        symbol: coin.symbol,
-        coin: coin.id,
-        binancePair: pair,
-        historical_price: h_price,
-      });
+        eligibleTokens.push({
+          symbol: coin.symbol,
+          coin: coin.id,
+          exchangePair: selectedPair,
+          historical_price: h_price,
+        });
 
-      if (eligibleTokens.length >= 100) break;
+        includedSymbols.add(symbolUpper);
+      }
+
+      page++;
     }
 
     if (eligibleTokens.length === 0) {
-      throw new Error(`No eligible tokens found for the given rebalance date.`);
+      throw new Error('No eligible tokens found for the given rebalance date.');
     }
 
-    // 7. Normalize weights
+    // 3. Normalize weights
     const numTokens = eligibleTokens.length;
     const baseWeight = Math.floor(10000 / numTokens);
     const remainder = 10000 - baseWeight * numTokens;
 
     const weightsForContract: [string, number][] = eligibleTokens.map(
       (token, index) => [
-        token.binancePair,
+        token.exchangePair,
         index < remainder ? baseWeight + 1 : baseWeight,
       ],
     );
-
-    const coinsForContract: [string, number][] = eligibleTokens.map(
-      (token, index) => [
-        token.coin,
-        index < remainder ? baseWeight + 1 : baseWeight,
-      ],
+    console.log(
+      Object.fromEntries(
+        eligibleTokens.map((token, index) => [
+          token.coin,
+          index < remainder ? baseWeight + 1 : baseWeight,
+        ]),
+      ),
     );
-
     const etfPrice = weightsForContract.reduce((sum, [pair, weight]) => {
-      const token = eligibleTokens.find((t) => t.binancePair === pair);
+      const token = eligibleTokens.find((t) => t.exchangePair === pair);
       return sum + token!.historical_price * (weight / 10000);
     }, 0);
 
-    console.log(weightsForContract, etfPrice);
-
+    // 4. Save to database
     await this.dbService.getDb().transaction(async (tx) => {
-      await tx.insert(tempCompositions).values(
-        eligibleTokens.map((token, index) => ({
-          indexId: indexId.toString(),
-          tokenAddress: token.binancePair,
-          coin_id: token.coin, // assuming you store `coin.id` from CoinGecko here
-          weight: (
-            (index < remainder ? baseWeight + 1 : baseWeight) / 100
-          ).toString(),
-          validUntil: new Date(), // or null if not applicable
-          rebalanceTimestamp,
-        })),
-      );
-
-      await tx
-        .insert(tempRebalances)
-        .values({
-          indexId: indexId.toString(),
-          weights: JSON.stringify(weightsForContract),
-          prices: Object.fromEntries(
-            eligibleTokens.map((token) => [
-              token.binancePair,
-              token.historical_price,
-            ]),
-          ),
-          timestamp: rebalanceTimestamp,
-          coins: Object.fromEntries(
-            eligibleTokens.map((token, index) => [
-              token.coin,
-              index < remainder ? baseWeight + 1 : baseWeight,
-            ]),
-          ),
-        })
-        .onConflictDoUpdate({
-          target: [tempRebalances.indexId, tempRebalances.timestamp], // the columns that determine uniqueness
-          set: {
-            weights: JSON.stringify(weightsForContract),
-            prices: Object.fromEntries(
-              eligibleTokens.map((token) => [
-                token.binancePair,
-                token.historical_price,
-              ]),
-            ),
-            coins: Object.fromEntries(
-              eligibleTokens.map((token, index) => [
-                token.coin,
-                index < remainder ? baseWeight + 1 : baseWeight,
-              ]),
-            ),
-          },
-        });
+      // await tx.insert(tempCompositions).values(
+      //   eligibleTokens.map((token, index) => ({
+      //     indexId: indexId.toString(),
+      //     tokenAddress: token.exchangePair,
+      //     coin_id: token.coin,
+      //     weight: ((index < remainder ? baseWeight + 1 : baseWeight) / 100).toString(),
+      //     validUntil: new Date(),
+      //     rebalanceTimestamp,
+      //   })),
+      // );
+      // await tx.insert(tempRebalances).values({
+      //   indexId: indexId.toString(),
+      //   weights: JSON.stringify(weightsForContract),
+      //   prices: Object.fromEntries(
+      //     eligibleTokens.map((token) => [
+      //       token.exchangePair,
+      //       token.historical_price,
+      //     ]),
+      //   ),
+      //   timestamp: rebalanceTimestamp,
+      //   coins: Object.fromEntries(
+      //     eligibleTokens.map((token, index) => [
+      //       token.coin,
+      //       index < remainder ? baseWeight + 1 : baseWeight,
+      //     ]),
+      //   ),
+      // }).onConflictDoUpdate({
+      //   target: [tempRebalances.indexId, tempRebalances.timestamp],
+      //   set: {
+      //     weights: JSON.stringify(weightsForContract),
+      //     prices: Object.fromEntries(
+      //       eligibleTokens.map((token) => [
+      //         token.exchangePair,
+      //         token.historical_price,
+      //       ]),
+      //     ),
+      //     coins: Object.fromEntries(
+      //       eligibleTokens.map((token, index) => [
+      //         token.coin,
+      //         index < remainder ? baseWeight + 1 : baseWeight,
+      //       ]),
+      //     ),
+      //   },
+      // });
     });
 
     return { weights: weightsForContract, price: etfPrice };

@@ -9,7 +9,7 @@ import {
   tokenMetadata,
 } from 'src/db/schema';
 import { ethers } from 'ethers';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, lte, sql } from 'drizzle-orm';
 import axios from 'axios';
 @Injectable()
 export class CoinGeckoService {
@@ -289,6 +289,29 @@ export class CoinGeckoService {
             order: 'market_cap_desc',
             sparkline: false,
             per_page: ids.length,
+          },
+          headers: {
+            accept: 'application/json',
+            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+          },
+        },
+      ),
+    );
+
+    return response.data;
+  }
+
+  async getMarketCapsByRank(page: number, chunkSize: number): Promise<any[]> {
+    const response = await firstValueFrom(
+      this.httpService.get(
+        'https://pro-api.coingecko.com/api/v3/coins/markets',
+        {
+          params: {
+            vs_currency: 'usd',
+            order: 'market_cap_desc',
+            sparkline: false,
+            per_page: chunkSize,
+            page: page,
           },
           headers: {
             accept: 'application/json',
@@ -587,7 +610,7 @@ export class CoinGeckoService {
     const url = `https://pro-api.coingecko.com/api/v3/coins/${id}/market_chart`;
     const params = {
       vs_currency: 'usd',
-      days: 3000,
+      days: 2400,
     };
 
     const response = await firstValueFrom(
@@ -665,6 +688,22 @@ export class CoinGeckoService {
 
     if (existing.length) {
       return existing[0].price;
+    }
+
+    const previousPrice = await db
+      .select({ price: historicalPrices.price })
+      .from(historicalPrices)
+      .where(
+        and(
+          eq(historicalPrices.coinId, coinId),
+          lte(historicalPrices.timestamp, normalizedUnix),
+        ),
+      )
+      .orderBy(desc(historicalPrices.timestamp))
+      .limit(1);
+
+    if (previousPrice.length === 0) {
+      return null;
     }
 
     // 2. Fetch from CoinGecko (±1 day range to ensure coverage)
