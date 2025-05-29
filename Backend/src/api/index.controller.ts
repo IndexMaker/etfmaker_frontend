@@ -40,11 +40,11 @@ export class IndexController {
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
     // await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(26);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
     // SY100: Biweekly from 2022-01-01
     let sy100Start = new Date('2023-10-16');
     const now = new Date();

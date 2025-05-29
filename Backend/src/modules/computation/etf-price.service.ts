@@ -423,7 +423,6 @@ export class EtfPriceService {
         ORDER BY timestamp ASC;
       `,
     );
-
     const rebalanceEvents = rebalanceData.rows;
     if (rebalanceEvents.length === 0) return [];
 
@@ -477,12 +476,15 @@ export class EtfPriceService {
     };
 
     // 4. Process each period between rebalances
-    for (let i = 0; i < rebalanceEvents.length; i++) {
+    for (let i = 1; i < rebalanceEvents.length; i++) {
       // for (let i = 40; i < 41; i++) {
       const rebalance = {
         timestamp: Number(rebalanceEvents[i].timestamp),
         weights: JSON.parse(rebalanceEvents[i].weights) as [string, number][],
-        prices: typeof rebalanceEvents[i].prices === 'string' ? JSON.parse(rebalanceEvents[i].prices) : rebalanceEvents[i].prices,
+        prices:
+          typeof rebalanceEvents[i].prices === 'string'
+            ? JSON.parse(rebalanceEvents[i].prices)
+            : rebalanceEvents[i].prices,
         coins: rebalanceEvents[i].coins as Record<string, number>,
       };
 
@@ -499,10 +501,11 @@ export class EtfPriceService {
           tokenPrices[row.coinId] = rebalance.prices[pair];
         }
       });
-
       // Calculate quantities at rebalance point
       currentQuantities = this.calculateTokenQuantitiesFromTempRebalance(
-        typeof rebalance.coins === 'string' ? JSON.parse(rebalance.coins) : rebalance.coins,
+        typeof rebalance.coins === 'string'
+          ? JSON.parse(rebalance.coins)
+          : rebalance.coins,
         tokenPrices,
         lastKnownPrice,
       );
@@ -538,7 +541,6 @@ export class EtfPriceService {
           endDate.getTime() / 1000,
         );
       // Process each day in the period
-
       for (
         let d = new Date(startDate);
         d < endDate;
@@ -800,7 +802,7 @@ export class EtfPriceService {
       }
 
       if (priceRecord) {
-        portfolioValue += quantity * priceRecord.price;
+        portfolioValue += quantity * (priceRecord.price * 1);
         hasData = true;
       }
     }
@@ -1445,7 +1447,8 @@ export class EtfPriceService {
     const indexList: IndexListEntry[] = [];
 
     // Assuming the index count is available via a contract function
-    for (let indexId = 21; indexId <= 26; indexId++) {
+    for (let indexId = 21; indexId <= 27; indexId++) {
+      if (indexId === 26) continue;
       // Fetch index data
       const [
         name,

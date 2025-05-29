@@ -388,43 +388,43 @@ export class Top100Service {
     const symbol = this.getETFSymbol(etfType);
     const custodyId = ethers.keccak256(ethers.toUtf8Bytes(name));
 
-    if (!(await this.indexExists(indexId, indexRegistry))) {
-      this.logger.log(`${symbol} does not exist, deploying...`);
-      const { weights, etfPrice } = await this.fetchETFWeights(
-        etfType,
-        indexId,
-        rebalanceTimestamp,
-      );
+    // if (!(await this.indexExists(indexId, indexRegistry))) {
+    //   this.logger.log(`${symbol} does not exist, deploying...`);
+    //   const { weights, etfPrice } = await this.fetchETFWeights(
+    //     etfType,
+    //     indexId,
+    //     rebalanceTimestamp,
+    //   );
 
-      if (weights && etfPrice) {
-        await this.deployIndex(name, symbol, custodyId, indexId, weights);
-        console.log(weights, etfPrice);
-        await this.indexRegistryService.setCuratorWeights(
-          indexId,
-          weights,
-          Math.floor(etfPrice * 1e6),
-          rebalanceTimestamp,
-          8453,
-        );
-      }
-    } else {
-      this.logger.log(`${symbol} exists, updating weights...`);
-      const { weights, etfPrice } = await this.fetchETFWeights(
-        etfType,
-        indexId,
-        rebalanceTimestamp,
-      );
-      console.log(weights, etfPrice);
-      if (weights && etfPrice) {
-        // await this.indexRegistryService.setCuratorWeights(
-        //   indexId,
-        //   weights,
-        //   Math.floor(etfPrice * 1e6),
-        //   rebalanceTimestamp,
-        //   8453,
-        // );
-      }
+    //   if (weights && etfPrice) {
+    //     await this.deployIndex(name, symbol, custodyId, indexId, weights);
+    //     console.log(weights, etfPrice);
+    //     await this.indexRegistryService.setCuratorWeights(
+    //       indexId,
+    //       weights,
+    //       Math.floor(etfPrice * 1e6),
+    //       rebalanceTimestamp,
+    //       8453,
+    //     );
+    //   }
+    // } else {
+    this.logger.log(`${symbol} exists, updating weights...`);
+    const { weights, etfPrice } = await this.fetchETFWeights(
+      etfType,
+      indexId,
+      rebalanceTimestamp,
+    );
+    console.log(weights, etfPrice);
+    if (weights && etfPrice) {
+      // await this.indexRegistryService.setCuratorWeights(
+      //   indexId,
+      //   weights,
+      //   Math.floor(etfPrice * 1e6),
+      //   rebalanceTimestamp,
+      //   8453,
+      // );
     }
+    // }
   }
 
   async simulateRebalances(
@@ -438,9 +438,24 @@ export class Top100Service {
       | 'decentralized-finance-defi',
     indexId: number,
   ) {
-    // First get all tokens in the ETF with their listing dates
-    const allTokens = await this.coinGeckoService.getPortfolioTokens(etfType);
-    const activePairs = await this.binanceService.fetchTradingPairs();
+    // Get all binance listings upfront
+    const [_binanceListings, allTokens, activePairs] = await Promise.all([
+      this.dbService
+        .getDb()
+        .select({
+          pair: binanceListings.pair,
+          timestamp: binanceListings.timestamp,
+        })
+        .from(binanceListings),
+      this.coinGeckoService.getPortfolioTokens(etfType),
+      this.binanceService.fetchTradingPairs(),
+    ]);
+
+    // Create lookup maps
+    const binanceListingMap = new Map<string, number>();
+    for (const listing of _binanceListings) {
+      binanceListingMap.set(listing.pair, listing.timestamp);
+    }
 
     // Create a map of token symbols to their listing dates
     const tokenListingDates = new Map<string, Date>();
@@ -454,8 +469,7 @@ export class Top100Service {
       );
 
       if (pair) {
-        const listingTimestamp =
-          await this.binanceService.getListingTimestampFromS3(pair.symbol);
+        const listingTimestamp = binanceListingMap.get(pair.symbol);
         if (listingTimestamp) {
           tokenListingDates.set(token.symbol, new Date(listingTimestamp));
         }
@@ -493,7 +507,7 @@ export class Top100Service {
       ...listingDates,
     ];
 
-    // Process each rebalance date
+    // Process each rebalance date in sequence
     for (const rebalanceDate of rebalanceDates) {
       console.log(
         `Simulating ${etfType} rebalance at ${rebalanceDate.toISOString()}`,
@@ -575,6 +589,20 @@ export class Top100Service {
     rebalanceTimestamp: number,
   ) {
     try {
+      // Get all binance listings upfront
+      const _binanceListings = await this.dbService
+        .getDb()
+        .select({
+          pair: binanceListings.pair,
+          timestamp: binanceListings.timestamp,
+        })
+        .from(binanceListings);
+
+      const binanceListingMap = new Map<string, number>();
+      for (const listing of _binanceListings) {
+        binanceListingMap.set(listing.pair, listing.timestamp);
+      }
+
       // Get tokens based on ETF type
       const tokens = await this.coinGeckoService.getPortfolioTokens(etfType);
       const activePairs = await this.binanceService.fetchTradingPairs();
@@ -616,10 +644,9 @@ export class Top100Service {
           continue;
         }
 
-        const listingTimestamp =
-          await this.binanceService.getListingTimestampFromS3(
-            pair.split('.')[1],
-          );
+        // Get the Binance pair symbol without the 'bi.' prefix
+        const binancePairSymbol = pair.split('.')[1];
+        const listingTimestamp = binanceListingMap.get(binancePairSymbol);
 
         if (!listingTimestamp || listingTimestamp / 1000 > rebalanceTimestamp) {
           this.logger.warn(
@@ -641,16 +668,31 @@ export class Top100Service {
             rebalanceTimestamp,
           );
 
-        if (h_price) {
-          eligibleTokens.push({
-            symbol: coin.symbol,
-            coin: coin.id,
-            binancePair: pair,
-            historical_price: h_price,
-          });
-        }
+          if (h_price) {
+            // Check if we already have this symbol in eligibleTokens
+            const existingIndex = eligibleTokens.findIndex(t => t.symbol === coin.symbol);
+            if (existingIndex === -1) {
+              eligibleTokens.push({
+                symbol: coin.symbol,
+                coin: coin.id,
+                binancePair: pair,
+                historical_price: h_price,
+              });
+            } else {
+              // Replace if the new pair is USDC and existing is USDT
+              const existingPair = eligibleTokens[existingIndex].binancePair;
+              if (pair.endsWith('USDC') && existingPair.endsWith('USDT')) {
+                eligibleTokens[existingIndex] = {
+                  symbol: coin.symbol,
+                  coin: coin.id,
+                  binancePair: pair,
+                  historical_price: h_price,
+                };
+              }
+            }
+          }
       }
-
+      // ... rest of the function remains the same ...
       if (eligibleTokens.length === 0) {
         this.logger.log(
           `No eligible tokens in ${etfType} portfolio - skipping rebalance`,
@@ -735,43 +777,35 @@ export class Top100Service {
           .values({
             indexId: indexId.toString(),
             weights: JSON.stringify(weights),
-            prices: JSON.stringify(
-              Object.fromEntries(
-                eligibleTokens.map((token) => [
-                  token.binancePair,
-                  token.historical_price,
-                ]),
-              ),
+            prices: Object.fromEntries(
+              eligibleTokens.map((token) => [
+                token.binancePair,
+                token.historical_price,
+              ]),
             ),
             timestamp: rebalanceTimestamp,
-            coins: JSON.stringify(
-              Object.fromEntries(
-                eligibleTokens.map((token, index) => [
-                  token.coin,
-                  weights[index][1],
-                ]),
-              ),
+            coins: Object.fromEntries(
+              eligibleTokens.map((token, index) => [
+                token.coin,
+                weights[index][1],
+              ]),
             ),
           })
           .onConflictDoUpdate({
             target: [tempRebalances.indexId, tempRebalances.timestamp],
             set: {
               weights: JSON.stringify(weights),
-              prices: JSON.stringify(
-                Object.fromEntries(
-                  eligibleTokens.map((token) => [
-                    token.binancePair,
-                    token.historical_price,
-                  ]),
-                ),
+              prices: Object.fromEntries(
+                eligibleTokens.map((token) => [
+                  token.binancePair,
+                  token.historical_price,
+                ]),
               ),
-              coins: JSON.stringify(
-                Object.fromEntries(
-                  eligibleTokens.map((token, index) => [
-                    token.coin,
-                    weights[index][1],
-                  ]),
-                ),
+              coins: Object.fromEntries(
+                eligibleTokens.map((token, index) => [
+                  token.coin,
+                  weights[index][1],
+                ]),
               ),
             },
           });
