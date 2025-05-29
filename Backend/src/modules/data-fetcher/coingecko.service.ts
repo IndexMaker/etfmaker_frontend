@@ -674,8 +674,8 @@ export class CoinGeckoService {
     normalizedDate.setUTCHours(0, 0, 0, 0);
     const normalizedUnix = Math.floor(normalizedDate.getTime() / 1000);
 
-    // 1. Try DB
-    const existing = await db
+    // 1. Try exact timestamp match in DB first
+    const exactMatch = await db
       .select({ price: historicalPrices.price })
       .from(historicalPrices)
       .where(
@@ -686,78 +686,100 @@ export class CoinGeckoService {
       )
       .limit(1);
 
-    if (existing.length) {
-      return existing[0].price;
+    if (exactMatch.length) {
+      return exactMatch[0].price;
     }
 
-    const previousPrice = await db
-      .select({ price: historicalPrices.price })
+    // 2. Try to find the closest historical price in DB (before or after)
+    const closestPrice = await db
+      .select({
+        price: historicalPrices.price,
+        timestamp: historicalPrices.timestamp,
+      })
       .from(historicalPrices)
-      .where(
-        and(
-          eq(historicalPrices.coinId, coinId),
-          lte(historicalPrices.timestamp, normalizedUnix),
-        ),
-      )
-      .orderBy(desc(historicalPrices.timestamp))
+      .where(eq(historicalPrices.coinId, coinId))
+      .orderBy(sql`ABS(${historicalPrices.timestamp} - ${normalizedUnix}) ASC`)
       .limit(1);
 
-    if (previousPrice.length === 0) {
-      return null;
-    }
+    if (closestPrice.length) {
+      const { price, timestamp: foundTimestamp } = closestPrice[0];
+      const diff = Math.abs(foundTimestamp - normalizedUnix);
 
-    // 2. Fetch from CoinGecko (±1 day range to ensure coverage)
-    const from = normalizedUnix;
-    const to = normalizedUnix + 24 * 60 * 60;
-
-    const response = await firstValueFrom(
-      this.httpService.get(
-        `https://pro-api.coingecko.com/api/v3/coins/${coinId}/market_chart/range`,
-        {
-          params: {
-            vs_currency: 'usd',
-            from,
-            to,
-          },
-          headers: {
-            accept: 'application/json',
-            'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
-          },
-        },
-      ),
-    );
-
-    const prices: [number, number][] = response.data?.prices ?? [];
-
-    // 3. Find price with timestamp closest to our target date (±12h window)
-    let selected: { timestamp: number; price: number } | null = null;
-    let closestDiff = Infinity;
-
-    for (const [tsMs, price] of prices) {
-      const ts = Math.floor(tsMs / 1000);
-      const diff = Math.abs(ts - normalizedUnix);
-      if (diff < closestDiff) {
-        selected = { timestamp: normalizedUnix, price };
-        closestDiff = diff;
+      // If we found a price within 30 days, use it
+      if (diff <= 30 * 24 * 60 * 60) {
+        // 30 days in seconds
+        return price;
       }
     }
 
-    if (!selected) {
-      this.logger.warn(
-        `No historical price found for ${coinId} near ${normalizedUnix}`,
+    // 3. Fetch from CoinGecko with wider range (90 days before and after)
+    const rangeDays = 90;
+    const from = normalizedUnix - rangeDays * 24 * 60 * 60;
+    const to = normalizedUnix + rangeDays * 24 * 60 * 60;
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(
+          `https://pro-api.coingecko.com/api/v3/coins/${coinId}/market_chart/range`,
+          {
+            params: {
+              vs_currency: 'usd',
+              from,
+              to,
+            },
+            headers: {
+              accept: 'application/json',
+              'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+            },
+          },
+        ),
+      );
+
+      const prices: [number, number][] = response.data?.prices ?? [];
+
+      if (prices.length === 0) {
+        // this.logger.warn(
+        //   `No historical price data returned from CoinGecko for ${coinId} between ${from} and ${to}`,
+        // );
+        return null;
+      }
+
+      // 4. Find the price point closest to our target date
+      let closestPrice: { timestamp: number; price: number } | null = null;
+      let smallestDiff = Infinity;
+
+      for (const [tsMs, price] of prices) {
+        const ts = Math.floor(tsMs / 1000);
+        const diff = Math.abs(ts - normalizedUnix);
+
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          closestPrice = { timestamp: ts, price };
+        }
+      }
+
+      if (!closestPrice) {
+        this.logger.warn(
+          `No valid price points found in CoinGecko response for ${coinId}`,
+        );
+        return null;
+      }
+
+      // 5. Store the closest price we found (using normalized timestamp)
+      await db.insert(historicalPrices).values({
+        coinId,
+        symbol,
+        timestamp: normalizedUnix, // Store with our normalized timestamp
+        price: closestPrice.price,
+      });
+
+      return closestPrice.price;
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch historical price for ${coinId}: ${error.message}`,
       );
       return null;
     }
-
-    // 4. Store in DB
-    await db.insert(historicalPrices).values({
-      coinId,
-      symbol,
-      timestamp: normalizedUnix,
-      price: selected.price,
-    });
-
-    return selected.price;
   }
 
   async storeMissingPricesUntilToday() {
@@ -875,7 +897,7 @@ export class CoinGeckoService {
     }
   }
 
-  async getBinanceSymbolFromCoinGecko(coinId: string): Promise<string | null> {
+  async getSymbolFromCoinGecko(coinId: string): Promise<string | null> {
     try {
       // Fetch coin details from CoinGecko API
       const response = await firstValueFrom(

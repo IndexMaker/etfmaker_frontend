@@ -39,62 +39,67 @@ export class IndexController {
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(26);
     // SY100: Biweekly from 2022-01-01
-    let sy100Start = new Date('2019-01-01');
+    let sy100Start = new Date('2023-10-16');
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
-    while (sy100Start < now) {
-      console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
-      await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
-      sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
-    }
+    // while (sy100Start < now) {
+    //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
+    //   await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
+    //   sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
+    // }
 
-    // // SYAZ: Daily from 2019-01-01
-    // let syazStart = new Date('2019-01-01');
-    // // while (syazStart < now) {
-    // //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
-    // //   await this.top100Service.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, Math.floor(syazStart.getTime() / 1000));
-    // //   syazStart.setDate(syazStart.getDate() + 1); // daily
-    // // }
+    // SYAZ: Daily from 2019-01-01
+    let syazStart = new Date('2019-01-01');
+    // while (syazStart < now) {
+    //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
+    //   await this.top100Service.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, Math.floor(syazStart.getTime() / 1000));
+    //   syazStart.setDate(syazStart.getDate() + 1); // daily
+    // }
 
     // await this.top100Service.simulateRebalances(syazStart, now, 'andreessen-horowitz-a16z-portfolio', 22);
 
-    // // SYL2: Daily from 2019-01-01
-    // let syl2Start = new Date('2019-01-01');
-    // // while (syl2Start < now) {
-    // //   console.log(`Simulating SYL2 rebalance at ${syl2Start.toISOString()}`);
-    // //   await this.top100Service.rebalanceETF('layer-2', 23, Math.floor(syl2Start.getTime() / 1000));
-    // //   syl2Start.setDate(syl2Start.getDate() + 1); // daily
-    // // }
+    // SYL2: Daily from 2019-01-01
+    let syl2Start = new Date('2019-01-01');
+    // while (syl2Start < now) {
+    //   console.log(`Simulating SYL2 rebalance at ${syl2Start.toISOString()}`);
+    //   await this.top100Service.rebalanceETF('layer-2', 23, Math.floor(syl2Start.getTime() / 1000));
+    //   syl2Start.setDate(syl2Start.getDate() + 1); // daily
+    // }
     // await this.top100Service.simulateRebalances(syl2Start, now, 'layer-2', 23);
 
-    // // SYAI: Daily from 2019-01-01
-    // let syaiStart = new Date('2019-01-01');
-    // // while (syaiStart < now) {
-    // //   console.log(`Simulating SYAI rebalance at ${syaiStart.toISOString()}`);
-    // //   await this.top100Service.rebalanceETF('artificial-intelligence', 24, Math.floor(syaiStart.getTime() / 1000));
-    // //   syaiStart.setDate(syaiStart.getDate() + 1); // daily
-    // // }
+    // SYAI: Daily from 2019-01-01
+    let syaiStart = new Date('2019-01-01');
+    // while (syaiStart < now) {
+    //   console.log(`Simulating SYAI rebalance at ${syaiStart.toISOString()}`);
+    //   await this.top100Service.rebalanceETF('artificial-intelligence', 24, Math.floor(syaiStart.getTime() / 1000));
+    //   syaiStart.setDate(syaiStart.getDate() + 1); // daily
+    // }
 
     // await this.top100Service.simulateRebalances(syaiStart, now, 'artificial-intelligence', 24);
 
-    // // SYME: Daily from 2019-01-01
-    // let symeStart = new Date('2019-01-01');
-    // // while (symeStart < now) {
-    // //   console.log(`Simulating SYME rebalance at ${symeStart.toISOString()}`);
-    // //   await this.top100Service.rebalanceETF('meme-token', 25, Math.floor(symeStart.getTime() / 1000));
-    // //   symeStart.setDate(symeStart.getDate() + 1); // daily
-    // // }
+    // SYME: Daily from 2019-01-01
+    let symeStart = new Date('2019-01-01');
+    // while (symeStart < now) {
+    //   console.log(`Simulating SYME rebalance at ${symeStart.toISOString()}`);
+    //   await this.top100Service.rebalanceETF('meme-token', 25, Math.floor(symeStart.getTime() / 1000));
+    //   symeStart.setDate(symeStart.getDate() + 1); // daily
+    // }
 
     // await this.top100Service.simulateRebalances(symeStart, now, 'meme-token', 25);
-    // // SYDF: Daily from 2019-01-01
-    // let sydfStart = new Date(1608940800000);
-    let sydfStart = new Date('2021-01-20');
-    // // while (sydfStart < now) {
-    // //   console.log(`Simulating SYDF rebalance at ${sydfStart.toISOString()}`);
+    // SYDF: Daily from 2019-01-01
+    let sydfStart = new Date('2019-01-01');
+    // while (sydfStart < now) {
+    //   console.log(`Simulating SYDF rebalance at ${sydfStart.toISOString()}`);
     // await this.top100Service.rebalanceETF('decentralized-finance-defi', 26, Math.floor(now.getTime() / 1000));
-    // //   sydfStart.setDate(sydfStart.getDate() + 1); // daily
-    // // }
+    //   sydfStart.setDate(sydfStart.getDate() + 1); // daily
+    // }
     // await this.top100Service.simulateRebalances(
     //   sydfStart,
     //   now,

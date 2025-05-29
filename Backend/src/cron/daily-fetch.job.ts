@@ -24,7 +24,7 @@ export class DailyFetchJob {
   ) {
   }
 
-  @Cron('18 10 * * *')
+  @Cron('10 21 * * *')
   async temp() {
     // await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
     await this.etfPriceservice.getHistoricalDataFromTempRebalances(21);
