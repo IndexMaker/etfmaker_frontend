@@ -316,6 +316,7 @@ export interface VaultAllocation {
 export interface VaultAsset {
   id: number;
   ticker: string;
+  listing: string;
   assetname: string;
   sector: string;
   market_cap: number;

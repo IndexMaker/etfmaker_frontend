@@ -23,6 +23,9 @@ import {
 } from "@radix-ui/react-tooltip";
 import Info from "../icons/info";
 import { useLanguage } from "@/contexts/language-context";
+import Image from "next/image";
+import BinanceLogo from "./../../public/icons/binance.png"
+import BitgetLogo from "./../../public/icons/bitget.svg"
 
 interface VaultAssetsProps {
   assets: VaultAsset[];
@@ -61,7 +64,17 @@ export function VaultAssets({ assets, visibleColumns }: VaultAssetsProps) {
           </div>
         );
       case "assetname":
-        return asset.assetname;
+        return (
+          <div className="flex items-center gap-2">
+            <span>{asset.assetname}</span>
+            <Image
+              src={asset.listing.toLowerCase() === 'bg' ? BitgetLogo : BinanceLogo}
+              className="h-[17px] rounded-full"
+              height={17}
+              alt="Listing"
+            />
+          </div>
+        );
       case "sector":
         return asset.sector;
       case "market_cap":
