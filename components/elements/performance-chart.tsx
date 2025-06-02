@@ -74,32 +74,48 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     );
   }
 
-  const normalizeData = (dataset: ChartDataPoint[], usePercentage: boolean) => {
+  const normalizeData = (
+    dataset: ChartDataPoint[],
+    usePercentage: boolean,
+    startDate?: Date | null
+  ) => {
     if (dataset.length === 0) return [];
 
+    // Filter data if startDate is provided
+    const filteredData = startDate
+      ? dataset.filter((item) => new Date(item.date) >= startDate)
+      : dataset;
+
+    if (filteredData.length === 0) return [];
+
     if (usePercentage) {
-      const firstValue = dataset[0].price || dataset[0].value;
-      return dataset.map((item) => ({
+      const firstValue = filteredData[0].price || filteredData[0].value;
+      return filteredData.map((item) => ({
         x: new Date(item.date),
-        y:
-          ((item.price || item.value) / firstValue - (usePercentage ? 1 : 0)) *
-          (usePercentage ? 100 : 1),
+        y: ((item.price || item.value) / firstValue - 1) * 100,
       }));
     } else {
-      return dataset.map((item) => ({
+      return filteredData.map((item) => ({
         x: new Date(item.date),
         y: item.price || item.value,
       }));
     }
   };
 
+  // First normalize index data to get its start date
   const normalizedIndexData = normalizeData(
     data,
     showComparison || showETHComparison
   );
-  const normalizedBtcData = showComparison ? normalizeData(btcData, true) : [];
+  const indexStartDate =
+    normalizedIndexData.length > 0 ? normalizedIndexData[0].x : null;
+
+  // Then normalize BTC and ETH data starting from the same date
+  const normalizedBtcData = showComparison
+    ? normalizeData(btcData, true, indexStartDate)
+    : [];
   const normalizedEthData = showETHComparison
-    ? normalizeData(ethData, true)
+    ? normalizeData(ethData, true, indexStartDate)
     : [];
 
   const getGradient = (ctx: CanvasRenderingContext2D, chartArea: any) => {
