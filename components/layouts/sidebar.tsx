@@ -177,7 +177,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
-                iconClassName="mr-[2px]"
+                iconClassName="mr-[2px] text-muted"
               >
                 {t("common.marketInsights")}
               </NavItem>
@@ -187,7 +187,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
-                iconClassName="mr-[2px]"
+                iconClassName="mr-[2px] text-muted"
               >
                 {t("common.responsibleInvesting")}
               </NavItem>

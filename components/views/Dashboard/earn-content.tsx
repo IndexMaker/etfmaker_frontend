@@ -72,8 +72,8 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
       try {
         const response = await fetchAllIndices()
         const data = response;
-        setIndexLists(data);
-        dispatch(setIndices(data))
+        setIndexLists(data || []);
+        dispatch(setIndices(data || []))
       } catch (error) {
         console.error("Error fetching performance data:", error);
       } finally {

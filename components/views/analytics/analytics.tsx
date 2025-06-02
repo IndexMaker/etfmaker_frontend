@@ -15,9 +15,11 @@ import FundMaker from "@/components/icons/fundmaker";
 import APY from "@/components/icons/apy";
 import { useLanguage } from "@/contexts/language-context";
 import Cube from "@/components/icons/cube";
+import { useTheme } from "next-themes";
 
 export function AnalyticsPage() {
   const { t } = useLanguage();
+  const { theme } = useTheme();
   return (
     <Dashboard>
       <div className="">
@@ -35,16 +37,19 @@ export function AnalyticsPage() {
               <AnalyticsLink
                 name="DefiLlama"
                 icon="defillama"
+                theme={theme}
                 url="https://defillama.com/protocol/morpho"
               />
               <AnalyticsLink
                 name="Dune"
                 icon="dune"
+                theme={theme}
                 url="https://dune.com/morpho/"
               />
               <AnalyticsLink
                 name="TokenTerminal"
                 icon="token-terminal"
+                theme={theme}
                 url="https://tokenterminal.com/terminal/projects/morpho"
               />
             </div>
@@ -79,16 +84,19 @@ export function AnalyticsPage() {
               <AnalyticsLink
                 name="BlockAnalytica"
                 icon="fundmaker"
+                theme={theme}
                 url="https://morpho.blockanalitica.com/"
               />
               <AnalyticsLink
                 name="DefiLlama - FundMaker"
                 icon="defillama"
+                theme={theme}
                 url="https://defillama.com/protocol/morpho-blue"
               />
               <AnalyticsLink
                 name="Dune - FundMaker"
                 icon="dune"
+                theme={theme}
                 url="https://dune.com/morpho/morpho-blue-dashboard"
               />
             </div>
@@ -170,16 +178,19 @@ export function AnalyticsPage() {
               <AnalyticsLink
                 name={"FundMaker Optimizers"}
                 icon="fundmaker"
+                theme={theme}
                 url="https://optimizers.morpho.org/"
               />
               <AnalyticsLink
                 name="DefiLlama - FundMaker Aave V3"
                 icon="defillama"
+                theme={theme}
                 url="https://defillama.com/protocol/morpho-aavev3"
               />
               <AnalyticsLink
                 name="DefiLlama - FundMaker Aave V2"
                 icon="defillama"
+                theme={theme}
                 url="https://defillama.com/protocol/morpho-aave"
               />
             </div>
@@ -251,9 +262,10 @@ interface AnalyticsLinkProps {
   name: string;
   icon: string;
   url: string;
+  theme: any;
 }
 
-function AnalyticsLink({ name, icon, url }: AnalyticsLinkProps) {
+function AnalyticsLink({ name, icon, url, theme }: AnalyticsLinkProps) {
   return (
     <a href={url} target="_blank" rel="noopener noreferrer">
       <CustomButton
@@ -262,7 +274,7 @@ function AnalyticsLink({ name, icon, url }: AnalyticsLinkProps) {
       >
         {icon === "fundmaker" ? (
           <div className="w-4 h-4">
-            <FundMaker className="w-4 h-4" color="#51a2ff" />
+            <FundMaker className="w-4 h-4 text-muted" color={theme === 'dark' ? "#00000080" : "#191d2080"} />
           </div>
         ) : (
           <Image

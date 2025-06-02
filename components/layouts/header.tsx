@@ -121,7 +121,7 @@ export function Header({
 
     const subscription = onboard.state
       .select("wallets")
-      .subscribe((wallets) => {
+      .subscribe((wallets: any[]) => {
         if (wallets.length > 0) {
           const chainId = wallets[0].chains[0].id;
           dispatch(setReduxCurrentChainId(chainId));
@@ -169,7 +169,7 @@ export function Header({
       console.log("Wallet already connected:", storedWallet);
       return;
     }
-    let connected: boolean | WalletState[] = false;
+    let connected: null | WalletState[] = null;
     if (!switchOption) connected = await autoConnectRabby();
     if (!connected) {
       const wallets = await onboard.connectWallet();
@@ -184,13 +184,12 @@ export function Header({
         // show How earn makes modal...
       }
     } else {
-      if (connected.length > 0) {
+      if (connected && connected.length > 0) {
         const { label, accounts, chains, icon } = connected[0]; // Extract only serializable data
         console.log("Connected Wallet:", connected[0]);
 
         dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
 
-        // hide onboard-v2 elements...
       }
     }
   }, [storedWallet, dispatch, switchOption]);
@@ -352,7 +351,7 @@ export function Header({
         ) : (
           <CustomButton
             onClick={connectWallet}
-            className="bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
+            className="bg-[#3153fb] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
           >
             {t("common.connectWallet")}
           </CustomButton>

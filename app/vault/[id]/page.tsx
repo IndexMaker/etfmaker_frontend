@@ -37,7 +37,7 @@ export default function VaultPage() {
     const fetchData = async () => {
       try {
         const response = await fetchAllIndices();
-        const data: IndexListEntry[] = response;
+        const data: IndexListEntry[] = response || [];
         dispatch(setIndices(data));
 
         const foundIndex = data.find(

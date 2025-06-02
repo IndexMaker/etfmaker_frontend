@@ -107,7 +107,7 @@ export const switchNetwork = async (chainId: string) => {
 };
 
 export const autoConnectRabby = async () => {
-  return false;
+  return null;
   const rabbyProvider = getRabbyProvider();
   if (rabbyProvider) {
     const wallets = await onboard.connectWallet({
@@ -119,7 +119,7 @@ export const autoConnectRabby = async () => {
 
     return wallets;
   } else {
-    return false;
+    return null;
   }
 };
 
