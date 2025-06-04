@@ -20,7 +20,7 @@ import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "../theme-toggle";
 import { useTheme } from "next-themes";
 import Logo from "../icons/logo";
-import DARK from '../../public/logo/dark.png'
+import FAVICON from '../../public/logo/blue-logo.png'
 
 interface SidebarProps {
   open: boolean;
@@ -90,11 +90,11 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
           <Link href="/" className="flex items-center">
             {collapsed ? (
                 <Image
-                  src={DARK}
+                  src={FAVICON}
                   alt={"LOGO"}
-                  width={30}
-                  height={12}
-                  className="object-none text-primary"
+                  width={24}
+                  height={24}
+                  className="object-cover text-primary"
                 />
               // <Logo
               //   className="w-40 h-6 dark:text-ring"

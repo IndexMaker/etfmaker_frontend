@@ -39,12 +39,12 @@ export class IndexController {
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
-    await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
-    await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
-    await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
-    await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
-    await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
     // SY100: Biweekly from 2022-01-01
     let sy100Start = new Date('2023-10-16');
     const now = new Date();
@@ -173,56 +173,10 @@ export class IndexController {
     @Param('indexId') indexId: number,
     @Res() res: Response,
   ) {
-    const rebalanceData = await this.etfPriceService.getRebalancedData(indexId);
-
-    // Prepare CSV headers
-    const headers = ['Timestamp', 'Date', 'Price', 'Weights'];
-
-    // Convert data to CSV rows
-    const csvRows: any[] = [];
-
-    // Add header row
-    csvRows.push(headers.join(','));
-
-    // Add data rows
-    rebalanceData.forEach((event) => {
-      const date = new Date(event.timestamp * 1000).toISOString();
-      const weightsString = JSON.stringify(event.weights).replace(/"/g, '""');
-
-      const row = [
-        event.timestamp,
-        `"${date}"`,
-        event.price,
-        `"${weightsString}"`,
-      ];
-
-      csvRows.push(row.join(','));
-    });
-
-    // Create CSV string
-    const csvString = csvRows.join('\n');
-
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="rebalance_data_${indexId}.csv"`,
-    );
-
-    // Send CSV data
-    res.send(csvString);
-
-    // const rebalanceData =
-    //   await this.etfPriceService.getTempRebalancedData(indexId);
+    // const rebalanceData = await this.etfPriceService.getRebalancedData(indexId);
 
     // // Prepare CSV headers
-    // const headers = [
-    //   'Index',
-    //   'IndexId',
-    //   'Rebalance Date',
-    //   'Index Price',
-    //   'Weights',
-    //   'Asset Prices',
-    // ];
+    // const headers = ['Timestamp', 'Date', 'Price', 'Weights'];
 
     // // Convert data to CSV rows
     // const csvRows: any[] = [];
@@ -232,19 +186,14 @@ export class IndexController {
 
     // // Add data rows
     // rebalanceData.forEach((event) => {
-    //   const date = event.rebalanceDate.toISOString().split('T')[0];
+    //   const date = new Date(event.timestamp * 1000).toISOString();
     //   const weightsString = JSON.stringify(event.weights).replace(/"/g, '""');
-    //   const pricesString = JSON.stringify(event.assetPrices).replace(
-    //     /"/g,
-    //     '""',
-    //   );
+
     //   const row = [
-    //     event.index,
-    //     event.indexId,
-    //     date,
-    //     event.indexPrice,
+    //     event.timestamp,
+    //     `"${date}"`,
+    //     event.price,
     //     `"${weightsString}"`,
-    //     `"${pricesString}"`,
     //   ];
 
     //   csvRows.push(row.join(','));
@@ -261,6 +210,114 @@ export class IndexController {
 
     // // Send CSV data
     // res.send(csvString);
+
+    const rebalanceData =
+      await this.etfPriceService.getTempRebalancedData(indexId);
+
+    // Prepare CSV headers
+    const headers = [
+      'Index',
+      'IndexId',
+      'Rebalance Date',
+      'Index Price',
+      'Weights',
+      // 'QUantities',
+      'Asset Prices',
+    ];
+
+    // Convert data to CSV rows
+    const csvRows: any[] = [];
+
+    // Add header row
+    csvRows.push(headers.join(','));
+
+    // Add data rows
+    rebalanceData.forEach((event) => {
+      const date = event.date;
+      const weightsString = JSON.stringify(event.weights)
+        .replace(/"/g, '')
+        .replace(/\\/g, '');
+      const pricesString = JSON.stringify(event.assetPrices)
+        .replace(/"/g, '')
+        .replace(/\\/g, '');
+      const row = [
+        event.index,
+        event.indexId,
+        date,
+        event.indexPrice,
+        `"${weightsString}"`,
+        // `"${quantitiesString}"`,
+        `"${pricesString}"`,
+      ];
+
+      csvRows.push(row.join(','));
+    });
+
+    // Create CSV string
+    const csvString = csvRows.join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="rebalance_data_${indexId}.csv"`,
+    );
+
+    // Send CSV data
+    res.send(csvString);
+  }
+
+  @Get('/downloadDailyPriceData/:indexId')
+  async downloadDailyPriceData(
+    @Param('indexId') indexId: number,
+    @Res() res: Response,
+  ) {
+    const dailyPriceData =
+      await this.etfPriceService.getDailyPriceData(indexId);
+
+    // Prepare CSV headers
+    const headers = [
+      'Index',
+      'IndexId',
+      'Date',
+      'Price',
+      'Asset Quantities',
+    ];
+
+    // Convert data to CSV rows
+    const csvRows: any[] = [];
+
+    // Add header row
+    csvRows.push(headers.join(','));
+
+    // Add data rows
+    dailyPriceData.forEach((event) => {
+      const date = event.date;
+      const quantities = JSON.stringify(event.quantities)
+        .replace(/"/g, '')
+        .replace(/\\/g, '');
+      const price = event.price || 0
+      const row = [
+        event.index,
+        event.indexId,
+        date,
+        price,
+        `"${quantities}"`,
+      ];
+
+      csvRows.push(row.join(','));
+    });
+
+    // Create CSV string
+    const csvString = csvRows.join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="rebalance_data_${indexId}.csv"`,
+    );
+
+    // Send CSV data
+    res.send(csvString);
   }
 
   @Get('/fetchBtcHistoricalData')

@@ -100,6 +100,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const filteredAndSortedVaults = useMemo(() => {
     // First filter by search query
     let filtered = storedIndexes;
+    if (!filtered) return []
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -118,47 +119,48 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
     }
 
     // Then sort the filtered results
-    return [...filtered].sort((a, b) => {
-      let valueA: number | string;
-      let valueB: number | string;
+    // return [...filtered].sort((a, b) => {
+    //   let valueA: number | string;
+    //   let valueB: number | string;
 
-      // Extract the values to compare based on the sort column
-      switch (sortColumn) {
-        case "name":
-          valueA = a.name;
-          valueB = b.name;
-          break;
-        case "ticker":
-          valueA = a.ticker;
-          valueB = b.ticker;
-          break;
-        case "totalSupply":
-          // Sort by USD value for totalSupply
-          valueA = (a.totalSupply);
-          valueB = (b.totalSupply);
-          break;
-        case "curator":
-          valueA = a.curator;
-          valueB = b.curator;
-          break;
-        case "managementFee":
-          valueA = (a.managementFee);
-          valueB = (b.managementFee);
-          break;
-        default:
-          valueA = a.name;
-          valueB = b.name;
-      }
+    //   // Extract the values to compare based on the sort column
+    //   switch (sortColumn) {
+    //     case "name":
+    //       valueA = a.name;
+    //       valueB = b.name;
+    //       break;
+    //     case "ticker":
+    //       valueA = a.ticker;
+    //       valueB = b.ticker;
+    //       break;
+    //     case "totalSupply":
+    //       // Sort by USD value for totalSupply
+    //       valueA = (a.totalSupply);
+    //       valueB = (b.totalSupply);
+    //       break;
+    //     case "curator":
+    //       valueA = a.curator;
+    //       valueB = b.curator;
+    //       break;
+    //     case "managementFee":
+    //       valueA = (a.managementFee);
+    //       valueB = (b.managementFee);
+    //       break;
+    //     default:
+    //       valueA = a.name;
+    //       valueB = b.name;
+    //   }
 
-      // Compare the values based on sort direction
-      if (valueA < valueB) {
-        return sortDirection === "asc" ? -1 : 1;
-      }
-      if (valueA > valueB) {
-        return sortDirection === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
+    //   // Compare the values based on sort direction
+    //   if (valueA < valueB) {
+    //     return sortDirection === "asc" ? -1 : 1;
+    //   }
+    //   if (valueA > valueB) {
+    //     return sortDirection === "asc" ? 1 : -1;
+    //   }
+    //   return 0;
+    // });
+    return filtered;
   }, [searchQuery, sortColumn, sortDirection, storedIndexes]);
   // Function to handle column visibility changes
   const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {

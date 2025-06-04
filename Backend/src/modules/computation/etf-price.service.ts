@@ -557,7 +557,6 @@ export class EtfPriceService {
         if (price === null) continue;
         lastKnownPrice = Number(price.toFixed(2));
 
-        console.log(dateStr, price);
         historicalData.push({
           name: indexData.name,
           date: new Date(ts * 1000),
@@ -791,13 +790,11 @@ export class EtfPriceService {
     for (const [token, quantity] of Object.entries(quantities)) {
       const prices = tokenPrices[token];
       if (!prices) {
-        console.log('Skip no price');
         continue;
       }
 
       const priceRecord = this.findClosestPrice(prices, timestamp);
       if (!priceRecord) {
-        console.log('Skip no price');
         continue;
       }
 
@@ -891,17 +888,17 @@ export class EtfPriceService {
     }
   }
 
-  async getTempRebalancedData(indexId: number): Promise<any[]> {
+  async getDailyPriceData(indexId: number): Promise<any[]> {
     const indexData = await this.indexRegistry.getIndexDatas(
       indexId.toString(),
     );
-    const result: any[] = [];
-    // 1. First try to get complete existing data from database
+
     const existingPrices = await this.dbService
       .getDb()
       .select({
         date: dailyPrices.date,
         price: dailyPrices.price,
+        quantities: dailyPrices.quantities,
       })
       .from(dailyPrices)
       .where(eq(dailyPrices.indexId, indexId.toString()))
@@ -909,81 +906,127 @@ export class EtfPriceService {
 
     // If we have complete historical data, return it immediately
     if (existingPrices.length > 0) {
-      const latestDate = existingPrices[existingPrices.length - 1].date;
-      const isUpToDate = latestDate >= new Date(Date.now() - 86400 * 1000);
-
       return existingPrices.map((row) => ({
-        name: indexData.name, // Will be filled below
+        index: indexData.name, // Will be filled below
+        indexId: indexId, // Will be filled below
         date: row.date,
+        quantities: row.quantities,
         price: Number(row.price),
         value: Number(row.price),
       }));
     }
 
-    // 2. Get all rebalance events
+    return []
+  }
+
+  async getTempRebalancedData(indexId: number): Promise<any[]> {
+    const indexData = await this.indexRegistry.getIndexDatas(
+      indexId.toString(),
+    );
+    const result: any[] = [];
+
+    // 1. Get all rebalance events
     const rebalanceData = await this.dbService.getDb().execute(
       sql`
-        SELECT timestamp, weights, prices
+        SELECT timestamp, weights, prices, coins
         FROM (
           SELECT *,
                  ROW_NUMBER() OVER (PARTITION BY timestamp ORDER BY created_at DESC) as rn
-          FROM ${rebalances}
-          WHERE ${rebalances.indexId} = ${indexId.toString()}
+          FROM ${tempRebalances}
+          WHERE ${tempRebalances.indexId} = ${indexId.toString()}
         ) sub
         WHERE rn = 1
         ORDER BY timestamp ASC;
       `,
     );
-
     const rebalanceEvents = rebalanceData.rows;
-
     if (rebalanceEvents.length === 0) return [];
 
-    // 4. Prepare calculation for missing dates only
-    const historicalData: HistoricalEntry[] = [
-      ...existingPrices.map((p) => ({
-        name: indexData.name,
-        date: p.date,
-        price: Number(p.price),
-        value: Number(p.price),
-      })),
-    ];
-
+    const historicalData: HistoricalEntry[] = [];
     let currentQuantities: Record<string, number> = {};
-    let lastKnownPrice =
-      historicalData.length > 0
-        ? historicalData[historicalData.length - 1].price
-        : 10000; // Default to 10,000 if no history
+    let lastKnownPrice = 10000; // Initial value
 
-    // 5. Get all needed Coingecko IDs
-    const allSymbols: any[] = rebalanceEvents.flatMap((event) =>
-      JSON.parse(event.weights).map((w: [string, number]) => w[0]),
+    // 2. Get all unique Coingecko IDs
+    const allCoinIds = new Set<string>();
+    rebalanceEvents.forEach((event) => {
+      const coins =
+        typeof event.coins === 'string' ? JSON.parse(event.coins) : event.coins;
+      Object.keys(coins).forEach((id) => allCoinIds.add(id));
+    });
+
+    const symbolMappings = await this.dbService
+      .getDb()
+      .select({
+        coinId: coinSymbols.coinId,
+        symbol: coinSymbols.symbol,
+      })
+      .from(coinSymbols)
+      .where(inArray(coinSymbols.coinId, Array.from(allCoinIds)));
+
+    // Handle missing coinIds
+    const existingCoinIds = new Set(symbolMappings.map((row) => row.coinId));
+    const missingCoinIds = Array.from(allCoinIds).filter(
+      (id) => !existingCoinIds.has(id),
     );
-    const coingeckoIdMap = await this.mapToCoingeckoIds([
-      ...new Set(allSymbols),
-    ]);
+    if (missingCoinIds.length > 0) {
+      for (const coinId of missingCoinIds) {
+        const _symbol =
+          await this.coinGeckoService.getSymbolFromCoinGecko(coinId);
+        _symbol && symbolMappings.push({ coinId, symbol: _symbol });
+      }
+    }
 
-    // 6. Process each period between rebalances
-    for (let i = 0; i < rebalanceEvents.length; i++) {
+    // 3. Find the correct trading pair (prioritize Binance USDC > Binance USDT > Bitget USDC > Bitget USDT)
+    const findTradingPair = (
+      prices: Record<string, number>,
+      symbol: string,
+    ): string | null => {
+      const upperSymbol = symbol.toUpperCase();
+      const possiblePairs = [
+        `bi.${upperSymbol}USDC`, // Binance USDC
+        `bi.${upperSymbol}USDT`, // Binance USDT
+        `bg.${upperSymbol}USDC`, // Bitget USDC
+        `bg.${upperSymbol}USDT`, // Bitget USDT
+      ];
+      return possiblePairs.find((pair) => prices[pair] !== undefined) || null;
+    };
+
+    // 4. Process each period between rebalances
+    for (let i = 1; i < rebalanceEvents.length; i++) {
+      // for (let i = 40; i < 41; i++) {
       const rebalance = {
         timestamp: Number(rebalanceEvents[i].timestamp),
         weights: JSON.parse(rebalanceEvents[i].weights) as [string, number][],
-        prices: rebalanceEvents[i].prices as Record<string, number>,
+        prices:
+          typeof rebalanceEvents[i].prices === 'string'
+            ? JSON.parse(rebalanceEvents[i].prices)
+            : rebalanceEvents[i].prices,
+        coins: rebalanceEvents[i].coins as Record<string, number>,
       };
 
       const nextRebalance = rebalanceEvents[i + 1];
       const endTimestamp = nextRebalance
         ? Number(nextRebalance.timestamp)
-        : Math.floor(Date.now() / 1000);
+        : Math.floor(Date.now() / 1000 - 86400);
 
+      // Create price map using the best available pairs
+      const tokenPrices: Record<string, number> = {};
+      symbolMappings.forEach((row) => {
+        const pair = findTradingPair(rebalance.prices, row.symbol);
+        if (pair) {
+          tokenPrices[row.coinId] = rebalance.prices[pair];
+        }
+      });
       // Calculate quantities at rebalance point
-      currentQuantities = this.calculateTokenQuantities(
-        rebalance.weights,
-        rebalance.prices,
+      currentQuantities = this.calculateTokenQuantitiesFromTempRebalance(
+        typeof rebalance.coins === 'string'
+          ? JSON.parse(rebalance.coins)
+          : rebalance.coins,
+        tokenPrices,
         lastKnownPrice,
       );
 
-      // Calculate only missing dates
+      // Set date range for this period
       const startDate = this.normalizeToNextUtcMidnight(
         new Date(rebalance.timestamp * 1000),
       );
@@ -999,59 +1042,77 @@ export class EtfPriceService {
       }
 
       // Get historical prices for this period
-      const tokenPrices = await this.getHistoricalPricesForPeriod(
-        coingeckoIdMap,
-        startDate.getTime() / 1000,
-        endDate.getTime() / 1000,
+      const coingeckoIdMap = symbolMappings.reduce(
+        (acc, row) => {
+          acc[row.symbol] = row.coinId;
+          return acc;
+        },
+        {} as Record<string, string>,
       );
 
-      for (let d = startDate; d < endDate; d.setUTCDate(d.getUTCDate() + 1)) {
-        const dateStr = d.toISOString().split('T')[0]; // 'YYYY-MM-DD'
-
-        // Skip if we already have this date
-        if (existingPrices.some((p) => p.date === dateStr)) {
-          continue;
-        }
-
-        const ts = Math.floor(d.getTime() / 1000); // Timestamp at midnight UTC
-
+      const dailyTokenPrices =
+        await this.getHistoricalPricesForPeriodWithCoinId(
+          coingeckoIdMap,
+          startDate.getTime() / 1000,
+          endDate.getTime() / 1000,
+        );
+      // Process each day in the period
+      for (
+        let d = new Date(startDate);
+        d < endDate;
+        d.setUTCDate(d.getUTCDate() + 1)
+      ) {
+        const date = new Date(d);
+        const dateStr = date.toISOString().split('T')[0];
+        const ts = Math.floor(date.getTime() / 1000);
         const price = this.calculateIndexPrice(
           currentQuantities,
-          tokenPrices,
+          dailyTokenPrices,
           ts,
         );
         if (price === null) continue;
-        lastKnownPrice = price;
+        lastKnownPrice = Number(price.toFixed(2));
 
-        const entry: HistoricalEntry = {
+        historicalData.push({
           name: indexData.name,
-          date: new Date(ts * 1000), // Keep as string in 'YYYY-MM-DD' format
-          price,
-          value: price,
-        };
+          date: new Date(ts * 1000),
+          price: lastKnownPrice,
+          value: lastKnownPrice,
+          quantities: currentQuantities,
+        });
 
-        historicalData.push(entry);
-        // await this.storeDailyPrice(indexId, dateStr, price); // Also pass 'YYYY-MM-DD' string to DB
+        await this.storeDailyPrice(
+          indexId,
+          dateStr,
+          lastKnownPrice,
+          currentQuantities,
+        );
       }
-      const formattedAssetPrices = rebalance.weights.map(([symbol]) => {
-        const startPrice = rebalance.prices[symbol] || 0;
-        const endPrice =
-          tokenPrices[symbol]?.[tokenPrices[symbol].length - 1]?.price ||
-          startPrice;
-        return {
-          asset: symbol,
-          startPrice: startPrice.toFixed(4),
-          endPrice: endPrice.toFixed(4),
-          // change: (((endPrice - startPrice) / startPrice) * 100).toFixed(2) + '%'
-        };
-      });
+
+      const formattedAssetPrices = Object.entries(currentQuantities).map(
+        ([symbol, quantity]) => {
+          const startPrice = dailyTokenPrices[symbol]?.[0]?.price;
+          const endPrice =
+            dailyTokenPrices[symbol]?.[dailyTokenPrices[symbol].length - 1]
+              ?.price || startPrice;
+
+          return {
+            asset: symbol,
+            startPrice: startPrice?.toFixed(4) || '0.0000', // Handle undefined
+            endPrice: endPrice?.toFixed(4) || '0.0000', // Handle undefined
+            quantity: quantity, // Include quantity if needed
+          };
+        },
+      );
+
       result.push({
         index: indexData.name,
         indexId,
         rebalanceDate: startDate,
-        indexPrice: lastKnownPrice.toFixed(4),
+        indexPrice: lastKnownPrice.toFixed(2),
         weights: JSON.stringify(rebalance.weights),
         assetPrices: JSON.stringify(formattedAssetPrices),
+        // quantities: JSON.stringify(currentQuantities),
       });
     }
 
@@ -1211,7 +1272,7 @@ export class EtfPriceService {
       .where(
         and(
           inArray(historicalPrices.coinId, coinIds),
-          gte(historicalPrices.timestamp, startTimestamp - 86400 * 90), // Include 7 days before for nearest lookup
+          gte(historicalPrices.timestamp, startTimestamp - 86400 * 90), // Include 30 days before for nearest lookup
           lte(historicalPrices.timestamp, endTimestamp + 86400 * 90),
         ),
       )
@@ -1485,7 +1546,7 @@ export class EtfPriceService {
         managementFee: Number(curatorFee) / 1e18, // Assuming fee is in the smallest unit
       });
     }
-
+    indexList.sort((a, b) => a.indexId - b.indexId)
     return indexList;
   }
 
@@ -1493,44 +1554,57 @@ export class EtfPriceService {
     indexId: number,
     targetDate: number,
   ): Promise<number | null> {
-    // 1. Fetch the most recent rebalance before target date from DB
-    const applicableRebalance = await this.dbService
+    const priceRow = await this.dbService
       .getDb()
       .select()
-      .from(rebalances)
+      .from(dailyPrices)
       .where(
         and(
-          eq(rebalances.indexId, indexId.toString()),
-          lte(rebalances.timestamp, Math.floor(targetDate / 1000)),
+          eq(dailyPrices.indexId, indexId.toString()),
+          eq(dailyPrices.date, new Date(targetDate).toISOString().split('T')[0]),
         ),
       )
-      .orderBy(desc(rebalances.timestamp))
+      .orderBy(desc(dailyPrices.date))
       .limit(1);
+    return priceRow[0] && priceRow[0].price ? priceRow[0].price : null
+    // 1. Fetch the most recent rebalance before target date from DB
+    // const applicableRebalance = await this.dbService
+    //   .getDb()
+    //   .select()
+    //   .from(rebalances)
+    //   .where(
+    //     and(
+    //       eq(rebalances.indexId, indexId.toString()),
+    //       lte(rebalances.timestamp, Math.floor(targetDate / 1000)),
+    //     ),
+    //   )
+    //   .orderBy(desc(rebalances.timestamp))
+    //   .limit(1);
 
-    if (!applicableRebalance.length) return null;
+    // if (!applicableRebalance.length) return null;
 
-    const rebalanceData = applicableRebalance[0];
+    // const rebalanceData = applicableRebalance[0];
 
-    // Parse weights from DB (stored as JSON string)
-    const weights: [string, number][] = JSON.parse(rebalanceData.weights);
+    // // Parse weights from DB (stored as JSON string)
+    // const weights: [string, number][] = JSON.parse(rebalanceData.weights);
 
-    // 2. Get price data for the target date
-    const targetTimestamp = Math.floor(targetDate / 1000);
-    const uniqueSymbols = [...new Set(weights.map((w) => w[0]))];
-    const coingeckoIdMap = await this.mapToCoingeckoIds(uniqueSymbols);
+    // // 2. Get price data for the target date
+    // const targetTimestamp = Math.floor(targetDate / 1000);
+    // const uniqueSymbols = [...new Set(weights.map((w) => w[0]))];
+    // const coingeckoIdMap = await this.mapToCoingeckoIds(uniqueSymbols);
 
-    const tokenPrices = await this.getHistoricalPricesForPeriod(
-      coingeckoIdMap,
-      targetTimestamp,
-      targetTimestamp,
-    );
+    // const tokenPrices = await this.getHistoricalPricesForPeriod(
+    //   coingeckoIdMap,
+    //   targetTimestamp,
+    //   targetTimestamp,
+    // );
 
-    // 3. Calculate index price
-    return this.calculateIndexPriceFromDb(
-      weights,
-      tokenPrices,
-      targetTimestamp,
-    );
+    // // 3. Calculate index price
+    // return this.calculateIndexPriceFromDb(
+    //   weights,
+    //   tokenPrices,
+    //   targetTimestamp,
+    // );
   }
 
   async getLogosForSymbols(
@@ -1589,14 +1663,18 @@ export class EtfPriceService {
   }
 
   async calculateYtdReturn(indexId: number): Promise<number> {
-    const now = new Date().setUTCHours(0, 0, 0, 0);
+    const previousDay = new Date();
+    previousDay.setDate(previousDay.getDate() - 2); // Go back 1 day
+    previousDay.setUTCHours(0, 0, 0, 0); // Normalize to midnight UTC
+
     const jan1 = new Date(new Date().getFullYear(), 0, 1).setUTCHours(
       0,
       0,
       0,
       0,
     );
-    const latestPrice = await this.getPriceForDate(indexId, now);
+    const latestPrice = await this.getPriceForDate(indexId, previousDay.getTime());
+    console.log(latestPrice)
     const jan1Price = await this.getPriceForDate(indexId, jan1);
     if (!jan1Price || jan1Price === 0) return 0;
     return (((latestPrice || 0) - jan1Price) / jan1Price) * 100;
@@ -1630,46 +1708,60 @@ export class EtfPriceService {
 
     const weights = JSON.parse(rebalance.weights) as [string, number][];
 
-    // 2. Get CoinGecko IDs and fetch market data
-    const uniqueSymbols = [...new Set(weights.map((w) => w[0]))];
-    const { marketData, coingeckoIdMap } =
-      await this.fetchMarketData(uniqueSymbols);
+    // First, safely parse or normalize the coins data
+    let coins: Array<[string, number]>;
+    if (typeof rebalance.coins === 'string') {
+      try {
+        coins = JSON.parse(rebalance.coins) as Array<[string, number]>;
+      } catch (e) {
+        throw new Error(`Invalid coins JSON: ${rebalance.coins}`);
+      }
+    } else if (Array.isArray(rebalance.coins)) {
+      coins = rebalance.coins as Array<[string, number]>;
+    } else {
+      // If it's an object, convert to array of entries
+      coins = Object.entries(rebalance.coins as Record<string, number>);
+    }
 
+    const uniqueIds = [
+      ...new Set(coins.map(([coinId]) => coinId.toLowerCase())),
+    ];
+
+    // Fetch market data
+    const { marketData } = await this.fetchMarketData(uniqueIds);
     // 3. Get or create categories
     const assets = await Promise.all(
-      weights.map(async ([ticker, weight], idx) => {
-        const coinId = coingeckoIdMap[ticker];
+      coins.map(async ([coinId, weight], idx) => {
         const coinData = marketData.find((c) => c.id === coinId);
-
         // Get or create category
         const sector = await this.coinGeckoService.getOrCreateCategory(coinId);
-
+        const symbol = coinData.symbol.toLowerCase();
+        const listingEntry = weights.find(([pair]) =>
+          pair.toLowerCase().includes(symbol),
+        );
+        const listing = listingEntry?.[0].split('.')[0] || symbol;
         return {
           id: idx + 1, // or generate proper IDs
-          ticker: ticker
-            .split('.')[1]
+          ticker: coinData.symbol
             .replace(/USDT$/, '') // Remove USDT at end
             .replace(/USDC$/, '') // Remove USDC at end
             .toUpperCase(),
-          listing: ticker.split('.')[0],
-          assetname: coinData?.name || ticker.split('.')[1],
+          listing: listing,
+          assetname: coinData?.name || coinData.symbol,
           sector,
           market_cap: coinData?.market_cap || 0,
           weights: (weight / 100).toFixed(2),
         };
       }),
     );
-
-    return assets;
+    const sortAssets = assets.sort((a, b) => b.market_cap - a.market_cap)
+    return sortAssets;
   }
 
-  async fetchMarketData(tickers: string[]) {
-    const coingeckoIdMap = await this.mapToCoingeckoIds(tickers);
-    const coinIds = Object.values(coingeckoIdMap).filter(Boolean);
-
+  async fetchMarketData(coinIds: string[]) {
     const marketData =
       await this.coinGeckoService.fetchCoinGeckoMarkets(coinIds);
-    return { marketData, coingeckoIdMap };
+    return { marketData };
   }
 
   async getERC20AddressForIndex(indexId: number): Promise<string | null> {

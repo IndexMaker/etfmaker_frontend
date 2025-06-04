@@ -20,7 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Dashboard from "../Dashboard/dashboard";
 import { toast } from "sonner";
 import {
@@ -56,6 +56,13 @@ import {
 } from "@/api/indices";
 import FundMaker from "@/components/icons/fundmaker";
 import { VaultAssets } from "@/components/elements/vault-assets";
+import FundDetail from "./fund-details";
+import FundManager from "./fund-manager";
+import FundOverview from "./fund-overview";
+import PortfolioManagerInsights from "./portfolio-manager-insignts";
+import Risk from "./fund-risk";
+import FundRiskReturn from "./fund-risk-return";
+import { Footer } from "@/components/layouts/footer";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -77,6 +84,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const { t } = useLanguage();
   const vault = mockup_vaults[0];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
+  const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [indexData, setIndexData] = useState<IndexData | null>(null);
@@ -85,7 +93,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
   const [showETHComparison, setShowETHComparison] = useState(false);
-  const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([])
+  const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([]);
   useEffect(() => {
     const fetchData = async (indexId: number) => {
       setIsLoading(true);
@@ -145,6 +153,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     index?.indexId && _fetchVaultAssets(index?.indexId);
   }, [index]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const getCutoffDate = () => {
     const now = new Date();
     let cutoffDate = new Date(0); // All time
@@ -219,7 +228,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     { id: "dateTime", name: "Date & Time", visible: true },
     { id: "wallet", name: "Wallet", visible: true },
     { id: "hash", name: "Hash", visible: true },
-    { id: "transactionType", name: "Tramsaction Types", visible: true },
+    { id: "transactionType", name: "Transaction Types", visible: true },
     { id: "amount", name: "Amount", visible: true },
   ]);
 
@@ -270,173 +279,154 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   return (
     <Dashboard>
       {index ? (
-        <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
-          {/* Vault Header */}
+        <>
+          {/* <Footer
+            className={`
+          transition-all duration-300 ease-in-out
+          ${isScrolled ? "top-0" : "hidden"}
+        `}
+          /> */}
           <div
-            className={cn("flex gap-16 ", isMobile ? "flex-col" : "flex-row ")}
+            className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]"
+            ref={containerRef}
           >
+            {/* Vault Header */}
             <div
               className={cn(
-                "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full overflow-ellipsis",
-                isMobile ? "w-full" : "w-[50%]"
+                "flex gap-16 ",
+                isMobile ? "flex-col" : "flex-row "
               )}
             >
               <div
                 className={cn(
-                  "h-[104px] min-w-[104px] rounded-full overflow-hidden bg-foreground p-[12px] flex items-center justify-center",
-                  isMobile ? "" : ""
+                  "flex flex-col xl:flex-row items-center gap-8 flex-nowrap mt-9 lg:mt-0 w-full overflow-ellipsis",
+                  isMobile ? "w-full" : "w-[50%]"
                 )}
               >
-                {vault.icon ? (
-                  <FundMaker className="w-[80px] h-[80px] text-muted" />
-                ) : (
-                  <div className="text-4xl">
-                    {vault.token.symbol.charAt(0) || ""}
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-6 flex-col">
-                <h1 className="text-[38px] min-w-[50%] h-[44px] text-primary text-center xl:text-left">
-                  {index.ticker}
-                </h1>
-                <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
-                  <div className="flex items-center gap-2">
-                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                      <Image
-                        src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
-                        alt={vault.token.symbol}
-                        width={17}
-                        height={17}
-                        className="object-cover w-full h-full"
-                      />
+                <div
+                  className={cn(
+                    "h-[104px] min-w-[104px] rounded-full overflow-hidden bg-foreground p-[12px] flex items-center justify-center",
+                    isMobile ? "" : ""
+                  )}
+                >
+                  {vault.icon ? (
+                    <FundMaker className="w-[80px] h-[80px] text-muted" />
+                  ) : (
+                    <div className="text-4xl">
+                      {vault.token.symbol.charAt(0) || ""}
                     </div>
-                    <span className="text-secondary text-[20px]">{"USDC"}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                      <FundMaker className="w-[17px] h-[17px] text-muted" />
+                  )}
+                </div>
+                <div className="flex gap-6 flex-col">
+                  <h1 className="text-[38px] min-w-[50%] h-[44px] text-primary text-center xl:text-left">
+                    {index.ticker}
+                  </h1>
+                  <div className="flex items-center gap-4 mt-2 justify-center xl:justify-start">
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                        <Image
+                          src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
+                          alt={vault.token.symbol}
+                          width={17}
+                          height={17}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <span className="text-secondary text-[20px]">
+                        {"USDC"}
+                      </span>
                     </div>
-                    <span className="text-secondary text-[20px]">
-                      {"SYMMIO"}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                        <FundMaker className="w-[17px] h-[17px] text-muted" />
+                      </div>
+                      <span className="text-secondary text-[20px]">
+                        {"SYMMIO"}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            {/* Vault Description */}
-            <div className="bg-foreground rounded-sm p-5  flex items-center">
-              <p className="text-secondary text-[13px] leading-[16px]">
-                {vault.description}
-              </p>
-            </div>
-          </div>
-
-          {/* Vault Info */}
-          <div className="pt-20">
-            <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-              {t("common.vaultInfo")}
-            </h2>
-            {isMobile ? (
-              <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
-                <InfoMobileCard title={t("table.curator")}>
-                  <div className="flex items-center flex-row">
-                    <CuratorInfo curator={index.curator} />
-                  </div>
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.token")}>
-                  <TokenInfo token={vault.token} />
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.totalSupply")}>
-                  <TokenValue token={vault.token} value={index.totalSupply} />
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.ytdReturn")}>
-                  <div className="text-sm text-secondary">
-                    {index.ytdReturn}
-                  </div>
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.managementFee")}>
-                  <div className="text-sm text-secondary">
-                    {index.managementFee || ""}%
-                  </div>
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.vaultAddress")}>
-                  <AddressInfo
-                    address={getERC20AddressForIndex(index.indexId) || ""}
-                  />
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.liquidity")}>
-                  <TokenValue token={vault.token} value={index.totalSupply} />
-                </InfoMobileCard>
-
-                <InfoMobileCard title={t("table.guardianAddress")}>
-                  <AddressInfo address={vault.guardianAddress || ""} />
-                </InfoMobileCard>
+              {/* Vault Description */}
+              <div className="bg-foreground rounded-sm p-5  flex items-center w-full">
+                <p className="text-secondary text-[13px] leading-[16px]">
+                  {vault.description}
+                </p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
-                {/* Curator */}
-                <InfoCard title={t("table.curator")}>
-                  <div className="flex items-center gap-2">
-                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                      <FundMaker className="h-5 w-5 text-muted" />
-                    </div>
-                    <span className="text-secondary text-[15px] font-normal">
-                      {"SYMMIO"}
-                    </span>
-                    {
-                      <Link
-                        href={`https://basescan.org/address/${index.curator}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ArrowUpRight className="h-4 w-4 text-secondary" />
-                      </Link>
-                    }
-                  </div>
-                </InfoCard>
+            </div>
 
-                {/* Token */}
-                <InfoCard title={t("table.token")}>
-                  <div className="flex items-center gap-2">
-                    <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                      <Image
-                        src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
-                        alt={"USDC"}
-                        className="object-cover w-full h-full"
-                        width={17}
-                        height={17}
-                      />
+            {/* Index Info */}
+            <div className="pt-20">
+              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                {t("common.indexInfo")}
+              </h2>
+              {isMobile ? (
+                <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
+                  <InfoMobileCard title={t("table.curator")}>
+                    <div className="flex items-center flex-row">
+                      <CuratorInfo curator={index.curator} />
                     </div>
-                    <span className="text-secondary text-[15px] font-normal">
-                      {"USDC"}
-                    </span>
-                    {USDC_ADDRESS_IN_BASE && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                        onClick={() =>
-                          copyToClipboard(
-                            USDC_ADDRESS_IN_BASE || "",
-                            "Token address"
-                          )
-                        }
-                      >
-                        <Copy className="h-3 w-3 text-secondary hover:text-primary" />
-                      </Button>
-                    )}
-                  </div>
-                </InfoCard>
+                  </InfoMobileCard>
 
-                {/* Total Supply */}
-                <InfoCard title={t("table.totalSupply")}>
-                  <div className="flex items-center gap-2">
+                  <InfoMobileCard title={t("table.token")}>
+                    <TokenInfo token={vault.token} />
+                  </InfoMobileCard>
+
+                  <InfoMobileCard title={t("table.totalSupply")}>
+                    <TokenValue token={vault.token} value={index.totalSupply} />
+                  </InfoMobileCard>
+
+                  <InfoMobileCard title={t("table.ytdReturn")}>
+                    <div className="text-sm text-secondary">
+                      {index.ytdReturn}
+                    </div>
+                  </InfoMobileCard>
+
+                  <InfoMobileCard title={t("table.managementFee")}>
+                    <div className="text-sm text-secondary">
+                      {index.managementFee || ""}%
+                    </div>
+                  </InfoMobileCard>
+
+                  <InfoMobileCard title={t("table.vaultAddress")}>
+                    <AddressInfo
+                      address={getERC20AddressForIndex(index.indexId) || ""}
+                    />
+                  </InfoMobileCard>
+
+                  <InfoMobileCard title={t("table.liquidity")}>
+                    <TokenValue token={vault.token} value={index.totalSupply} />
+                  </InfoMobileCard>
+
+                  <InfoMobileCard title={t("table.guardianAddress")}>
+                    <AddressInfo address={vault.guardianAddress || ""} />
+                  </InfoMobileCard>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
+                  {/* Curator */}
+                  <InfoCard title={t("table.curator")}>
+                    <div className="flex items-center gap-2">
+                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                        <FundMaker className="h-5 w-5 text-muted" />
+                      </div>
+                      <span className="text-secondary text-[15px] font-normal">
+                        {"SYMMIO"}
+                      </span>
+                      {
+                        <Link
+                          href={`https://basescan.org/address/${index.curator}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ArrowUpRight className="h-4 w-4 text-secondary" />
+                        </Link>
+                      }
+                    </div>
+                  </InfoCard>
+
+                  {/* Token */}
+                  <InfoCard title={t("table.token")}>
                     <div className="flex items-center gap-2">
                       <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
                         <Image
@@ -448,153 +438,206 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                         />
                       </div>
                       <span className="text-secondary text-[15px] font-normal">
-                        {index.totalSupply} USDC
+                        {"USDC"}
                       </span>
+                      {USDC_ADDRESS_IN_BASE && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                          onClick={() =>
+                            copyToClipboard(
+                              USDC_ADDRESS_IN_BASE || "",
+                              "Token address"
+                            )
+                          }
+                        >
+                          <Copy className="h-3 w-3 text-secondary hover:text-primary" />
+                        </Button>
+                      )}
                     </div>
-                    <div className="text-[13px] text-secondary px-[2px] bg-accent">
-                      {index.totalSupply}
-                    </div>
-                  </div>
-                </InfoCard>
+                  </InfoCard>
 
-                {/* Instant APY */}
-                <InfoCard title={t("table.ytdReturn")}>
-                  <div className="text-[15px] text-secondary font-normal">
-                    {index.ytdReturn}
-                  </div>
-                </InfoCard>
-
-                {/* Performance Fee */}
-                <InfoCard
-                  title={t("table.managementFee")}
-                  tooltip="The fee charged on earnings by the vault curator"
-                >
-                  <div className="text-[15px] text-secondary font-normal">
-                    {index.managementFee} %
-                  </div>
-                </InfoCard>
-
-                {/* Vault Address */}
-                <InfoCard title={t("table.vaultAddress")}>
-                  <div className="flex items-center gap-2">
-                    <span className="text-secondary text-[15px] font-normal">
-                      {shortenAddress(getERC20AddressForIndex(index.indexId))}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                      onClick={() =>
-                        copyToClipboard(
-                          getERC20AddressForIndex(index.indexId),
-                          "Index address"
-                        )
-                      }
-                    >
-                      <Copy className="h-3 w-3 text-secondary" />
-                    </Button>
-                  </div>
-                </InfoCard>
-
-                {/* liquidity */}
-                <InfoCard
-                  title={t("table.liquidity")}
-                  tooltip="The amount of tokens available for borrowing"
-                >
-                  <div className="flex items-center gap-2">
+                  {/* Total Supply */}
+                  <InfoCard title={t("table.totalSupply")}>
                     <div className="flex items-center gap-2">
-                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
-                        <Image
-                          src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
-                          alt={"USDC"}
-                          className="object-cover w-full h-full"
-                          width={17}
-                          height={17}
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+                          <Image
+                            src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+                            alt={"USDC"}
+                            className="object-cover w-full h-full"
+                            width={17}
+                            height={17}
+                          />
+                        </div>
+                        <span className="text-secondary text-[15px] font-normal">
+                          {index.totalSupply} USDC
+                        </span>
                       </div>
+                      <div className="text-[13px] text-secondary px-[2px] bg-accent">
+                        {index.totalSupply}
+                      </div>
+                    </div>
+                  </InfoCard>
+
+                  {/* Instant APY */}
+                  <InfoCard title={t("table.ytdReturn")}>
+                    <div className="text-[15px] text-secondary font-normal">
+                      {index.ytdReturn}
+                    </div>
+                  </InfoCard>
+
+                  {/* Performance Fee */}
+                  <InfoCard
+                    title={t("table.managementFee")}
+                    tooltip="The fee charged on earnings by the vault curator"
+                  >
+                    <div className="text-[15px] text-secondary font-normal">
+                      {index.managementFee} %
+                    </div>
+                  </InfoCard>
+
+                  {/* Vault Address */}
+                  <InfoCard title={t("table.vaultAddress")}>
+                    <div className="flex items-center gap-2">
                       <span className="text-secondary text-[15px] font-normal">
-                        {index.totalSupply} USDC
+                        {shortenAddress(getERC20AddressForIndex(index.indexId))}
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                        onClick={() =>
+                          copyToClipboard(
+                            getERC20AddressForIndex(index.indexId),
+                            "Index address"
+                          )
+                        }
+                      >
+                        <Copy className="h-3 w-3 text-secondary" />
+                      </Button>
                     </div>
-                    <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
-                      {index.totalSupply}
-                    </div>
-                  </div>
-                </InfoCard>
+                  </InfoCard>
 
-                {/* Guardian Address */}
-                <InfoCard
-                  title={t("table.guardianAddress")}
-                  tooltip="The blockchain address of the vault guardian"
+                  {/* liquidity */}
+                  <InfoCard
+                    title={t("table.liquidity")}
+                    tooltip="The amount of tokens available for borrowing"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
+                          <Image
+                            src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+                            alt={"USDC"}
+                            className="object-cover w-full h-full"
+                            width={17}
+                            height={17}
+                          />
+                        </div>
+                        <span className="text-secondary text-[15px] font-normal">
+                          {index.totalSupply} USDC
+                        </span>
+                      </div>
+                      <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
+                        {index.totalSupply}
+                      </div>
+                    </div>
+                  </InfoCard>
+
+                  {/* Guardian Address */}
+                  <InfoCard
+                    title={t("table.guardianAddress")}
+                    tooltip="The blockchain address of the vault guardian"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-secondary text-[15px] font-normal">
+                        {vault.guardianAddress}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                        onClick={() =>
+                          copyToClipboard(
+                            vault.guardianAddress,
+                            "Guardian address"
+                          )
+                        }
+                      >
+                        <Copy className="h-3 w-3 text-secondary" />
+                      </Button>
+                    </div>
+                  </InfoCard>
+                </div>
+              )}
+            </div>
+
+            {/* Index Overview */}
+            <div className="pt-20">
+              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                {t("common.indexOverview")}
+              </h2>
+              <div className="flex flex-wrap gap-6 flex-responsive">
+                <FundDetail />
+                <FundManager />
+                <FundOverview />
+                <PortfolioManagerInsights />
+                <FundRiskReturn />
+                <Risk />
+              </div>
+            </div>
+            {/* Chart */}
+            <div className="pt-20">
+              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                {t("common.indexPerformance")}
+              </h2>
+
+              <TimePeriodSelector
+                selectedPeriod={selectedPeriod}
+                onPeriodChange={setSelectedPeriod}
+                showComparison={showComparison}
+                showETHComparison={showETHComparison}
+                setShowComparison={setShowComparison}
+                setShowETHComparison={setShowETHComparison}
+              />
+
+              {indexData && (
+                <div
+                  className={cn(
+                    "bg-background rounded-lg shadow",
+                    isSmallWindow ? "" : "p-4"
+                  )}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="text-secondary text-[15px] font-normal">
-                      {vault.guardianAddress}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                      onClick={() =>
-                        copyToClipboard(
-                          vault.guardianAddress,
-                          "Guardian address"
-                        )
-                      }
-                    >
-                      <Copy className="h-3 w-3 text-secondary" />
-                    </Button>
-                  </div>
-                </InfoCard>
-              </div>
-            )}
-          </div>
+                  <PerformanceChart
+                    data={filteredChartData()}
+                    indexId={index.indexId}
+                    btcData={filteredBtcData()}
+                    ticker={index.ticker || ""}
+                    ethData={filteredEthData()}
+                    showComparison={showComparison}
+                    showETHComparison={showETHComparison}
+                  />
+                </div>
+              )}
+            </div>
 
-          {/* Chart */}
-          <div className="pt-20">
-            <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-              Index Performance
-            </h2>
+            {/* Vault Literature */}
+            <div className="pt-20">
+              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                {t("common.vaultInfo")}
+              </h2>
+              <VaultLiteratureSection
+                literature={vault.documents}
+                rebalanceData={indexData?.rawData ? indexData?.rawData : []}
+                indexId={index.indexId}
+                indexName={index.name}
+              />
+            </div>
 
-            <TimePeriodSelector
-              selectedPeriod={selectedPeriod}
-              onPeriodChange={setSelectedPeriod}
-              showComparison={showComparison}
-              showETHComparison={showETHComparison}
-              setShowComparison={setShowComparison}
-              setShowETHComparison={setShowETHComparison}
-            />
-
-            {indexData && (
-              <div className="bg-background p-4 rounded-lg shadow">
-                <PerformanceChart
-                  data={filteredChartData()}
-                  indexId={index.indexId}
-                  btcData={filteredBtcData()}
-                  ticker={index.ticker || ""}
-                  ethData={filteredEthData()}
-                  showComparison={showComparison}
-                  showETHComparison={showETHComparison}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Vault Literature */}
-          <div className="pt-20">
-            <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-              {t("common.vaultInfo")}
-            </h2>
-            <VaultLiteratureSection
-              literature={vault.documents}
-              rebalanceData={indexData?.rawData ? indexData?.rawData : []}
-              indexId={index.indexId}
-              indexName={index.name}
-            />
-          </div>
-
-          {/* Documents Section */}
-          {/* <div>
+            {/* Documents Section */}
+            {/* <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Documents</h2>
             <Button
@@ -657,7 +700,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
           )}
         </div> */}
 
-          {/* <div className="pt-16">
+            {/* <div className="pt-16">
             <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
               <div className="flex items-center gap-3">
                 <div>{t("common.vaultAllocationBreakdown")}</div>
@@ -744,181 +787,29 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             />
           </div> */}
 
-          <div className="pt-16">
-            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-              <div className="flex items-center gap-3">
-                <div>{t("common.vaultAssets")}</div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
-                      >
-                        <HelpCircle className="h-3 w-3 text-[#fffff80]" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        {t("common.vaultAllocationBreakdownNote")}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <CustomButton
-                    variant="secondary"
-                    onClick={() => setSearchQuery("")}
-                    className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                  >
-                    {t("common.editProperties")}
-                  </CustomButton>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                  align="end"
-                  sideOffset={5}
-                >
-                  <div className="p-0 border-b border-zinc-700">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder={t("common.searchProperties")}
-                        className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-[400px] overflow-y-auto">
-                    {filteredColumns.map((column) => (
-                      <div
-                        key={column.id}
-                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                      >
-                        <span className="text-[12px]">
-                          {t("table." + column.id)}
-                        </span>
+            <div className="pt-16">
+              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                <div className="flex items-center gap-3">
+                  <div>{t("common.vaultAssets")}</div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() =>
-                            toggleColumnVisibility(column.id, !column.visible)
-                          }
-                          className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                          className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
                         >
-                          {visibleColumns.filter(
-                            (_column) => column.id === _column.id
-                          )[0].visible ? (
-                            <Eye className="h-4 w-4 text-card" />
-                          ) : (
-                            <EyeOff className="h-4 w-4 text-card" />
-                          )}
+                          <HelpCircle className="h-3 w-3 text-[#fffff80]" />
                         </Button>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </h1>
-            <VaultAssets
-              assets={indexAssets}
-              visibleColumns={visibleColumns}
-            />
-          </div>
-
-          <div className="pt-16">
-            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-              <div className="flex items-center gap-3">
-                <div>{t("common.vaultReallocations")}</div>
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <CustomButton
-                    variant="secondary"
-                    onClick={() => setSearchQuery("")}
-                    className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                  >
-                    {t("common.editProperties")}
-                  </CustomButton>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                  align="end"
-                  sideOffset={5}
-                >
-                  <div className="p-0 border-b border-zinc-700">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder={t("common.searchProperties")}
-                        className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-[400px] overflow-y-auto">
-                    {filteredReallocationColumns.map((column) => (
-                      <div
-                        key={column.id}
-                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                      >
-                        <span className="text-[12px]">
-                          {t("table." + column.id)}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            toggleReAllocationColumnVisibility(
-                              column.id,
-                              !column.visible
-                            )
-                          }
-                          className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
-                        >
-                          {visibleReAllocationColumns.filter(
-                            (_column) => column.id === _column.id
-                          )[0].visible ? (
-                            <Eye className="h-4 w-4 text-card" />
-                          ) : (
-                            <EyeOff className="h-4 w-4 text-card" />
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </h1>
-            <VaultReAllocation
-              reallocations={indexData?.formattedTransactions || []}
-              visibleColumns={visibleReAllocationColumns}
-            />
-          </div>
-
-          <div className="pt-16">
-            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-              <div className="flex items-center gap-3">
-                <div>{t("common.supplyPositions")}</div>
-              </div>
-            </h1>
-            <VaultSupply supplyPositions={supplyPositions} />
-          </div>
-
-          <div className="pt-16">
-            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-              <div className="flex items-center gap-3">
-                <div>{t("common.userActivity")}</div>
-              </div>
-              <div className="flex items-center gap-4">
-                <TransactionTypeSelector />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          {t("common.vaultAllocationBreakdownNote")}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <Popover>
                   <PopoverTrigger asChild>
                     <CustomButton
@@ -930,7 +821,76 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     </CustomButton>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
+                    className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
+                    align="end"
+                    sideOffset={5}
+                  >
+                    <div className="p-0 border-b border-zinc-700">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="search"
+                          placeholder={t("common.searchProperties")}
+                          className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto">
+                      {filteredColumns.map((column) => (
+                        <div
+                          key={column.id}
+                          className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                        >
+                          <span className="text-[12px]">
+                            {t("table." + column.id)}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              toggleColumnVisibility(column.id, !column.visible)
+                            }
+                            className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                          >
+                            {visibleColumns.filter(
+                              (_column) => column.id === _column.id
+                            )[0].visible ? (
+                              <Eye className="h-4 w-4 text-card" />
+                            ) : (
+                              <EyeOff className="h-4 w-4 text-card" />
+                            )}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </h1>
+              <VaultAssets
+                assets={indexAssets}
+                visibleColumns={visibleColumns}
+              />
+            </div>
+
+            <div className="pt-16">
+              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                <div className="flex items-center gap-3">
+                  <div>{t("common.vaultReallocations")}</div>
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <CustomButton
+                      variant="secondary"
+                      onClick={() => setSearchQuery("")}
+                      className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                    >
+                      {t("common.editProperties")}
+                    </CustomButton>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
                     align="end"
                     sideOffset={5}
                   >
@@ -947,7 +907,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       </div>
                     </div>
                     <div className="max-h-[400px] overflow-y-auto">
-                      {filteredActivityColumns.map((column) => (
+                      {filteredReallocationColumns.map((column) => (
                         <div
                           key={column.id}
                           className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
@@ -959,14 +919,14 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() =>
-                              toggleActivityColumnVisibility(
+                              toggleReAllocationColumnVisibility(
                                 column.id,
                                 !column.visible
                               )
                             }
                             className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                           >
-                            {visibleTransactionColumns.filter(
+                            {visibleReAllocationColumns.filter(
                               (_column) => column.id === _column.id
                             )[0].visible ? (
                               <Eye className="h-4 w-4 text-card" />
@@ -979,136 +939,224 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     </div>
                   </PopoverContent>
                 </Popover>
-              </div>
-            </h1>
-            <VaultActivity
-              activities={userActivities}
-              visibleColumns={visibleTransactionColumns}
-            />
-          </div>
+              </h1>
+              <VaultReAllocation
+                reallocations={indexData?.formattedTransactions || []}
+                visibleColumns={visibleReAllocationColumns}
+              />
+            </div>
 
-          {/* TOS */}
-          <div className="pt-16">
-            <div className="grid grid-cols-1">
-              <div className="col-span-1">
-                <h4 className="text-[13px] pb-2 pt-3 font-bold text-primary">
-                  Note on the Fund management company and the fund
-                </h4>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  Multi Units Luxembourg, RCS B115129 and Lyxor Index Fund, RCS
-                  B117500, both Luxembourg SICAV located 9, rue de Bitbourg,
-                  L-1273 Luxembourg, and managed by Amundi Asset Management.
-                  Lyxor SICAV, Luxembourg SICAV, RCS B140772, located 5, Allée
-                  Scheffer, L-2520 Luxembourg, managed by Amundi Luxembourg
-                  S.A..
-                </p>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  The Fund is described in a Key Information Document (KID), or
-                  Key Investor Information Document (KIID) for UK investors, and
-                  prospectus. The Funds KID, or KIID for UK investors, must be
-                  made available to potential subscribers prior to subscription.
-                </p>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  The Funds reference material (KIID, prospectus, annual and
-                  semi-annual reports) can be obtained from Amundi on request,
-                  or obtained via the amundietf.com website. <br></br>
-                  For Professional Clients only. In the United Kingdom (the
-                  "UK"), this website is being issued by Amundi (UK) Limited, 77
-                  Coleman Street, London EC2R 5BJ, UK. Amundi (UK) Limited is
-                  authorised and regulated by the Financial Conduct Authority
-                  ("FCA") and entered on the FCA's Financial Services Register
-                  under number 114503. This may be checked at
-                  https://register.fca.org.uk/ and further information of its
-                  authorisation is available on request. Each fund and its
-                  relevant sub-fund(s) under its respective fund range that is
-                  referred to in this website (each, a "Fund") is a recognised
-                  collective investment scheme for the purposes of Section 264
-                  of the Financial Services and Markets Act 2000 (the "FSMA") or
-                  an unregulated collective investment scheme under the
-                  Financial Services and Markets Act 2000 (the "FSMA"). This
-                  website is addressed only to those persons in the UK falling
-                  within one or more of the following exemptions from the
-                  restrictions in Section 238 FSMA:<br></br>- Authorised firms
-                  under FSMA and certain other investment professionals falling
-                  within article 14 of the FSMA (Promotion of Collective
-                  Investment Schemes) (Exemptions) Order 2001, as amended (the
-                  "CIS Order") and their directors, officers and employees
-                  acting for such entities in relation to investment.<br></br>-
-                  High value entities falling within article 22 CIS Order and
-                  their directors, officers and employees acting for such
-                  entities in relation to investment;<br></br>- Other persons
-                  who are in accordance with the Rules of the FCA prior to 1
-                  November 2007 classified as Intermediate Customers or Market
-                  Counterparties or on or thereafter classified as Professional
-                  Clients or Eligible Counterparties.<br></br>
-                  The distribution of this website's information to any person
-                  in the UK not falling within one of the above categories is
-                  not permitted by Amundi (UK) Limited and may contravene FSMA.
-                  No person in the UK falling outside those categories should
-                  rely or act on it for any purposes whatsoever. <br></br>
-                  This website's information is only directed at persons who are
-                  Professional Clients (as defined in the FCA's Handbook of
-                  Rules and Guidance), must not be distributed to the public and
-                  must not be relied or acted upon by any other persons for any
-                  purposes whatsoever. <br></br>
-                  Potential investors in the UK should be aware that none of the
-                  protections afforded by the UK regulatory system will apply to
-                  an investment in a Fund and that compensation will not be
-                  available under the UK Financial Services Compensation Scheme.{" "}
-                  <br></br>
-                </p>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  Regarding Funds admitted on a regulated market, the listing is
-                  subject to a volatility control mechanisms to ensure that the
-                  ETF price does not deviate significantly from a reference
-                  price set by the listing rules of the relevant regulated
-                  market, notably through the implementation of a trading halt
-                  mechanism in case of significant deviation from this reference
-                  price.
-                </p>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  The Fund offers no capital guarantee. Investors may not get
-                  back the full amount of their initial investment, particularly
-                  in the event that the benchmark index falls. Subscribing to a
-                  UCITS may involve risks. Potential investors are advised to
-                  read the Funds risk profile, which is described in detail in
-                  the prospectus. The amount that is reasonable to invest in the
-                  Fund will depend on the personal circumstances of each
-                  investor. To determine this amount, investors should take into
-                  account their financial situation, personal assets, and
-                  current and future requirements, as well as considering their
-                  willingness to accept risks or conversely their preference to
-                  invest cautiously. Investors are also strongly recommended to
-                  sufficiently diversify their investments so as to avoid being
-                  exposed solely to the risks of this Fund. Investors should
-                  therefore seek advice in this regard from their usual advisors
-                  (legal, tax, financial and/or accounting) before purchasing
-                  any units of the Fund.
-                </p>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  The source of the data contained in this document is Amundi
-                  Asset Management unless otherwise stated.
-                </p>
-                <p className="text-[13px] mb-0 pb-4 font-bold text-secondary">
-                  Policy regarding portfolio transparency and warning on
-                  secondary market
-                </p>
-                <p className="text-[13px] mb-0 pb-4 text-secondary">
-                  The policy regarding portfolio transparency and information on
-                  the funds assets are available on amundietf.com. Indicative
-                  net asset value is published by stock exchanges. Shares
-                  purchased on the secondary market cannot usually be sold
-                  directly back to the fund. Investors must buy and sell shares
-                  on a secondary market with the assistance of an intermediary
-                  (e.g. a stockbroker) and may incur fees for doing so.
-                  Investors may pay more than the current net asset value when
-                  buying shares and may receive less than the current net asset
-                  value when selling them.
-                </p>
+            <div className="pt-16">
+              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                <div className="flex items-center gap-3">
+                  <div>{t("common.supplyPositions")}</div>
+                </div>
+              </h1>
+              <VaultSupply supplyPositions={supplyPositions} />
+            </div>
+
+            <div className="pt-16">
+              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                <div className="flex items-center gap-3">
+                  <div>{t("common.userActivity")}</div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <TransactionTypeSelector />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <CustomButton
+                        variant="secondary"
+                        onClick={() => setSearchQuery("")}
+                        className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                      >
+                        {t("common.editProperties")}
+                      </CustomButton>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
+                      align="end"
+                      sideOffset={5}
+                    >
+                      <div className="p-0 border-b border-zinc-700">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            type="search"
+                            placeholder={t("common.searchProperties")}
+                            className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="max-h-[400px] overflow-y-auto">
+                        {filteredActivityColumns.map((column) => (
+                          <div
+                            key={column.id}
+                            className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                          >
+                            <span className="text-[12px]">
+                              {t("table." + column.id)}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                toggleActivityColumnVisibility(
+                                  column.id,
+                                  !column.visible
+                                )
+                              }
+                              className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                            >
+                              {visibleTransactionColumns.filter(
+                                (_column) => column.id === _column.id
+                              )[0].visible ? (
+                                <Eye className="h-4 w-4 text-card" />
+                              ) : (
+                                <EyeOff className="h-4 w-4 text-card" />
+                              )}
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </h1>
+              <VaultActivity
+                activities={userActivities}
+                visibleColumns={visibleTransactionColumns}
+              />
+            </div>
+
+            {/* TOS */}
+            <div className="pt-16">
+              <div className="grid grid-cols-1">
+                <div className="col-span-1">
+                  <h4 className="text-[13px] pb-2 pt-3 font-bold text-primary">
+                    Note on the Fund management company and the fund
+                  </h4>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    Multi Units Luxembourg, RCS B115129 and Lyxor Index Fund,
+                    RCS B117500, both Luxembourg SICAV located 9, rue de
+                    Bitbourg, L-1273 Luxembourg, and managed by Amundi Asset
+                    Management. Lyxor SICAV, Luxembourg SICAV, RCS B140772,
+                    located 5, Allée Scheffer, L-2520 Luxembourg, managed by
+                    Amundi Luxembourg S.A..
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    The Fund is described in a Key Information Document (KID),
+                    or Key Investor Information Document (KIID) for UK
+                    investors, and prospectus. The Funds KID, or KIID for UK
+                    investors, must be made available to potential subscribers
+                    prior to subscription.
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    The Funds reference material (KIID, prospectus, annual and
+                    semi-annual reports) can be obtained from Amundi on request,
+                    or obtained via the amundietf.com website. <br></br>
+                    For Professional Clients only. In the United Kingdom (the
+                    "UK"), this website is being issued by Amundi (UK) Limited,
+                    77 Coleman Street, London EC2R 5BJ, UK. Amundi (UK) Limited
+                    is authorised and regulated by the Financial Conduct
+                    Authority ("FCA") and entered on the FCA's Financial
+                    Services Register under number 114503. This may be checked
+                    at https://register.fca.org.uk/ and further information of
+                    its authorisation is available on request. Each fund and its
+                    relevant sub-fund(s) under its respective fund range that is
+                    referred to in this website (each, a "Fund") is a recognised
+                    collective investment scheme for the purposes of Section 264
+                    of the Financial Services and Markets Act 2000 (the "FSMA")
+                    or an unregulated collective investment scheme under the
+                    Financial Services and Markets Act 2000 (the "FSMA"). This
+                    website is addressed only to those persons in the UK falling
+                    within one or more of the following exemptions from the
+                    restrictions in Section 238 FSMA:<br></br>- Authorised firms
+                    under FSMA and certain other investment professionals
+                    falling within article 14 of the FSMA (Promotion of
+                    Collective Investment Schemes) (Exemptions) Order 2001, as
+                    amended (the "CIS Order") and their directors, officers and
+                    employees acting for such entities in relation to
+                    investment.<br></br>- High value entities falling within
+                    article 22 CIS Order and their directors, officers and
+                    employees acting for such entities in relation to
+                    investment;<br></br>- Other persons who are in accordance
+                    with the Rules of the FCA prior to 1 November 2007
+                    classified as Intermediate Customers or Market
+                    Counterparties or on or thereafter classified as
+                    Professional Clients or Eligible Counterparties.<br></br>
+                    The distribution of this website's information to any person
+                    in the UK not falling within one of the above categories is
+                    not permitted by Amundi (UK) Limited and may contravene
+                    FSMA. No person in the UK falling outside those categories
+                    should rely or act on it for any purposes whatsoever.{" "}
+                    <br></br>
+                    This website's information is only directed at persons who
+                    are Professional Clients (as defined in the FCA's Handbook
+                    of Rules and Guidance), must not be distributed to the
+                    public and must not be relied or acted upon by any other
+                    persons for any purposes whatsoever. <br></br>
+                    Potential investors in the UK should be aware that none of
+                    the protections afforded by the UK regulatory system will
+                    apply to an investment in a Fund and that compensation will
+                    not be available under the UK Financial Services
+                    Compensation Scheme. <br></br>
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    Regarding Funds admitted on a regulated market, the listing
+                    is subject to a volatility control mechanisms to ensure that
+                    the ETF price does not deviate significantly from a
+                    reference price set by the listing rules of the relevant
+                    regulated market, notably through the implementation of a
+                    trading halt mechanism in case of significant deviation from
+                    this reference price.
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    The Fund offers no capital guarantee. Investors may not get
+                    back the full amount of their initial investment,
+                    particularly in the event that the benchmark index falls.
+                    Subscribing to a UCITS may involve risks. Potential
+                    investors are advised to read the Funds risk profile, which
+                    is described in detail in the prospectus. The amount that is
+                    reasonable to invest in the Fund will depend on the personal
+                    circumstances of each investor. To determine this amount,
+                    investors should take into account their financial
+                    situation, personal assets, and current and future
+                    requirements, as well as considering their willingness to
+                    accept risks or conversely their preference to invest
+                    cautiously. Investors are also strongly recommended to
+                    sufficiently diversify their investments so as to avoid
+                    being exposed solely to the risks of this Fund. Investors
+                    should therefore seek advice in this regard from their usual
+                    advisors (legal, tax, financial and/or accounting) before
+                    purchasing any units of the Fund.
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    The source of the data contained in this document is Amundi
+                    Asset Management unless otherwise stated.
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 font-bold text-secondary">
+                    Policy regarding portfolio transparency and warning on
+                    secondary market
+                  </p>
+                  <p className="text-[13px] mb-0 pb-4 text-secondary">
+                    The policy regarding portfolio transparency and information
+                    on the funds assets are available on amundietf.com.
+                    Indicative net asset value is published by stock exchanges.
+                    Shares purchased on the secondary market cannot usually be
+                    sold directly back to the fund. Investors must buy and sell
+                    shares on a secondary market with the assistance of an
+                    intermediary (e.g. a stockbroker) and may incur fees for
+                    doing so. Investors may pay more than the current net asset
+                    value when buying shares and may receive less than the
+                    current net asset value when selling them.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       ) : (
         <div className="xl:pl-[86px] xl:pr-[86px] lg:mt-9 2xl:-mx-[40px]">
           <div

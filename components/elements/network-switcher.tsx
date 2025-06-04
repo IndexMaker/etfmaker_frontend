@@ -14,16 +14,16 @@ import Base from "../../public/icons/base.png";
 import { useRouter } from "next/navigation";
 export const networks: Network[] = [
   {
-    id: "mainnet",
-    name: "Ethereum",
-    chainId: "0x1",
-    icon: 'ethereum',
-  },
-  {
     id: "base",
     name: "Base",
     chainId: "0x2105",
     icon: 'base',
+  },
+  {
+    id: "mainnet",
+    name: "Ethereum",
+    chainId: "0x1",
+    icon: 'ethereum',
   },
 ];
 

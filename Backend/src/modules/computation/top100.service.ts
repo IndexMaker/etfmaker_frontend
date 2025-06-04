@@ -22,7 +22,13 @@ export class Top100Service {
   private readonly logger = new Logger(Top100Service.name);
   private readonly fallbackStablecoins = ['usdt', 'usdc', 'dai', 'busd'];
   private readonly fallbackWrappedTokens = ['wbtc', 'weth'];
-  private readonly blacklistedCategories = ['Stablecoins', 'Wrapped-Tokens'];
+  private readonly blacklistedCategories = [
+    'Stablecoins',
+    'Wrapped-Tokens',
+    'Bridged-Tokens',
+    'Bridged',
+    'Cross-Chain',
+  ];
   private readonly blacklistedToken = ['BNSOL'];
 
   private readonly provider: ethers.JsonRpcProvider;
@@ -199,6 +205,7 @@ export class Top100Service {
           continueProcessing = false;
           break;
         }
+        if (!coin.market_cap_rank) continue
         const symbolUpper = coin.symbol.toUpperCase();
         if (includedSymbols.has(symbolUpper)) continue;
 
@@ -592,11 +599,14 @@ export class Top100Service {
       // Get all binance listings upfront
       const _binanceListings = await this.dbService
         .getDb()
-        .select({
-          pair: binanceListings.pair,
-          timestamp: binanceListings.timestamp,
-        })
-        .from(binanceListings);
+        .transaction(async (tx) => {
+          return tx
+            .select({
+              pair: binanceListings.pair,
+              timestamp: binanceListings.timestamp,
+            })
+            .from(binanceListings);
+        });
 
       const binanceListingMap = new Map<string, number>();
       for (const listing of _binanceListings) {
@@ -668,29 +678,31 @@ export class Top100Service {
             rebalanceTimestamp,
           );
 
-          if (h_price) {
-            // Check if we already have this symbol in eligibleTokens
-            const existingIndex = eligibleTokens.findIndex(t => t.symbol === coin.symbol);
-            if (existingIndex === -1) {
-              eligibleTokens.push({
+        if (h_price) {
+          // Check if we already have this symbol in eligibleTokens
+          const existingIndex = eligibleTokens.findIndex(
+            (t) => t.symbol === coin.symbol,
+          );
+          if (existingIndex === -1) {
+            eligibleTokens.push({
+              symbol: coin.symbol,
+              coin: coin.id,
+              binancePair: pair,
+              historical_price: h_price,
+            });
+          } else {
+            // Replace if the new pair is USDC and existing is USDT
+            const existingPair = eligibleTokens[existingIndex].binancePair;
+            if (pair.endsWith('USDC') && existingPair.endsWith('USDT')) {
+              eligibleTokens[existingIndex] = {
                 symbol: coin.symbol,
                 coin: coin.id,
                 binancePair: pair,
                 historical_price: h_price,
-              });
-            } else {
-              // Replace if the new pair is USDC and existing is USDT
-              const existingPair = eligibleTokens[existingIndex].binancePair;
-              if (pair.endsWith('USDC') && existingPair.endsWith('USDT')) {
-                eligibleTokens[existingIndex] = {
-                  symbol: coin.symbol,
-                  coin: coin.id,
-                  binancePair: pair,
-                  historical_price: h_price,
-                };
-              }
+              };
             }
           }
+        }
       }
       // ... rest of the function remains the same ...
       if (eligibleTokens.length === 0) {

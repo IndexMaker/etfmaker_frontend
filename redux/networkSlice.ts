@@ -16,7 +16,7 @@ interface NetworkState {
 
 const initialState: NetworkState = {
   network: null,
-  selectedNetwork: "0x1", // Default to Ethereum
+  selectedNetwork: "0x2105", // Default to Ethereum
   currentChainId: null,
 };
 

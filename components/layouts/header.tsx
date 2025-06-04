@@ -19,7 +19,7 @@ import {
   setSelectedNetwork as setReduxSelectedNetwork,
   setCurrentChainId as setReduxCurrentChainId,
 } from "@/redux/networkSlice";
-import { shortenAddress } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import { RootState } from "@/redux/store";
 import NavigationAlert from "../icons/navigation-alert";
 import {
@@ -36,12 +36,14 @@ import { NetworkMismatchModal } from "../elements/network-mismatch-modal";
 import Image from "next/image";
 import Base from "../../public/icons/base.png";
 import Info from "../icons/info";
+import { Footer } from "./footer";
 
 interface HeaderProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   rightbarOpen: boolean;
   setRightbarOpen: (open: boolean) => void;
+  isVisible: boolean;
 }
 
 export function Header({
@@ -49,6 +51,7 @@ export function Header({
   setSidebarOpen,
   rightbarOpen,
   setRightbarOpen,
+  isVisible
 }: HeaderProps) {
   const { t } = useLanguage();
   const pathname = usePathname();
@@ -62,6 +65,10 @@ export function Header({
     (state: RootState) => state.network
   );
   const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+
+  const selectedVault = useSelector(
+    (state: RootState) => state.vault.selectedVault
+  );
 
   const defaultNetwork =
     networks.find((n) => n.id === searchParams.get("network")) || networks[0];
@@ -108,6 +115,8 @@ export function Header({
       href: path,
     };
   });
+
+  const [isIndexDetailPage, setIsIndexDetailPage] = useState<boolean>(pathSegments.length > 1 && pathSegments.includes('vault'))
 
   // Listen for wallet chain changes
   useEffect(() => {
@@ -189,7 +198,6 @@ export function Header({
         console.log("Connected Wallet:", connected[0]);
 
         dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
-
       }
     }
   }, [storedWallet, dispatch, switchOption]);
@@ -216,165 +224,181 @@ export function Header({
   };
 
   return (
-    <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-background px-[11px] lg:px-[40px]">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="lg:hidden"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-      >
-        <Navigation className="h-6 w-6 text-primary" />
-        <span className="sr-only">Toggle menu</span>
-      </Button>
-
-      {/* Breadcrumb (only if there's a second segment) */}
-      {shouldShowBreadcrumb && (
-        <nav className="text-sm text-secondary hidden md:flex">
-          <ol className="flex items-center space-x-2">
-            {breadcrumbItems.map((item, index) => (
-              <li key={item.href} className="flex items-center">
-                {index === breadcrumbItems.length - 1 ? (
-                  <span className="text-muted text-semibold text-[13px]">
-                    {item.name}
-                  </span>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className="text-muted text-semibold hover:text-primary text-[13px]"
-                  >
-                    {item.name}
-                    <span className="mx-2 text-muted text-semibold text-[13px]">
-                      {" "}
-                      /{" "}
-                    </span>
-                  </Link>
-                )}
-              </li>
-            ))}
-          </ol>
-        </nav>
-      )}
-
-      <div className="ml-auto flex items-center gap-2">
-        <LanguageSelector />
-        <NetworkSwitcher
-          handleNetworkSwitch={handleNetworkSwitch}
-          selectedNetwork={network} // Using Redux state
-          setSelectedNetwork={(newNetwork) =>
-            dispatch(setReduxNetwork(newNetwork))
-          }
-        />
-
-        {/* Connect Wallet Button */}
-        {storedWallet ? (
-          <Popover>
-            <PopoverTrigger asChild>
-              <CustomButton className="flex items-center gap-1 bg-transparent lg:bg-foreground text-[11px] rounded-[3px] cursor-pointer hover:bg-accent">
-                <div className="w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#A5FECA] via-[#3EDCEB] via-[#2594FF] to-[#53F]"></div>
-                <span className="text-secondary hidden lg:flex">
-                  {shortenAddress(storedWallet.accounts[0].address)}
-                </span>
-                {currentChainId !== selectedNetwork &&
-                  currentChainId !== "0x2105" && (
-                    <Info color="#FFB13De6" className="h-4 w-4" />
-                  )}
-              </CustomButton>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-[300px] p-0 bg-ring text-card flex flex-col shadow-[0px_1px_20px_0px_rgba(0,0,0,0.04),0px_12px_16px_0px_rgba(6,9,11,0.05),0px_6px_12px_0px_rgba(0,0,0,0.07)] z-100"
-              align="end"
-              sideOffset={5}
-            >
-              <Link
-                href={
-                  `https://etherscan.${
-                    currentNetwork === "mainnet" ? "org" : "io"
-                  }/address/` + storedWallet.accounts[0].address
-                }
-                target="_blank"
-                className="flex gap-2 px-[8px] py-[12px] items-center h-[48px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
-              >
-                <div className="w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#A5FECA] via-[#3EDCEB] via-[#2594FF] to-[#53F]"></div>
-                <span className="text-secondary text-[14px] underline">
-                  {shortenAddress(storedWallet.accounts[0].address)}
-                </span>
-                <RightArrow
-                  className="w-4 h-4 rotate-135"
-                  width="12px"
-                  height="12px"
-                />
-              </Link>
-              {currentChainId !== selectedNetwork &&
-              currentChainId !== "0x2105" ? (
-                <div
-                  className="flex gap-2 p-[6px] items-center h-[36px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
-                  onClick={handleSwitchWalletNetwork}
-                >
-                  {currentChainId !== "0x1" ? (
-                    <Image
-                      src={"https://cdn.morpho.org/assets/chains/eth.svg"}
-                      alt={"Ethereum"}
-                      width={17}
-                      height={17}
-                    />
-                  ) : (
-                    <Image src={Base} alt={"Base"} width={17} height={17} />
-                  )}
-                  <span className="text-secondary text-[14px]">
-                    {t("common.switchWalletNetwork")}
-                  </span>
-                  <Info color="#FFB13De6" className="h-4 w-4" />
-                </div>
-              ) : (
-                <></>
-              )}
-              <div
-                className="flex gap-2 p-[6px] items-center h-[36px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
-                onClick={switchWallet}
-              >
-                <Switch className="w-4 h-4 text-primary" />
-                <span className="text-secondary text-[14px]">
-                  {t("common.switchWallet")}
-                </span>
-              </div>
-              <div
-                className="flex gap-2 p-[6px] items-center h-[36px] cursor-pointer hover:bg-accent"
-                onClick={disconnectWallet}
-              >
-                <Disconnect className="w-4 h-4 text-primary" />
-                <span className="text-secondary text-[14px]">
-                  {t("common.disconnectWallet")}
-                </span>
-              </div>
-            </PopoverContent>
-          </Popover>
-        ) : (
-          <CustomButton
-            onClick={connectWallet}
-            className="bg-[#3153fb] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
+    <>
+      <div className="flex flex-col gap-0">
+        <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-background px-[11px] lg:px-[40px]">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            {t("common.connectWallet")}
-          </CustomButton>
-        )}
+            <Navigation className="h-6 w-6 text-primary" />
+            <span className="sr-only">Toggle menu</span>
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setRightbarOpen(!rightbarOpen)}
-        >
-          <NavigationAlert className="h-7 w-7 text-primary" />
-          <span className="sr-only">Toggle Right</span>
-        </Button>
+          {/* Breadcrumb (only if there's a second segment) */}
+          {shouldShowBreadcrumb && (
+            <nav className="text-sm text-secondary hidden md:flex">
+              <ol className="flex items-center space-x-2">
+                {breadcrumbItems.map((item, index) => (
+                  <li key={item.href} className="flex items-center">
+                    {index === breadcrumbItems.length - 1 ? (
+                      <span className="text-muted text-semibold text-[13px]">
+                        {item.name}
+                      </span>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className="text-muted text-semibold hover:text-primary text-[13px]"
+                      >
+                        {item.name}
+                        <span className="mx-2 text-muted text-semibold text-[13px]">
+                          {" "}
+                          /{" "}
+                        </span>
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </nav>
+          )}
 
-        <NetworkMismatchModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          walletChainId={currentChainId || ""}
-          desiredNetwork={selectedNetwork}
-          onSwitch={handleSwitchWalletNetwork}
+          <div className="ml-auto flex items-center gap-2">
+            <LanguageSelector />
+            <NetworkSwitcher
+              handleNetworkSwitch={handleNetworkSwitch}
+              selectedNetwork={network} // Using Redux state
+              setSelectedNetwork={(newNetwork) =>
+                dispatch(setReduxNetwork(newNetwork))
+              }
+            />
+
+            {/* Connect Wallet Button */}
+            {storedWallet ? (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <CustomButton className="flex items-center gap-1 bg-transparent lg:bg-foreground text-[11px] rounded-[3px] cursor-pointer hover:bg-accent">
+                    <div className="w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#A5FECA] via-[#3EDCEB] via-[#2594FF] to-[#53F]"></div>
+                    <span className="text-secondary hidden lg:flex">
+                      {shortenAddress(storedWallet.accounts[0].address)}
+                    </span>
+                    {currentChainId !== selectedNetwork &&
+                      currentChainId !== "0x2105" && (
+                        <Info color="#FFB13De6" className="h-4 w-4" />
+                      )}
+                  </CustomButton>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-[300px] p-0 bg-ring text-card flex flex-col shadow-[0px_1px_20px_0px_rgba(0,0,0,0.04),0px_12px_16px_0px_rgba(6,9,11,0.05),0px_6px_12px_0px_rgba(0,0,0,0.07)] z-100"
+                  align="end"
+                  sideOffset={5}
+                >
+                  <Link
+                    href={
+                      `https://etherscan.${
+                        currentNetwork === "mainnet" ? "org" : "io"
+                      }/address/` + storedWallet.accounts[0].address
+                    }
+                    target="_blank"
+                    className="flex gap-2 px-[8px] py-[12px] items-center h-[48px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
+                  >
+                    <div className="w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#A5FECA] via-[#3EDCEB] via-[#2594FF] to-[#53F]"></div>
+                    <span className="text-secondary text-[14px] underline">
+                      {shortenAddress(storedWallet.accounts[0].address)}
+                    </span>
+                    <RightArrow
+                      className="w-4 h-4 rotate-135"
+                      width="12px"
+                      height="12px"
+                    />
+                  </Link>
+                  {currentChainId !== selectedNetwork &&
+                  currentChainId !== "0x2105" ? (
+                    <div
+                      className="flex gap-2 p-[6px] items-center h-[36px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
+                      onClick={handleSwitchWalletNetwork}
+                    >
+                      {currentChainId !== "0x1" ? (
+                        <Image
+                          src={"https://cdn.morpho.org/assets/chains/eth.svg"}
+                          alt={"Ethereum"}
+                          width={17}
+                          height={17}
+                        />
+                      ) : (
+                        <Image src={Base} alt={"Base"} width={17} height={17} />
+                      )}
+                      <span className="text-secondary text-[14px]">
+                        {t("common.switchWalletNetwork")}
+                      </span>
+                      <Info color="#FFB13De6" className="h-4 w-4" />
+                    </div>
+                  ) : (
+                    <></>
+                  )}
+                  <div
+                    className="flex gap-2 p-[6px] items-center h-[36px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
+                    onClick={switchWallet}
+                  >
+                    <Switch className="w-4 h-4 text-primary" />
+                    <span className="text-secondary text-[14px]">
+                      {t("common.switchWallet")}
+                    </span>
+                  </div>
+                  <div
+                    className="flex gap-2 p-[6px] items-center h-[36px] cursor-pointer hover:bg-accent"
+                    onClick={disconnectWallet}
+                  >
+                    <Disconnect className="w-4 h-4 text-primary" />
+                    <span className="text-secondary text-[14px]">
+                      {t("common.disconnectWallet")}
+                    </span>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <>
+                <CustomButton
+                  onClick={connectWallet}
+                  className="bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
+                >
+                  {t("common.connectWallet")}
+                </CustomButton>
+              </>
+            )}
+
+            {selectedVault.length > 0 ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setRightbarOpen(!rightbarOpen)}
+              >
+                <NavigationAlert className="h-7 w-7 text-primary" />
+                <span className="sr-only">Toggle Right</span>
+              </Button>
+            ) : (
+              <></>
+            )}
+
+            <NetworkMismatchModal
+              isOpen={showModal}
+              onClose={() => setShowModal(false)}
+              walletChainId={currentChainId || ""}
+              desiredNetwork={selectedNetwork}
+              onSwitch={handleSwitchWalletNetwork}
+            />
+          </div>
+        </header>
+        <Footer
+          className={`
+          transition-all duration-300 ease-in-out
+          ${isVisible && isIndexDetailPage ? "top-0" : "hidden"}
+        `}
         />
       </div>
-    </header>
+    </>
   );
 }

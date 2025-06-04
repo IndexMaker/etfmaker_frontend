@@ -57,7 +57,7 @@ export function VaultTable({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
-
+  console.log(vaults)
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
   );

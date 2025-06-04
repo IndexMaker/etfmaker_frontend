@@ -20,9 +20,8 @@ export class DailyFetchJob {
     private dbService: DbService,
     private indexService: IndexService,
     private bitgetService: BitgetService,
-    private etfPriceservice: EtfPriceService
-  ) {
-  }
+    private etfPriceservice: EtfPriceService,
+  ) {}
 
   @Cron('10 21 * * *')
   async temp() {
@@ -123,19 +122,21 @@ export class DailyFetchJob {
 
     // store daily token's price
     await this.coinGeckoService.storeMissingPricesUntilToday();
-    // await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
     await this.binanceService.storeTradingPairs();
-    await this.binanceService.storePairListingTimestamps()
-    await this.bitgetService.syncListings()
+    await this.binanceService.storePairListingTimestamps();
+    await this.bitgetService.syncListings();
   }
 
-  @Cron('30 0 * * *')  // Triggers daily at 00:30 (but filters dates)
+  @Cron('30 0 * * *') // Triggers daily at 00:30 (but filters dates)
   async rebalanceSY100() {
     const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
     const firstRunDate = new Date('2024-05-26T00:00:00'); // Starting point: May 20, 2024
 
     // Calculate days since May 20th
-    const daysSinceStart = Math.floor((today.getTime() - firstRunDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysSinceStart = Math.floor(
+      (today.getTime() - firstRunDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
 
     // Only execute if it's a biweekly interval (0, 14, 28... days since May 20th)
     if (daysSinceStart >= 0 && daysSinceStart % 14 === 0) {
@@ -153,24 +154,46 @@ export class DailyFetchJob {
     }
   }
 
-  @Cron('30 0 * * *')
+  @Cron('40 0 * * *')
   async rebalanceAllETFs() {
     await this.dbService.getDb().transaction(async (tx) => {
       const top100Service = new Top100Service(
-        this.coinGeckoService,  
+        this.coinGeckoService,
         this.binanceService,
         this.bitgetService,
         new IndexRegistryService(),
         new DbService(),
       );
-      const timestamp = Math.floor((new Date()).getTime() / 1000);
-      
+      const now = new Date();
+      now.setUTCHours(0, 0, 0, 0);
+      const timestamp = Math.floor(now.getTime() / 1000);
+
       // Rebalance all ETFs
-      await top100Service.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, timestamp); // SYAZ
-      await top100Service.rebalanceETF('layer-2',23, timestamp); // SYL2
-      await top100Service.rebalanceETF('artificial-intelligence', 24, timestamp); // SYAI
+      await top100Service.rebalanceETF(
+        'andreessen-horowitz-a16z-portfolio',
+        22,
+        timestamp,
+      ); // SYAZ
+      await top100Service.rebalanceETF('layer-2', 23, timestamp); // SYL2
+      await top100Service.rebalanceETF(
+        'artificial-intelligence',
+        24,
+        timestamp,
+      ); // SYAI
       await top100Service.rebalanceETF('meme-token', 25, timestamp); // SYME
-      await top100Service.rebalanceETF('decentralized-finance-defi', 26, timestamp); // SYDF
+      await top100Service.rebalanceETF(
+        'decentralized-finance-defi',
+        27,
+        timestamp,
+      ); // SYDF
     });
+
+    // Compute daily price again.
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(21);
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(22);
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(23);
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(24);
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(25);
+    await this.etfPriceservice.getHistoricalDataFromTempRebalances(27);
   }
 }

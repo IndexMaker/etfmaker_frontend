@@ -14,7 +14,7 @@ export function CustomButton({
     <button
       className={cn(
         "px-[8px] py-[5px] rounded-xs text-sm font-medium transition-colors cursor-pointer",
-        variant === "default" && "bg-[#3153fb] text-white hover:bg-blue-600",
+        variant === "default" && "bg-[#2470ff] text-white hover:bg-blue-600",
         variant === "outline" &&
           "border border-gray-600 text-gray-300 hover:bg-gray-700",
         variant === "secondary" &&

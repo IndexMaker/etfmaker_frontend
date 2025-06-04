@@ -742,143 +742,151 @@ export const transactionTypes = [
     name: "All transaction types",
   },
   {
-    id: "deposit",
-    name: "Vault Deposit",
+    id: "mint",
+    name: "Index Mint",
   },
   {
-    id: "withdraw",
-    name: "Vault Withdraw",
+    id: "collateral_deposit",
+    name: "Collateral Deposit",
   },
   {
-    id: "free",
-    name: "Vault Free",
+    id: "index_deposit",
+    name: "Index deposit",
   },
   {
-    id: "transfer",
-    name: "Vault Transfer",
+    id: "burn",
+    name: "Index Burn",
+  },
+  {
+    id: "bridge",
+    name: "Index Bridge",
+  },
+  {
+    id: "redeem",
+    name: "Collateral Redeem",
   },
 ];
 export const userActivities: Activity[] = [
   {
     id: "1",
-    dateTime: "2 days ago",
-    wallet: "0×9C25...7f7E",
-    hash: "0xfb33...31ca",
-    transactionType: "withdraw",
+    dateTime: "2 hours ago",
+    wallet: "0x8fA2...3bC1",
+    hash: "0x4a2d...9e1f",
+    transactionType: "mint",
     amount: {
-      amount: 25610817.8,
+      amount: 12450.82,
       currency: "DAI",
-      amountSummary: "$25.64M",
-    },
+      amountSummary: "$12.45k"
+    }
   },
   {
     id: "2",
-    dateTime: "last week",
-    wallet: "0×9C25...7f7E",
-    hash: "0×9dfe...6b72",
-    transactionType: "free",
+    dateTime: "1 day ago",
+    wallet: "0x3Ee7...9dF2",
+    hash: "0x7b3c...2a4d",
+    transactionType: "collateral_deposit",
     amount: {
-      amount: 524503.44,
-      currency: "DAI",
-      amountSummary: "$524.88k",
-    },
+      amount: 87500.0,
+      currency: "ETH",
+      amountSummary: "$262.5k"
+    }
   },
   {
     id: "3",
-    dateTime: "2 weeks ago",
-    wallet: "0×9C25...7f7E",
-    hash: "0×8633...a84c",
-    transactionType: "withdraw",
+    dateTime: "3 days ago",
+    wallet: "0x1B34...7eE5",
+    hash: "0x9e2a...3b7c",
+    transactionType: "index_deposit",
     amount: {
-      amount: 50862402.68,
+      amount: 42180.15,
       currency: "DAI",
-      amountSummary: "$50.79M",
-    },
+      amountSummary: "$42.18k"
+    }
   },
   {
     id: "4",
-    dateTime: "3 weeks ago",
-    wallet: "0×9C25...7f7E",
-    hash: "0×97ef...db97",
-    transactionType: "transfer",
+    dateTime: "1 week ago",
+    wallet: "0x5D92...1fA3",
+    hash: "0x3c4d...8e9f",
+    transactionType: "burn",
     amount: {
-      amount: 25961392.19,
-      currency: "DAI",
-      amountSummary: "$25.95M",
-    },
+      amount: 15600.75,
+      currency: "USDC",
+      amountSummary: "$15.6k"
+    }
   },
   {
     id: "5",
-    dateTime: "4 weeks ago",
-    wallet: "0×9C25...7f7E",
-    hash: "0xaed0...e95d",
-    transactionType: "deposit",
+    dateTime: "2 weeks ago",
+    wallet: "0x7Ee1...4bC9",
+    hash: "0x1a2b...3c4d",
+    transactionType: "bridge",
     amount: {
-      amount: 24802065.11,
+      amount: 32800.0,
       currency: "DAI",
-      amountSummary: "$24.8M",
-    },
+      amountSummary: "$32.8k"
+    }
   },
   {
     id: "6",
-    dateTime: "4 weeks ago",
-    wallet: "0×9C25...7f7E",
-    hash: "0×9ac3...a50f",
-    transactionType: "free",
+    dateTime: "3 weeks ago",
+    wallet: "0x2F45...6dE8",
+    hash: "0x5e6f...7a8b",
+    transactionType: "redeem",
     amount: {
-      amount: 1224726.63,
-      currency: "DAI",
-      amountSummary: "$1.22M",
-    },
+      amount: 7450.25,
+      currency: "ETH",
+      amountSummary: "$22.35k"
+    }
   },
   {
     id: "7",
-    dateTime: "last month",
-    wallet: "0×9C25...7f7E",
-    hash: "0×7817...a01d",
-    transactionType: "withdraw",
+    dateTime: "1 month ago",
+    wallet: "0x9A23...1bE4",
+    hash: "0x8c9d...0e1f",
+    transactionType: "mint",
     amount: {
-      amount: 1620592.95,
-      currency: "DAI",
-      amountSummary: "$1.61M",
-    },
+      amount: 58200.4,
+      currency: "USDC",
+      amountSummary: "$58.2k"
+    }
   },
   {
     id: "8",
-    dateTime: "last month",
-    wallet: "0×9C25...7f7E",
-    hash: "0xe7d2...f87a",
-    transactionType: "deposit",
+    dateTime: "6 weeks ago",
+    wallet: "0x4B56...3cD7",
+    hash: "0x2d3e...4f5a",
+    transactionType: "collateral_deposit",
     amount: {
-      amount: 49783280.0,
+      amount: 125000.0,
       currency: "DAI",
-      amountSummary: "$49.77M",
-    },
+      amountSummary: "$125k"
+    }
   },
   {
     id: "9",
-    dateTime: "last month",
-    wallet: "0×9C25...7f7E",
-    hash: "0xb783...4b58",
-    transactionType: "withdraw",
+    dateTime: "2 months ago",
+    wallet: "0x6C78...2eF9",
+    hash: "0x0a1b...2c3d",
+    transactionType: "index_deposit",
     amount: {
-      amount: 1549300.1,
-      currency: "DAI",
-      amountSummary: "$1.54M",
-    },
+      amount: 87650.3,
+      currency: "USDC",
+      amountSummary: "$87.65k"
+    }
   },
   {
     id: "10",
-    dateTime: "2 months ago",
-    wallet: "0×9C25...7f7E",
-    hash: "0×7023...45cd",
-    transactionType: "transfer",
+    dateTime: "3 months ago",
+    wallet: "0x3D89...1fE2",
+    hash: "0x4e5f...6a7b",
+    transactionType: "bridge",
     amount: {
-      amount: 50527858.48,
+      amount: 215000.0,
       currency: "DAI",
-      amountSummary: "$50.52M",
-    },
-  },
+      amountSummary: "$215k"
+    }
+  }
 ];
 
 export const TOKEN_LIST = [

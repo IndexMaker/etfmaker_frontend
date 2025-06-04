@@ -10,6 +10,7 @@ export const fetchAllIndices = async (): Promise<IndexListEntry[]> => {
 
   if (!response.ok) {
     console.log("Failed to fetch indices");
+    return []
   }
 
   return response.json();
@@ -100,6 +101,36 @@ export const downloadRebalanceData = async (
     const a = document.createElement("a");
     a.href = url;
     a.download = `rebalance_data_${indexName ? indexName : indexId}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.log(
+      axios.isAxiosError(error)
+        ? error.message
+        : "Failed to download rebalance data"
+    );
+  }
+};
+
+export const downloadDailyPriceData = async (
+  indexId: string | number,
+  indexName?: string
+): Promise<void> => {
+  try {
+    const response = await axios.get(
+      `${API_BASE_URL}/indices/downloadDailyPriceData/${indexId}`,
+      {
+        responseType: "blob", // Important for file downloads
+      }
+    );
+
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `daily_price_data_${indexName ? indexName : indexId}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -59,9 +59,9 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
 
   const getButtonColor = () => {
     if (showComparison && !showETHComparison) {
-      return "bg-[#2470ff] hover:bg-blue-700"; // BTC blue
+      return "bg-[#2470ff] hover:bg-blue-700 text-white"; // BTC blue
     } else if (!showComparison && showETHComparison) {
-      return "bg-[#e95f6a] hover:bg-red-700"; // ETH red
+      return "bg-[#e95f6a] hover:bg-red-700 text-white"; // ETH red
     } else {
       return ""; // Default gray
     }
@@ -76,7 +76,7 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
             onClick={() => onPeriodChange(period.value)}
             className={`px-3 py-1 rounded-md text-sm ${
               selectedPeriod === period.value
-                ? "bg-[#3153fb] text-white"
+                ? "bg-[#2470ff] text-white"
                 : "bg-foreground text-secondary hover:text-white"
             }`}
           >
