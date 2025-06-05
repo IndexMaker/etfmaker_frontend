@@ -5,7 +5,9 @@ import { LanguageProvider } from "@/contexts/language-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { ReduxProvider } from "@/provider/reduxProvider";
-
+// import { initPostHog } from "../lib/posthog";
+import { PHProvider, PostHogPageview } from '../lib/posthog'
+import SessionTracker from "../components/posthog/sessionTracker";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,24 +31,35 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // initPostHog();
+
   return (
     <html lang="en">
+      <head>
+        <script
+          src="https://assets.calendly.com/assets/external/widget.js"
+          async
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-[#15181a]`}
       >
-        <ReduxProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <LanguageProvider>
-              {children}
-              <Toaster />
-            </LanguageProvider>
-          </ThemeProvider>
-        </ReduxProvider>
+        <PHProvider>
+          <PostHogPageview />
+          <ReduxProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <LanguageProvider>
+                {children}
+                <Toaster />
+              </LanguageProvider>
+            </ThemeProvider>
+          </ReduxProvider>
+        </PHProvider>
       </body>
     </html>
   );

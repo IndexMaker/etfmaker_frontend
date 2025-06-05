@@ -62,7 +62,7 @@ import FundOverview from "./fund-overview";
 import PortfolioManagerInsights from "./portfolio-manager-insignts";
 import Risk from "./fund-risk";
 import FundRiskReturn from "./fund-risk-return";
-import { Footer } from "@/components/layouts/footer";
+import { AdditionalMenu } from "@/components/layouts/additionalMenu";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -354,9 +354,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 </p>
               </div>
             </div>
-
-            {/* Index Info */}
+            {/* Let's connect / Subscribe / Buy Now */}
             <div className="pt-20">
+              <AdditionalMenu className="" canBuy={index.name === 'SY100'} indexName={index.name} ticker={index.ticker} />
+            </div>
+            {/* Index Info */}
+            <div className="pt-10">
               <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
                 {t("common.indexInfo")}
               </h2>

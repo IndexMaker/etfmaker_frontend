@@ -35,7 +35,7 @@ const initialColumns: ColumnType[] = [
   { id: "curator", title: "Curator", visible: true },
   { id: "collateral", title: "Collateral", visible: true },
   { id: "managementFee", title: "Management Fee", visible: false },
-  { id: "actions", title: "", visible: false },
+  { id: "actions", title: "", visible: true },
 ];
 
 interface EarnContentProps {
@@ -173,7 +173,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   const [visibleColumns, setVisibleColumns] = useState<ColumnType[]>([]);
   useEffect(() => {
-    if (storedWallet && currentChainId === selectedNetwork) {
+    if (storedWallet && (currentChainId === selectedNetwork)) {
       setVisibleColumns(
         columns
           .filter((column) => column.visible)
@@ -328,7 +328,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
             <div className="flex items-center gap-2 justify-between">
               <ColumnVisibilityPopover
-                columns={columns}
+                columns={columns.filter((col) => col.id !== 'actions')}
                 onColumnVisibilityChange={handleColumnVisibilityChange}
               />
               <div className="relative max-h-[32px]">

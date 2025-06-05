@@ -36,8 +36,8 @@ export default function PortfolioManagerInsights() {
         <h2 className="text-[16px] px-3 font-semibold">Portfolio Manager Insights</h2>
       </div>
       <CardContent className="space-y-6 overflow-y-auto px-3">
-        {insights.map((insight) => (
-          <div key={insight.id} className="space-y-3">
+        {insights.map((insight, index) => (
+          <div key={index} className="space-y-3">
             <div className="w-full">
                 {
                     insight.image ? insight.image : 
@@ -54,7 +54,7 @@ export default function PortfolioManagerInsights() {
               >
                 {insight.title}
               </h3>
-              <p className="text-[13px] leading-relaxed text-gray-700">{insight.description}</p>
+              <p className="text-[13px] leading-relaxed text-secondary">{insight.description}</p>
             </div>
           </div>
         ))}

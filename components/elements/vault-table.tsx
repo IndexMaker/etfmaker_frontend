@@ -57,11 +57,9 @@ export function VaultTable({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
-  console.log(vaults)
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
   );
-
   // Function to handle column header click for sorting
   const handleSort = (columnId: string) => {
     if (onSort) {
@@ -76,7 +74,7 @@ export function VaultTable({
   };
 
   const assetDetail = (vault: IndexListEntry) => {
-    if (!vault.ticker) return
+    if (!vault.ticker) return;
     router.push("/vault/" + vault?.ticker);
   };
 
@@ -97,7 +95,7 @@ export function VaultTable({
     <TooltipProvider>
       <div className="">
         <Table className="text-primary text-xs bg-foreground rounded-[8px]">
-          <TableHeader className="text-whiprimarprimaryyte border-accent">
+          <TableHeader className="text-primary border-accent">
             <TableRow className="text-primary hover:bg-accent border-accent">
               {visibleColumns
                 .filter((col) => col.visible)
@@ -379,23 +377,29 @@ export function VaultTable({
                           </div>
                         )}
                         {col.id === "actions" && (
-                          <div className="relative before:absolute before:top-0 before:left-0 before:w-px before:h-full before:bg-accent">
+                          <div className="relative before:absolute before:top-0 before:left-0 before:w-px before:h-full before:bg-accent" onClick={(e) => {return}}>
                             <Button
                               className={cn(
-                                "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0 cursor-pointer",
+                                "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0",
                                 selectedVault
                                   .map((v) => v.name)
                                   .includes(vault.name) ||
-                                  (vault.name !== "relend-eth" &&
-                                    vault.name !== "mev-usdc")
-                                  ? "opacity-30 cursor-default disabled:pointer-events-none"
-                                  : ""
+                                  vault.name !== "SY100"
+                                  ? "opacity-30 cursor-not-allowed"
+                                  : "cursor-pointer"
                               )}
-                              onClick={() =>
-                                onSupplyClick?.(vault.name, vault.ticker)
+                              disabled={
+                                selectedVault
+                                  .map((v) => v.name)
+                                  .includes(vault.name) ||
+                                vault.name !== "SY100"
                               }
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent event from bubbling up to the row
+                                onSupplyClick?.(vault.name, vault.ticker);
+                              }}
                             >
-                              Supply
+                              Buy Now
                             </Button>
                           </div>
                         )}

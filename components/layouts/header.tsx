@@ -36,7 +36,7 @@ import { NetworkMismatchModal } from "../elements/network-mismatch-modal";
 import Image from "next/image";
 import Base from "../../public/icons/base.png";
 import Info from "../icons/info";
-import { Footer } from "./footer";
+import { AdditionalMenu} from "@/components/layouts/additionalMenu";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -392,12 +392,12 @@ export function Header({
             />
           </div>
         </header>
-        <Footer
+        {/* <AdditionalMenu
           className={`
-          transition-all duration-300 ease-in-out
+          transition-all duration-1000 ease-in-out
           ${isVisible && isIndexDetailPage ? "top-0" : "hidden"}
         `}
-        />
+        /> */}
       </div>
     </>
   );

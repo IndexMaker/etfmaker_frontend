@@ -5,7 +5,7 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { X, BarChart2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import NavigationAlert from "../icons/navigation-alert";
 import { Vault } from "@/lib/types/vault";
 import Image from "next/image";
@@ -25,10 +25,12 @@ import Info from "../icons/info";
 import { formatEther, formatUnits } from "viem";
 import { ERC20_ABI, TOKEN_LIST, TOKEN_METADATA } from "@/lib/data";
 import { removeSelectedVault, updateVaultAmount } from "@/redux/vaultSlice";
+import { IndexListEntry } from "@/types";
+import FundMaker from "../icons/fundmaker";
 
 interface SupplyPanelProps {
   vaultIds: VaultInfo[];
-  vaults: Vault[];
+  vaults: IndexListEntry[];
   onClose: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -46,6 +48,7 @@ export function SupplyPanel({
   open,
   setOpen,
 }: SupplyPanelProps) {
+  console.log(vaults);
   const [amount, setAmount] = useState<{ [key: string]: number }>({});
   const [balance, setBalance] = useState(0);
   const { t } = useLanguage();
@@ -151,10 +154,9 @@ export function SupplyPanel({
   };
 
   const setMaxAmount = (vaultId: string) => {
-
     // Assuming vaultId is unique and corresponds to a vault with a token
     const vault = selectedVault.find((v) => v.name === vaultId);
-    const maxBalance = vault ? balances[vault.ticker] || 0 : 0;
+    const maxBalance = vault ? balances['USDC'] || 0 : 0;
 
     if (maxBalance === 0) {
       setInsufficientValue(true);
@@ -162,6 +164,7 @@ export function SupplyPanel({
       return;
     }
     dispatch(updateVaultAmount({ name: vaultId, amount: maxBalance }));
+    setInsufficientValue(false);
     setMaxPopoverOpen(false);
   };
 
@@ -171,9 +174,10 @@ export function SupplyPanel({
 
   const handleAmountChange = (vaultId: string, value: string) => {
     const amount = parseFloat(value);
-    
+
     if (!isNaN(amount) && amount >= 0) {
       dispatch(updateVaultAmount({ name: vaultId, amount }));
+      setInsufficientValue(false);
     } else {
       dispatch(updateVaultAmount({ name: vaultId, amount: 0 }));
     }
@@ -204,29 +208,14 @@ export function SupplyPanel({
             </div>
           </div>
           <div className="flex flex-col">
-            {vaults.map((vault) => {
+            {vaults.map((vault, index) => {
               return (
-                <>
+                <div key={vault.name + index}>
                   {/* Header */}
-                  <div
-                    className="flex items-start justify-between py-8 px-4"
-                    key={vault.id}
-                  >
+                  <div className="flex items-start justify-between py-8 px-4">
                     <div className="flex items-start gap-2">
-                      <div className="w-[20px] h-[20px] rounded-full flex items-start justify-center text-ellipsis overflow-hidden">
-                        {vault.icon ? (
-                          <Image
-                            src={vault.icon || "/placeholder.svg"}
-                            alt={vault.name}
-                            className="object-cover w-full h-full rounded-full"
-                            width={87}
-                            height={87}
-                          />
-                        ) : (
-                          <div className="text-4xl">
-                            {vault.token.symbol.charAt(0)}
-                          </div>
-                        )}
+                      <div className="w-[40px] h-[40px] rounded-full p-1 flex items-start justify-center text-ellipsis overflow-hidden">
+                        <FundMaker className="w-[36px] h-[36px] text-muted" />
                       </div>
                       <div className="flex flex-col gap-1">
                         <h2 className="font-normal text-[15px] text-secondary">
@@ -234,10 +223,10 @@ export function SupplyPanel({
                         </h2>
                         <div className="flex items-center gap-2 text-sm text-zinc-400">
                           <span className="text-[11px] bg-accent px-2 py-0.5 rounded">
-                            {vault.curator.name}
+                            {shortenAddress(vault.curator)}
                           </span>
                           <span className="text-[11px] bg-accent px-2 py-0.5 rounded">
-                            {vault.token.symbol}
+                            {"USDC"}
                           </span>
                         </div>
                       </div>
@@ -245,7 +234,7 @@ export function SupplyPanel({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => removeVault(vault.id)}
+                      onClick={() => removeVault(vault.name)}
                       className="text-secondary cursor-pointer hover:text-primary bg-accent p-[6px] w-[24px] h-[24px]  rounded-[4px]"
                     >
                       <X className="h-2 w-2" style={{ width: "12px" }} />
@@ -257,7 +246,7 @@ export function SupplyPanel({
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-[12px] text-secondary">
-                          {t("table.supply")} {vault.token.symbol}
+                          {t("table.supply")} {"USDC"}
                         </label>
                       </div>
                       <div className="flex flex-col">
@@ -280,16 +269,16 @@ export function SupplyPanel({
                               step="any"
                               value={
                                 selectedVault.find(
-                                  (_vault) => _vault.name === vault.id
+                                  (_vault) => _vault.name === vault.name
                                 )?.amount || ""
                               }
                               className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-gray-400"
-                              onInput={(e) => {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                              onInput={(e) => {
                                 e.currentTarget.value =
                                   e.currentTarget.value.replace(/[^0-9.]/g, "");
 
                                 handleAmountChange(
-                                  vault.id,
+                                  vault.name,
                                   e.currentTarget.value
                                 );
                               }}
@@ -306,7 +295,7 @@ export function SupplyPanel({
                               }}
                             />
                             <div className="font-mono text-[11px] text-muted">
-                              $0.00
+                              {balances['USDC'] && balances['USDC'].toFixed(2) || 0.00}
                             </div>
                           </div>
 
@@ -356,7 +345,7 @@ export function SupplyPanel({
                                     <Button
                                       variant="ghost"
                                       className="text-[13px] px-[8px] py-[5px] bg-[#2470FF] !hover:bg-[#2470FF90] cursor-pointer h-[32px] rounded-[4px] w-full"
-                                      onClick={() => setMaxAmount(vault.id)}
+                                      onClick={() => setMaxAmount(vault.name)}
                                     >
                                       {t("common.iUnderstand")}
                                     </Button>
@@ -364,7 +353,12 @@ export function SupplyPanel({
                                       variant="ghost"
                                       className="text-[13px] px-[8px] py-[5px] bg-accent cursor-pointer h-[32px] rounded-[4px] w-full"
                                       onClick={() => {
-                                        dispatch(updateVaultAmount({name: vault.id, amount: 0}));
+                                        dispatch(
+                                          updateVaultAmount({
+                                            name: vault.name,
+                                            amount: 0,
+                                          })
+                                        );
                                         setMaxPopoverOpen(false);
                                       }}
                                     >
@@ -388,8 +382,7 @@ export function SupplyPanel({
                       <div className="flex justify-end mt-1">
                         <span className="text-xs text-secondary">
                           {t("common.balance")}:{" "}
-                          {balances[vault.token.symbol]?.toFixed(2) || 0}{" "}
-                          {vault.token.symbol}
+                          {balances["USDC"]?.toFixed(2) || 0} {"USDC"}
                         </span>
                       </div>
                     </div>
@@ -404,9 +397,9 @@ export function SupplyPanel({
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="font-normal text-primary text-[12px]">
-                            {vault.instantApy}
+                            {vault.ytdReturn} %
                           </span>
-                          {Number.parseFloat(vault.instantApy) > 5 && (
+                          {vault.ytdReturn > 5 && (
                             <CustomTooltip
                               key={"instantApy"}
                               content={
@@ -427,7 +420,7 @@ export function SupplyPanel({
                                     <div className="flex items-center gap-1">
                                       <Image
                                         src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
-                                        alt={vault.token.symbol}
+                                        alt={"USDC"}
                                         width={14}
                                         height={14}
                                       />
@@ -467,54 +460,89 @@ export function SupplyPanel({
                         </div>
                         <div className="flex items-center gap-1">
                           {vault.collateral.length > 0 ? (
-                            vault.collateral.map((collateral, index) => (
-                              <CustomTooltip
-                                key={index.toString()}
-                                content={
-                                  <div className="flex flex-col gap-1 min-w-[220px] bg-accent rounded-[8px]">
-                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                      <span>Collateral</span>
-                                      <div className="flex items-center">
-                                        <Image
-                                          src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
-                                          alt={vault.token.symbol}
-                                          width={17}
-                                          height={17}
-                                        />
-                                        <span>PT-U...025</span>
+                            vault.collateral
+                              .slice(0, 5)
+                              .map((collateral, index) => (
+                                <CustomTooltip
+                                  key={"collateral-" + index.toString()}
+                                  content={
+                                    <div className="flex flex-col gap-1 min-w-[220px] bg-foreground rounded-[8px]">
+                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                        <span>Collateral</span>
+                                        <div className="flex items-center">
+                                          <Image
+                                            src={
+                                              collateral.logo ||
+                                              `https://cdn.morpho.org/assets/logos/usdc.svg`
+                                            }
+                                            alt={"USDC"}
+                                            width={17}
+                                            height={17}
+                                          />
+                                          <span>PT-U...025</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                        <span className="">Oracle</span>
+                                        <a
+                                          target="_blank"
+                                          href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
+                                          className="hover:bg-[afafaf20]"
+                                        >
+                                          Exchange rate
+                                        </a>
+                                        <Copy className="w-[15px] h-[15px]" />
                                       </div>
                                     </div>
-                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                      <span>LLTV</span>
-                                      <span className="font-bold">91.5%</span>
-                                    </div>
-                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                      <span className="">Oracle</span>
-                                      <a
-                                        target="_blank"
-                                        href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
-                                        className="hover:bg-[afafaf20]"
-                                      >
-                                        Exchange rate
-                                      </a>
-                                      <Copy className="w-[15px] h-[15px]" />
-                                    </div>
+                                  }
+                                >
+                                  <div className="flex items-center gap-1 hover:px-1 hover:transition-all">
+                                    {/* <span className="hover:px-1 hover:transition-all text-primary text-[12px] cursor-pointer">
+                                    {collateral.name}
+                                  </span> */}
+                                    <Image
+                                      src={
+                                        collateral.logo ??
+                                        `https://cdn.morpho.org/assets/logos/usdc.svg`
+                                      }
+                                      alt={collateral.name}
+                                      width={17}
+                                      height={17}
+                                      className="object-cover w-full h-full"
+                                    />
                                   </div>
-                                }
-                              >
-                                <span className="hover:px-1 hover:transition-all text-primary text-[12px] cursor-pointer">
-                                  {collateral}
-                                </span>
-                              </CustomTooltip>
-                            ))
+                                </CustomTooltip>
+                              ))
                           ) : (
                             <></>
+                          )}
+                          {vault.collateral.length > 5 && (
+                            <CustomTooltip
+                              content={
+                                <div className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[300px] bg-foreground">
+                                  {vault.collateral
+                                    .slice(5)
+                                    .map((collateral, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex items-center gap-2"
+                                      >
+                                        <span>{collateral.name}</span>
+                                      </div>
+                                    ))}
+                                </div>
+                              }
+                            >
+                              <span className="text-[12px] pl-2 text-secondary">
+                                + {vault.collateral.length - 5}
+                              </span>
+                            </CustomTooltip>
                           )}
                         </div>
                       </div>
                     </div>
                   </div>
-                </>
+                </div>
               );
             })}
           </div>
@@ -559,7 +587,11 @@ export function SupplyPanel({
 
               <Button
                 className="flex-1 h-[40px] bg-blue-600 hover:bg-blue-700 text-primary text-[14px] cursor-pointer"
-                disabled={selectedVault.filter(_vault => isNaN(_vault.amount) || _vault.amount === 0).length > 0}
+                disabled={
+                  selectedVault.filter(
+                    (_vault) => isNaN(_vault.amount) || _vault.amount === 0
+                  ).length > 0
+                }
                 onClick={handleSupply}
               >
                 {t("common.finalizeTransactions")}

@@ -12,6 +12,7 @@ export type TranslationKeys = {
   table: Record<string, string>;
   type: Record<string, string>;
   ecosystem: Record<string, string>;
+  subscribe: Record<string, string>;
 };
 
 type Translations = {
@@ -93,7 +94,7 @@ export const translations: Translations = {
       positions: "Positions",
       rewards: "Rewards",
       bundler: "Bundler",
-      oneDayEarnAPY: "1D Earn APY",
+      oneDayEarnAPY: "YTD",
       collateralExposure: "Collateral Exposure",
       cancel: "Cancel",
       finalizeTransactions: "Finalize Transactions",
@@ -114,6 +115,7 @@ export const translations: Translations = {
       iUnderstand: "I understand",
       undoMaxSupply: "Undo max supply",
       ecosystem: "Ecosystem",
+      submit: "Submit",
     },
     table: {
       name: "Index Name",
@@ -176,7 +178,21 @@ export const translations: Translations = {
       "defi-saver":
         "Advanced DeFi Management. All the essential tools for creating, tracking, and managing your DeFi portfolio.",
     },
-  },
+    subscribe: {
+      description: "Receive direct updates with the latest observations on markets from our senior investment professionals and discover the latest opportunities across equities, bonds and specialized assets.",
+      formTitle: "Manage your subscriptions",
+      emailLabel: "EMAIL ADDRESS*",
+      investorType: "INVESTOR TYPE",
+      individualInvestor: "INDIVIDUAL INVESTOR",
+      institutionalInvestor : "INSTITUTIONAL INVESTOR",
+      learnMore: "Learn more about how we approach each topic and select your subscriptions below.",
+      infoText: "Our investment teams share their latest thinking on markets, sectors, and investment strategies through regular publications.",
+      marketPerspectives: "Quarterly outlooks and thematic research from our investment teams.",
+      etfUpdates: "Performance commentary and portfolio manager insights on our ETF strategies.",
+      submitButton: 'Subscribe',
+      privacyPolicy: " I have read the Online Privacy Policy",
+    }
+  }
 };
 
 // Get translation for a key

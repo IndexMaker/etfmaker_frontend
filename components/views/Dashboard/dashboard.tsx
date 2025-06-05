@@ -9,7 +9,7 @@ import { mockup_vaults } from "@/lib/data";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { addSelectedVault, clearSelectedVault } from "@/redux/vaultSlice";
-import { Footer } from "@/components/layouts/footer";
+import { AdditionalMenu } from "@/components/layouts/additionalMenu";
 interface DashboardProps {
   children?: React.ReactNode;
 }
@@ -19,6 +19,9 @@ export default function Dashboard({ children }: DashboardProps) {
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
   );
+
+  const storedIndexes = useSelector((state: RootState) => state.index.indices);
+
   const dispatch = useDispatch();
 
   // Function to handle supply button click
@@ -81,8 +84,8 @@ export default function Dashboard({ children }: DashboardProps) {
               onClose={handleCloseSupplyPanel}
               open={rightbarOpen}
               setOpen={setRightbarOpen}
-              vaults={mockup_vaults.filter((vault) =>
-                selectedVault.map((v) => v.name).includes(vault.id)
+              vaults={storedIndexes.filter((vault) =>
+                selectedVault.map((v) => v.name).includes(vault.name)
               )}
             />
           )}
