@@ -6,6 +6,7 @@ import { MetricsService } from 'src/modules/computation/metrics.service';
 import { Top100Service } from 'src/modules/computation/top100.service';
 import { BinanceService } from 'src/modules/data-fetcher/binance.service';
 import { Response } from 'express';
+import { CoinGeckoService } from 'src/modules/data-fetcher/coingecko.service';
 
 @ApiTags('indices')
 @Controller('indices')
@@ -15,6 +16,7 @@ export class IndexController {
     private etfPriceService: EtfPriceService,
     private metricsService: MetricsService,
     private top100Service: Top100Service,
+    private coinGeckoService: CoinGeckoService,
     private indexRegistryService: IndexRegistryService,
   ) {}
 
@@ -39,14 +41,15 @@ export class IndexController {
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
+    await this.coinGeckoService.storeMissingPricesUntilToday();
     await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
-    // await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
     // SY100: Biweekly from 2022-01-01
-    let sy100Start = new Date('2023-10-16');
+    let sy100Start = new Date('2019-01-01');
     const now = new Date();
     now.setUTCHours(0, 0, 0, 0);
     // while (sy100Start < now) {

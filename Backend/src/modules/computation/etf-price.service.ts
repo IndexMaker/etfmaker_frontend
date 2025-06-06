@@ -556,7 +556,7 @@ export class EtfPriceService {
         );
         if (price === null) continue;
         lastKnownPrice = Number(price.toFixed(2));
-
+        console.log(dateStr, price)
         historicalData.push({
           name: indexData.name,
           date: new Date(ts * 1000),

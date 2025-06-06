@@ -5,9 +5,11 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Home } from "lucide-react";
 import { useState } from "react";
+import { CalendlyModal } from "../calendly/calendly-modal";
 import { SubscribeModal } from "../subscribe/subscribe-modal";
 import { useDispatch } from "react-redux";
 import { addSelectedVault } from "@/redux/vaultSlice";
+import { CustomButton } from "../ui/custom-button";
 
 interface AdditionalMenuProps {
   className: string;
@@ -35,51 +37,48 @@ export function AdditionalMenu({
     <>
       <footer
         className={cn(
-          "flex w-full flex-row gap-4 justify-start bottom-0 h-[40px] md:h-[40px] pt-0 shrink-0 items-center bg-background px-[4px]",
+          "flex w-full flex-row gap-4 justify-end bottom-0 h-[40px] md:h-[40px] pt-0 shrink-0 items-center bg-transparent px-[4px]",
           className
         )}
       >
-        <Link
+        {/* <Link
           className={cn(
             "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors ",
-            "justify-center px-0",
-            "bg-transparent hover:underline text-primary text-[16px] cursor-pointer"
+            "justify-center ",
+            " hover:underline text-primary text-[16px] cursor-pointer"
           )}
           href={"/"}
         >
           <Home className="text-primary hover:underline text-[16px] w-5 h-5" />
-        </Link>
-        <span className="text-primary text-[16px]">/</span>
-        <button
+        </Link> */}
+        <CustomButton
           className={cn(
-            "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors ",
-            "justify-center px-0",
-            "bg-transparent hover:underline text-primary text-[16px] cursor-pointer"
+            "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors px-2",
+            "justify-center ",
+            " hover:underline text-primary text-[16px] cursor-pointer"
           )}
           onClick={() => setIsCalendlyOpen(true)}
         >
           {t("common.connect")}
-        </button>
-        <span className="text-primary text-[16px]">/</span>
-        <button
+        </CustomButton>
+        <CustomButton
           className={cn(
-            "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors ",
-            "justify-center px-0",
-            "bg-transparent hover:underline text-primary text-[16px] cursor-pointer"
+            "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors px-2",
+            "justify-center ",
+            " hover:underline text-primary text-[16px] cursor-pointer"
           )}
           onClick={() => setIsSubscribeOpen(true)}
         >
           {t("common.subscribe")}
-        </button>
+        </CustomButton>
         <>
-          <span className="text-primary text-[16px]">/</span>
-          <button
+          <CustomButton
             className={cn(
-              "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors",
-              "justify-center px-0",
+              "flex items-center gap-3 rounded-sm py-[6px] font-[500] transition-colors px-2",
+              "justify-center ",
               canBuy
-                ? "bg-transparent hover:underline text-primary text-[16px] cursor-pointer"
-                : "bg-transparent text-gray-400 text-[16px] cursor-not-allowed"
+                ? " hover:underline text-primary text-[16px] cursor-pointer"
+                : " text-gray-400 text-[16px] cursor-not-allowed"
             )}
             onClick={
               canBuy
@@ -90,11 +89,14 @@ export function AdditionalMenu({
             disabled={!canBuy}
           >
             {t("common.buy")}
-          </button>
+          </CustomButton>
         </>
       </footer>
 
-
+      <CalendlyModal
+        isOpen={isCalendlyOpen}
+        onClose={() => setIsCalendlyOpen(false)}
+      />
 
       {/* Subscribe Modal */}
       <SubscribeModal

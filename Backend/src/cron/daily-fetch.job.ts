@@ -131,7 +131,7 @@ export class DailyFetchJob {
   async rebalanceSY100() {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
-    const firstRunDate = new Date('2024-05-26T00:00:00'); // Starting point: May 20, 2024
+    const firstRunDate = new Date('2024-05-26T00:00:00'); // Starting point: May 26, 2024
 
     // Calculate days since May 20th
     const daysSinceStart = Math.floor(

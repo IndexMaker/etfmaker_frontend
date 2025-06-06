@@ -27,11 +27,11 @@ export default function SessionTracker() {
     handleRouteChange(window.location.pathname)
     
     // Track subsequent pageviews
-    window.addEventListener('routeChangeComplete', handleRouteChange)
+    // window.addEventListener('routeChangeComplete', handleRouteChange)
     
-    return () => {
-      window.removeEventListener('routeChangeComplete', handleRouteChange)
-    }
+    // return () => {
+    //   window.removeEventListener('routeChangeComplete', handleRouteChange)
+    // }
   }, [router])
 
   return null

@@ -62,6 +62,7 @@ export const translations: Translations = {
       averageAPYImprovement: "Average APY Improvement",
       vaultInfo: "Index Info",
       indexInfo: "Index Info",
+      indexBalance: "Index Balance",
       indexOverview: "Index Overview",
       indexPerformance: "Index Performance",
       connect: "Let's Connect",

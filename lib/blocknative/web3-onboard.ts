@@ -5,6 +5,13 @@ import walletConnectModule from "@web3-onboard/walletconnect";
 import trustWallet from "@web3-onboard/trust";
 import bitgetWallet from "@web3-onboard/bitget/dist/index";
 import metamask from "@web3-onboard/metamask";
+
+import { Notify } from "@web3-onboard/core";
+
+const notifyOptions = {
+  enabled: false // Disable all notifications
+};
+
 // Configure WalletConnect options
 const walletConnectOptions = {
   // Set your WalletConnect configuration options here
@@ -86,6 +93,15 @@ const onboard = Onboard({
       { name: "WalletConnect", url: "https://walletconnect.com/" },
     ],
   },
+  notify: notifyOptions,
+  accountCenter: {
+    desktop: {
+      enabled: false, // Disable desktop account center
+    },
+    mobile: {
+      enabled: false, // Disable mobile account center
+    }
+  }
   // theme: 'dark'
 });
 

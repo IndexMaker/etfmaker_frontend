@@ -54,7 +54,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "reward">(
     "position"
   );
-  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network
   );

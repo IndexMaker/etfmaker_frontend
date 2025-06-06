@@ -765,14 +765,6 @@ export class CoinGeckoService {
         return null;
       }
 
-      // 5. Store the closest price we found (using normalized timestamp)
-      await db.insert(historicalPrices).values({
-        coinId,
-        symbol,
-        timestamp: normalizedUnix, // Store with our normalized timestamp
-        price: closestPrice.price,
-      });
-
       return closestPrice.price;
     } catch (error) {
       this.logger.error(
@@ -788,58 +780,130 @@ export class CoinGeckoService {
     now.setUTCHours(0, 0, 0, 0);
     const todayTimestamp = Math.floor(now.getTime() / 1000);
 
-    // Step 1: Get latest timestamp entry for each unique token
-    const result = await this.dbService.getDb().execute(sql`
-      SELECT DISTINCT ON (coin_id)
-        coin_id,
-        symbol,
-        timestamp
-      FROM historical_prices
-      ORDER BY coin_id, timestamp DESC
-    `);
+    // Step 1: Get latest prices (Drizzle query)
+    const latestPrices = await this.dbService
+      .getDb()
+      .select({
+        coin_id: historicalPrices.coinId,
+        symbol: historicalPrices.symbol,
+        timestamp: sql<number>`MAX(${historicalPrices.timestamp})`.as(
+          'timestamp',
+        ),
+      })
+      .from(historicalPrices)
+      .groupBy(historicalPrices.coinId, historicalPrices.symbol)
+      .execute();
 
-    const latestPrices = result.rows as {
-      coin_id: string;
+    if (!latestPrices.length) return;
+
+    // Step 2: Process tokens in parallel
+    const allMissingPrices: {
+      coinId: string;
       symbol: string;
       timestamp: number;
-    }[];
+      price: number;
+    }[] = [];
 
-    if (!latestPrices || latestPrices.length === 0) {
-      return;
-    }
+    await Promise.all(
+      latestPrices.map(async ({ coin_id, symbol }) => {
+        try {
+          const lastTimestamp = await this.getLastNormalizedTimestamp(coin_id);
+          if (!lastTimestamp) return;
 
-    // Step 2: For each token, fetch & store missing prices from last timestamp to today
-    for (const { coin_id, symbol } of latestPrices) {
-      try {
-        // Get the last recorded timestamp (normalized to UTC midnight)
-        const lastTimestamp = await this.getLastNormalizedTimestamp(coin_id);
+          // Calculate 30 days ago in seconds (86400 seconds/day × 30 days)
+          const thirtyDaysAgo = todayTimestamp - 86400 * 30;
 
-        if (!lastTimestamp) continue;
+          // Skip if lastTimestamp is older than 30 days
+          if (lastTimestamp < thirtyDaysAgo) {
+            this.logger.log(
+              `Skipping ${symbol} - last update was over 30 days ago`,
+            );
+            return;
+          }
 
-        // Generate all missing timestamps (daily intervals)
-        const missingTimestamps = this.generateDailyTimestamps(
-          lastTimestamp + 86400, // Start from next day
-          todayTimestamp,
-        );
-
-        // Fetch and store prices for each missing day
-        for (const timestamp of missingTimestamps) {
-          const price = await this.getOrFetchTokenPriceAtTimestamp(
-            coin_id,
-            symbol,
-            timestamp,
+          // Generate all missing timestamps
+          const missingTimestamps = this.generateDailyTimestamps(
+            lastTimestamp + 86400, // Next day
+            todayTimestamp,
           );
 
-          if (price !== null) {
-            this.logger.log(
-              `Stored price for ${symbol} on ${new Date(timestamp * 1000).toISOString()}: $${price}`,
+          if (missingTimestamps.length === 0) return;
+
+          // Get all prices in a single API call
+          const from = missingTimestamps[0];
+          const to = missingTimestamps[missingTimestamps.length - 1];
+
+          try {
+            const response = await firstValueFrom(
+              this.httpService.get(
+                `https://pro-api.coingecko.com/api/v3/coins/${coin_id}/market_chart/range`,
+                {
+                  params: {
+                    vs_currency: 'usd',
+                    from,
+                    to,
+                  },
+                  headers: {
+                    accept: 'application/json',
+                    'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+                  },
+                },
+              ),
+            );
+
+            const prices: [number, number][] = response.data?.prices ?? [];
+            if (prices.length === 0) return;
+
+            // Create a map of normalized dates to prices
+            const priceMap = new Map<number, number>();
+            for (const [tsMs, price] of prices) {
+              const ts = Math.floor(tsMs / 1000);
+              const date = new Date(ts * 1000);
+              date.setUTCHours(0, 0, 0, 0);
+              const normalizedTs = Math.floor(date.getTime() / 1000);
+              priceMap.set(normalizedTs, price);
+            }
+
+            // Match missing timestamps with available prices
+            missingTimestamps.forEach((timestamp) => {
+              const price = priceMap.get(timestamp);
+              if (price !== undefined) {
+                allMissingPrices.push({
+                  coinId: coin_id,
+                  symbol,
+                  timestamp,
+                  price,
+                });
+              }
+            });
+          } catch (err) {
+            this.logger.error(
+              `Failed to fetch prices for ${symbol}: ${err.message}`,
             );
           }
+        } catch (err) {
+          this.logger.error(`Error processing ${symbol}: ${err.message}`);
         }
+      }),
+    );
+
+    // Step 3: Batch insert with Drizzle
+    if (allMissingPrices.length > 0) {
+      try {
+        await this.dbService.getDb().transaction(async (tx) => {
+          // Chunk inserts if needed (e.g., 1000 records at a time)
+          const chunkSize = 1000;
+          for (let i = 0; i < allMissingPrices.length; i += chunkSize) {
+            const chunk = allMissingPrices.slice(i, i + chunkSize);
+            await tx
+              .insert(historicalPrices)
+              .values(chunk)
+              .onConflictDoNothing();
+          }
+        });
+        this.logger.log(`Stored ${allMissingPrices.length} prices in batch`);
       } catch (err) {
-        this.logger.error(
-          `Error processing prices for ${symbol}: ${err.message}`,
-        );
+        this.logger.error(`Batch insert failed: ${err.message}`);
       }
     }
   }

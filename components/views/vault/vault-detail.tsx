@@ -63,6 +63,11 @@ import PortfolioManagerInsights from "./portfolio-manager-insignts";
 import Risk from "./fund-risk";
 import FundRiskReturn from "./fund-risk-return";
 import { AdditionalMenu } from "@/components/layouts/additionalMenu";
+import IndexBalance from "./index-balance";
+import { getBalance } from "viem/actions";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -94,6 +99,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [showComparison, setShowComparison] = useState(false);
   const [showETHComparison, setShowETHComparison] = useState(false);
   const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([]);
+
+  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+
   useEffect(() => {
     const fetchData = async (indexId: number) => {
       setIsLoading(true);
@@ -354,10 +362,34 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 </p>
               </div>
             </div>
+
+            {/* Vault Description */}
+            {storedWallet ? (
+              <div className="pt-20">
+                <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                  {t("common.indexBalance")}
+                </h2>
+                <IndexBalance
+                  // walletBalance={getBalance}
+                  index={index}
+                  className={""}
+                  canBuy={index.name === "SY100"}
+                  indexName={index.name}
+                  ticker={index.ticker}
+                />
+              </div>
+            ) : (
+              <></>
+            )}
             {/* Let's connect / Subscribe / Buy Now */}
-            <div className="pt-20">
-              <AdditionalMenu className="" canBuy={index.name === 'SY100'} indexName={index.name} ticker={index.ticker} />
-            </div>
+            {/* <div className="pt-20">
+              <AdditionalMenu
+                className=""
+                canBuy={index.name === "SY100"}
+                indexName={index.name}
+                ticker={index.ticker}
+              />
+            </div> */}
             {/* Index Info */}
             <div className="pt-10">
               <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
