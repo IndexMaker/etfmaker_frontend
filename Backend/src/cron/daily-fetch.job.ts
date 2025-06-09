@@ -5,7 +5,7 @@ import { CoinGeckoService } from 'src/modules/data-fetcher/coingecko.service';
 import { CoinMarketCapService } from 'src/modules/data-fetcher/coinmarketcap.service';
 import { BinanceService } from 'src/modules/data-fetcher/binance.service';
 import { IndexService } from 'src/modules/blockchain/index.service';
-import { Top100Service } from 'src/modules/computation/top100.service';
+import { EtfMainService } from 'src/modules/computation/etf-main.service';
 import { EtfPriceService } from 'src/modules/computation/etf-price.service';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { binanceListings, tokenCategories, tokenOhlc } from 'src/db/schema';
@@ -141,7 +141,7 @@ export class DailyFetchJob {
     // Only execute if it's a biweekly interval (0, 14, 28... days since May 20th)
     if (daysSinceStart >= 0 && daysSinceStart % 14 === 0) {
       await this.dbService.getDb().transaction(async (tx) => {
-        const top100Service = new Top100Service(
+        const etfMainService = new EtfMainService(
           this.coinGeckoService,
           this.binanceService,
           this.bitgetService,
@@ -149,7 +149,7 @@ export class DailyFetchJob {
           new DbService(),
         );
         const timestamp = Math.floor(today.getTime() / 1000);
-        await top100Service.rebalanceSY100(21, timestamp);
+        await etfMainService.rebalanceSY100(21, timestamp);
       });
     }
   }
@@ -157,7 +157,7 @@ export class DailyFetchJob {
   @Cron('40 0 * * *')
   async rebalanceAllETFs() {
     await this.dbService.getDb().transaction(async (tx) => {
-      const top100Service = new Top100Service(
+      const etfMainService = new EtfMainService(
         this.coinGeckoService,
         this.binanceService,
         this.bitgetService,
@@ -169,19 +169,19 @@ export class DailyFetchJob {
       const timestamp = Math.floor(now.getTime() / 1000);
 
       // Rebalance all ETFs
-      await top100Service.rebalanceETF(
+      await etfMainService.rebalanceETF(
         'andreessen-horowitz-a16z-portfolio',
         22,
         timestamp,
       ); // SYAZ
-      await top100Service.rebalanceETF('layer-2', 23, timestamp); // SYL2
-      await top100Service.rebalanceETF(
+      await etfMainService.rebalanceETF('layer-2', 23, timestamp); // SYL2
+      await etfMainService.rebalanceETF(
         'artificial-intelligence',
         24,
         timestamp,
       ); // SYAI
-      await top100Service.rebalanceETF('meme-token', 25, timestamp); // SYME
-      await top100Service.rebalanceETF(
+      await etfMainService.rebalanceETF('meme-token', 25, timestamp); // SYME
+      await etfMainService.rebalanceETF(
         'decentralized-finance-defi',
         27,
         timestamp,

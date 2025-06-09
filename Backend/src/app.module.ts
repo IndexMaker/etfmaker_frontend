@@ -12,6 +12,8 @@ import { StorageModule } from './modules/storatge/storage.module';
 import { ProjectsController } from './api/project.controller';
 import { ProjectsService } from './projects/project.service';
 import { ProjectsModule } from './modules/projects/project.module';
+import { ListingController } from './api/listing.controller';
+import { ListingModule } from './modules/scraper/scraper.module';
 
 @Module({
   imports: [
@@ -27,9 +29,10 @@ import { ProjectsModule } from './modules/projects/project.module';
     BlockchainModule,
     ComputationModule,
     StorageModule,
-    ProjectsModule
+    ProjectsModule,
+    ListingModule
   ],
-  controllers: [IndexController, ProjectsController],
+  controllers: [IndexController, ProjectsController, ListingController],
   providers: [DailyFetchJob],
 })
 export class AppModule {}

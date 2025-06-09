@@ -3,7 +3,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { EtfPriceService } from 'src/modules/computation/etf-price.service';
 import { MetricsService } from 'src/modules/computation/metrics.service';
-import { Top100Service } from 'src/modules/computation/top100.service';
+import { EtfMainService } from 'src/modules/computation/etf-main.service';
 import { BinanceService } from 'src/modules/data-fetcher/binance.service';
 import { Response } from 'express';
 import { CoinGeckoService } from 'src/modules/data-fetcher/coingecko.service';
@@ -15,7 +15,7 @@ export class IndexController {
     private binanceService: BinanceService,
     private etfPriceService: EtfPriceService,
     private metricsService: MetricsService,
-    private top100Service: Top100Service,
+    private etfMainService: EtfMainService,
     private coinGeckoService: CoinGeckoService,
     private indexRegistryService: IndexRegistryService,
   ) {}
@@ -54,7 +54,7 @@ export class IndexController {
     now.setUTCHours(0, 0, 0, 0);
     // while (sy100Start < now) {
     //   console.log(`Simulating SY100 rebalance at ${sy100Start.toISOString()}`);
-    //   await this.top100Service.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
+    //   await this.etfMainService.rebalanceSY100(21, Math.floor(sy100Start.getTime() / 1000));
     //   sy100Start.setDate(sy100Start.getDate() + 14); // biweekly
     // }
 
@@ -62,48 +62,48 @@ export class IndexController {
     let syazStart = new Date('2019-01-01');
     // while (syazStart < now) {
     //   console.log(`Simulating SYAZ rebalance at ${syazStart.toISOString()}`);
-    //   await this.top100Service.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, Math.floor(syazStart.getTime() / 1000));
+    //   await this.etfMainService.rebalanceETF('andreessen-horowitz-a16z-portfolio', 22, Math.floor(syazStart.getTime() / 1000));
     //   syazStart.setDate(syazStart.getDate() + 1); // daily
     // }
 
-    // await this.top100Service.simulateRebalances(syazStart, now, 'andreessen-horowitz-a16z-portfolio', 22);
+    // await this.etfMainService.simulateRebalances(syazStart, now, 'andreessen-horowitz-a16z-portfolio', 22);
 
     // SYL2: Daily from 2019-01-01
     let syl2Start = new Date('2019-01-01');
     // while (syl2Start < now) {
     //   console.log(`Simulating SYL2 rebalance at ${syl2Start.toISOString()}`);
-    //   await this.top100Service.rebalanceETF('layer-2', 23, Math.floor(syl2Start.getTime() / 1000));
+    //   await this.etfMainService.rebalanceETF('layer-2', 23, Math.floor(syl2Start.getTime() / 1000));
     //   syl2Start.setDate(syl2Start.getDate() + 1); // daily
     // }
-    // await this.top100Service.simulateRebalances(syl2Start, now, 'layer-2', 23);
+    // await this.etfMainService.simulateRebalances(syl2Start, now, 'layer-2', 23);
 
     // SYAI: Daily from 2019-01-01
     let syaiStart = new Date('2019-01-01');
     // while (syaiStart < now) {
     //   console.log(`Simulating SYAI rebalance at ${syaiStart.toISOString()}`);
-    //   await this.top100Service.rebalanceETF('artificial-intelligence', 24, Math.floor(syaiStart.getTime() / 1000));
+    //   await this.etfMainService.rebalanceETF('artificial-intelligence', 24, Math.floor(syaiStart.getTime() / 1000));
     //   syaiStart.setDate(syaiStart.getDate() + 1); // daily
     // }
 
-    // await this.top100Service.simulateRebalances(syaiStart, now, 'artificial-intelligence', 24);
+    // await this.etfMainService.simulateRebalances(syaiStart, now, 'artificial-intelligence', 24);
 
     // SYME: Daily from 2019-01-01
     let symeStart = new Date('2019-01-01');
     // while (symeStart < now) {
     //   console.log(`Simulating SYME rebalance at ${symeStart.toISOString()}`);
-    //   await this.top100Service.rebalanceETF('meme-token', 25, Math.floor(symeStart.getTime() / 1000));
+    //   await this.etfMainService.rebalanceETF('meme-token', 25, Math.floor(symeStart.getTime() / 1000));
     //   symeStart.setDate(symeStart.getDate() + 1); // daily
     // }
 
-    // await this.top100Service.simulateRebalances(symeStart, now, 'meme-token', 25);
+    // await this.etfMainService.simulateRebalances(symeStart, now, 'meme-token', 25);
     // SYDF: Daily from 2019-01-01
     let sydfStart = new Date('2019-01-01');
     // while (sydfStart < now) {
     //   console.log(`Simulating SYDF rebalance at ${sydfStart.toISOString()}`);
-    // await this.top100Service.rebalanceETF('decentralized-finance-defi', 26, Math.floor(now.getTime() / 1000));
+    // await this.etfMainService.rebalanceETF('decentralized-finance-defi', 26, Math.floor(now.getTime() / 1000));
     //   sydfStart.setDate(sydfStart.getDate() + 1); // daily
     // }
-    // await this.top100Service.simulateRebalances(
+    // await this.etfMainService.simulateRebalances(
     //   sydfStart,
     //   now,
     //   'decentralized-finance-defi',
@@ -284,6 +284,7 @@ export class IndexController {
       'Date',
       'Price',
       'Asset Quantities',
+      'Asset Prices',
     ];
 
     // Convert data to CSV rows
@@ -298,13 +299,18 @@ export class IndexController {
       const quantities = JSON.stringify(event.quantities)
         .replace(/"/g, '')
         .replace(/\\/g, '');
-      const price = event.price || 0
+
+      const coinPrices = JSON.stringify(event.coinPrices)
+        .replace(/"/g, '')
+        .replace(/\\/g, '');
+      const price = event.price || 0;
       const row = [
         event.index,
         event.indexId,
         date,
         price,
         `"${quantities}"`,
+        `"${coinPrices}"`,
       ];
 
       csvRows.push(row.join(','));

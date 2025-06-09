@@ -9,7 +9,17 @@ import {
   rebalances,
   tempRebalances,
 } from '../../db/schema';
-import { and, asc, desc, eq, gte, inArray, lte, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  between,
+  desc,
+  eq,
+  gte,
+  inArray,
+  lte,
+  sql,
+} from 'drizzle-orm';
 import { ethers } from 'ethers';
 import * as path from 'path';
 import { IndexListEntry, VaultAsset } from 'src/common/types/index.types';
@@ -556,7 +566,7 @@ export class EtfPriceService {
         );
         if (price === null) continue;
         lastKnownPrice = Number(price.toFixed(2));
-        console.log(dateStr, price)
+        console.log(dateStr, price);
         historicalData.push({
           name: indexData.name,
           date: new Date(ts * 1000),
@@ -904,19 +914,106 @@ export class EtfPriceService {
       .where(eq(dailyPrices.indexId, indexId.toString()))
       .orderBy(asc(dailyPrices.date));
 
-    // If we have complete historical data, return it immediately
-    if (existingPrices.length > 0) {
-      return existingPrices.map((row) => ({
-        index: indexData.name, // Will be filled below
-        indexId: indexId, // Will be filled below
+    if (existingPrices.length === 0) return [];
+
+    // Step 1: Parse quantities and collect all unique coinIds
+    const parsedData = existingPrices.map((row) => ({
+      ...row,
+      quantities: row.quantities as Record<string, number>,
+    }));
+
+    const allCoinIds = new Set<string>();
+    parsedData.forEach((row) => {
+      Object.keys(row.quantities).forEach((coinId) => allCoinIds.add(coinId));
+    });
+
+    // Step 2: Get full timestamp range for daily_prices
+    const timestamps = parsedData.map((row) =>
+      Math.floor(new Date(row.date).getTime() / 1000),
+    );
+    const minTimestamp = Math.min(...timestamps);
+    const maxTimestamp = Math.max(...timestamps);
+
+    // Step 3: Query historical prices in batch
+    const coinIdList = Array.from(allCoinIds);
+    const historical = await this.dbService
+      .getDb()
+      .select()
+      .from(historicalPrices)
+      .where(
+        and(
+          inArray(historicalPrices.coinId, coinIdList),
+          between(
+            historicalPrices.timestamp,
+            minTimestamp - 86400,
+            maxTimestamp + 86400,
+          ),
+        ),
+      );
+
+    // Step 4: Build a price lookup map: { coinId => [ { timestamp, price } ] }
+    const priceMap = new Map<string, { timestamp: number; price: number }[]>();
+    for (const row of historical) {
+      if (!priceMap.has(row.coinId)) {
+        priceMap.set(row.coinId, []);
+      }
+      priceMap
+        .get(row.coinId)!
+        .push({ timestamp: row.timestamp, price: row.price });
+    }
+
+    // Ensure each list is sorted by timestamp
+    for (const [_, list] of priceMap) {
+      list.sort((a, b) => a.timestamp - b.timestamp);
+    }
+
+    // Helper: Find nearest price by timestamp (assumes sorted list)
+    const findNearestPrice = (coinId: string, targetTs: number) => {
+      const prices = priceMap.get(coinId);
+      if (!prices) return null;
+      let left = 0;
+      let right = prices.length - 1;
+      while (left < right) {
+        const mid = Math.floor((left + right) / 2);
+        if (prices[mid].timestamp < targetTs) left = mid + 1;
+        else right = mid;
+      }
+      const best = prices[left];
+      if (!best) return null;
+
+      // Compare with previous to find closer one
+      if (left > 0) {
+        const prev = prices[left - 1];
+        return Math.abs(prev.timestamp - targetTs) <
+          Math.abs(best.timestamp - targetTs)
+          ? prev.price
+          : best.price;
+      }
+      return best.price;
+    };
+
+    // Step 5: Build final output
+    const results = parsedData.map((row) => {
+      const targetTs = Math.floor(new Date(row.date).getTime() / 1000);
+
+      const dailyCoinPrices: Record<string, number> = {};
+      for (const coinId of Object.keys(row.quantities)) {
+        const price = findNearestPrice(coinId, targetTs);
+        if (price !== null) dailyCoinPrices[coinId] = price;
+      }
+
+      return {
+        index: indexData.name,
+        indexId,
         date: row.date,
         quantities: row.quantities,
         price: Number(row.price),
         value: Number(row.price),
-      }));
-    }
+        coinPrices: dailyCoinPrices, // Add per-day coin prices
+      };
+    });
 
-    return []
+    return results;
   }
 
   async getTempRebalancedData(indexId: number): Promise<any[]> {
@@ -1546,7 +1643,7 @@ export class EtfPriceService {
         managementFee: Number(curatorFee) / 1e18, // Assuming fee is in the smallest unit
       });
     }
-    indexList.sort((a, b) => a.indexId - b.indexId)
+    indexList.sort((a, b) => a.indexId - b.indexId);
     return indexList;
   }
 
@@ -1561,12 +1658,15 @@ export class EtfPriceService {
       .where(
         and(
           eq(dailyPrices.indexId, indexId.toString()),
-          eq(dailyPrices.date, new Date(targetDate).toISOString().split('T')[0]),
+          eq(
+            dailyPrices.date,
+            new Date(targetDate).toISOString().split('T')[0],
+          ),
         ),
       )
       .orderBy(desc(dailyPrices.date))
       .limit(1);
-    return priceRow[0] && priceRow[0].price ? priceRow[0].price : null
+    return priceRow[0] && priceRow[0].price ? priceRow[0].price : null;
     // 1. Fetch the most recent rebalance before target date from DB
     // const applicableRebalance = await this.dbService
     //   .getDb()
@@ -1673,8 +1773,11 @@ export class EtfPriceService {
       0,
       0,
     );
-    const latestPrice = await this.getPriceForDate(indexId, previousDay.getTime());
-    console.log(latestPrice)
+    const latestPrice = await this.getPriceForDate(
+      indexId,
+      previousDay.getTime(),
+    );
+    console.log(latestPrice);
     const jan1Price = await this.getPriceForDate(indexId, jan1);
     if (!jan1Price || jan1Price === 0) return 0;
     return (((latestPrice || 0) - jan1Price) / jan1Price) * 100;
@@ -1754,7 +1857,7 @@ export class EtfPriceService {
         };
       }),
     );
-    const sortAssets = assets.sort((a, b) => b.market_cap - a.market_cap)
+    const sortAssets = assets.sort((a, b) => b.market_cap - a.market_cap);
     return sortAssets;
   }
 

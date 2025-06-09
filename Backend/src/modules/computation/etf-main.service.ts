@@ -18,8 +18,8 @@ import { BitgetService } from '../data-fetcher/bitget.service';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 @Injectable()
-export class Top100Service {
-  private readonly logger = new Logger(Top100Service.name);
+export class EtfMainService {
+  private readonly logger = new Logger(EtfMainService.name);
   private readonly fallbackStablecoins = ['usdt', 'usdc', 'dai', 'busd'];
   private readonly fallbackWrappedTokens = ['wbtc', 'weth'];
   private readonly blacklistedCategories = [

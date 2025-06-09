@@ -183,3 +183,32 @@ export const bitgetListings = pgTable('bitget_listings', {
     .defaultNow()
     .$onUpdate(() => new Date()),
 });
+
+export const listingsTable = pgTable('crypto_listings', {
+  id: serial('id').primaryKey(),
+  token: text('token').notNull(),
+  tokenName: text('token_name').notNull(),
+  listingAnnouncementDate: jsonb('listing_announcement_date').notNull(),
+  listingDate: jsonb('listing_date').notNull(),
+  delistingAnnouncementDate: jsonb('delisting_announcement_date'),
+  delistingDate: jsonb('delisting_date'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const apiKeysTable = pgTable('api_keys', {
+  id: serial('id').primaryKey(),
+  key_name: text('key_name'),
+  key: text('key').notNull().unique(),
+  expired_date: timestamp('expired_date'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const announcementsTable = pgTable('announcements', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  source: text('source').notNull(),
+  announceDate: timestamp('announce_date').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+});
