@@ -10,6 +10,7 @@ import { EtfPriceService } from 'src/modules/computation/etf-price.service';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { binanceListings, tokenCategories, tokenOhlc } from 'src/db/schema';
 import { BitgetService } from 'src/modules/data-fetcher/bitget.service';
+import { ScraperService } from 'src/modules/scraper/scraperService';
 
 @Injectable()
 export class DailyFetchJob {
@@ -21,6 +22,7 @@ export class DailyFetchJob {
     private indexService: IndexService,
     private bitgetService: BitgetService,
     private etfPriceservice: EtfPriceService,
+    private scraperService: ScraperService,
   ) {}
 
   @Cron('10 21 * * *')
@@ -195,5 +197,18 @@ export class DailyFetchJob {
     await this.etfPriceservice.getHistoricalDataFromTempRebalances(24);
     await this.etfPriceservice.getHistoricalDataFromTempRebalances(25);
     await this.etfPriceservice.getHistoricalDataFromTempRebalances(27);
+  }
+
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleCron() {
+    console.log('Running hourly scraper task');
+    // const bitgetData = await this.scraperService.scrapeBitget();
+    // const binanceData = await this.scraperService.scrapeBinance();
+    // const allListings = [...bitgetData.listings, ...binanceData.listings];
+    // const allAnnouncements = [...bitgetData.announcements, ...binanceData.announcements];
+    // const transformedListings = await this.scraperService.transformData(allListings);
+    // await this.scraperService.saveListingsToDatabase(transformedListings);
+    // await this.scraperService.saveAnnouncementsToDatabase(allAnnouncements);
   }
 }

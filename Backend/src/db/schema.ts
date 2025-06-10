@@ -210,5 +210,6 @@ export const announcementsTable = pgTable('announcements', {
   source: text('source').notNull(),
   announceDate: timestamp('announce_date').notNull(),
   content: text('content').notNull(),
+  parsed: boolean('parsed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
