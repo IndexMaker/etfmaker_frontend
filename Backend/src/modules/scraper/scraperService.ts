@@ -3,7 +3,7 @@ import axios from 'axios';
 import { DbService } from 'src/db/db.service';
 import * as cheerio from 'cheerio';
 import { announcementsTable, listingsTable } from 'src/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, sql } from 'drizzle-orm';
 const puppeteer = require('puppeteer-extra');
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { PuppeteerExtra } from 'puppeteer-extra';
@@ -461,9 +461,8 @@ export class ScraperService {
     const token = process.env.SCRAPER_API_KEY;
     while (hasMore && shouldContinueFetching) {
       try {
-        const targetUrl = encodeURIComponent(
-          'https://www.bitget.com/v1/cms/helpCenter/content/section/helpContentDetail',
-        );
+        const targetUrl =
+          'https://www.bitget.com/v1/cms/helpCenter/content/section/helpContentDetail';
 
         let response;
 
@@ -492,9 +491,8 @@ export class ScraperService {
             response = await axios(config);
           } else if (params.businessType) {
             // Delistings API
-            const targetUrl = encodeURIComponent(
-              'https://www.bitget.com/v1/msg/public/station/pageList',
-            );
+            const targetUrl =
+              'https://www.bitget.com/v1/msg/public/station/pageList';
             response = await axios.post(
               `https://api.scrape.do/?token=${token}&url=${targetUrl}`,
               {
@@ -543,9 +541,8 @@ export class ScraperService {
             if (!contentId) continue;
 
             // Fetch announcement details
-            const detailTargetUrl = encodeURIComponent(
-              'https://www.bitget.com/v1/cms/helpCenter/content/get/helpContentDetail',
-            );
+            const detailTargetUrl =
+              'https://www.bitget.com/v1/cms/helpCenter/content/get/helpContentDetail';
 
             const detailResponse = await axios.post(
               `https://api.scrape.do/?token=${token}&url=${detailTargetUrl}`,
@@ -1221,5 +1218,252 @@ export class ScraperService {
         `Failed to save announcements to database: ${error.message}`,
       );
     }
+  }
+
+  async parseAnnouncementsFromDB(
+    dbService: DbService,
+  ): Promise<{ listings: any[]; announcements: any[] }> {
+    const listings: any[] = [];
+    const announcements: any[] = [];
+
+    try {
+      // Fetch all unparsed announcements from Binance
+      const dbAnnouncements = await dbService
+        .getDb()
+        .select()
+        .from(announcementsTable)
+        .where(
+          and(
+            eq(announcementsTable.source, 'binance'),
+            eq(announcementsTable.parsed, false),
+          ),
+        )
+        .orderBy(desc(announcementsTable.announceDate));
+
+      for (const announcement of dbAnnouncements) {
+        const { title, content, announceDate } = announcement;
+        const $content = cheerio.load(content);
+        const contentText = $content.text();
+        let parsedTokens = false;
+
+        // Check if it's a listing announcement
+        if (
+          title.toLowerCase().includes('list') &&
+          !title.toLowerCase().includes('delist')
+        ) {
+          // Parse table for listings
+          const table = $content('table');
+          if (table.length) {
+            const headers = table
+              .find('th')
+              .map((_, el) => $content(el).text().trim())
+              .get();
+            const rows: string[][] = [];
+            table.find('tr').each((_, tr) => {
+              const cells = $content(tr)
+                .find('td')
+                .map((_, td) => $content(td).text().trim())
+                .get();
+              if (cells.length) rows.push(cells);
+            });
+
+            // Process table data similar to your API function
+            let pairs: string[] = [];
+            let dates: string[] = [];
+            let underlyingAssets: string[] = [];
+            let quoteAssets: string[] = [];
+
+            for (const row of rows) {
+              const key = row[0]?.toLowerCase() || '';
+              const values = row.slice(1);
+
+              if (
+                key.includes('usdⓢ-m perpetual contract') ||
+                key.includes('spot trading pair')
+              ) {
+                pairs = values.filter((v) => v.match(/^\w+$/i));
+              } else if (key.includes('launch time')) {
+                dates = values.filter((v) => v.match(/\d{4}-\d{2}-\d{2}/));
+              } else if (key.includes('underlying asset')) {
+                underlyingAssets = values.map((v) => v);
+              } else if (key.includes('settlement asset')) {
+                quoteAssets = values;
+              }
+            }
+
+            for (let i = 0; i < pairs.length; i++) {
+              const pair = pairs[i];
+              const token = pair;
+              const quoteAsset = quoteAssets[i] || pair.replace(token, '');
+              const date = dates[i] || dates[0] || '';
+              const tokenName = underlyingAssets[i] || token;
+
+              if (token && quoteAsset) {
+                listings.push({
+                  token,
+                  tokenName,
+                  announcementDate: announceDate.toISOString(),
+                  listingDate: date || null,
+                  source: 'binance',
+                  type: 'listing',
+                });
+                parsedTokens = true;
+              }
+            }
+          }
+        }
+        // Check if it's a delisting announcement
+        else if (title.toLowerCase().includes('delist')) {
+          // Parse content for delistings (same as your API function)
+          const pairDateMatches = contentText.matchAll(
+            /At\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+\(UTC\)):\s+([^\n]+)/gi,
+          );
+          for (const match of pairDateMatches) {
+            const date = match[1];
+            const pairsStr = match[2];
+            const pairs = pairsStr
+              .split(',')
+              .map((p) => p.trim().replace(/\s+/g, ''));
+
+            for (const pair of pairs) {
+              if (pair.includes('/')) {
+                const token = pair.split('/')[0];
+                const quoteAsset = pair.split('/')[1];
+                if (token && quoteAsset) {
+                  listings.push({
+                    token: quoteAsset ? token + quoteAsset : token,
+                    tokenName: token,
+                    announcementDate: announceDate.toISOString(),
+                    delistingDate: date || null,
+                    source: 'binance',
+                    type: 'delisting',
+                  });
+                  parsedTokens = true;
+                }
+              }
+            }
+          }
+
+          const tokenDateMatches = contentText.matchAll(
+            /delist\s+([^.]+?)\s+on\s+(\d{4}-\d{2}-\d{2})(?:\s+\d{2}:\d{2}\s+\(UTC\))?/gi,
+          );
+          for (const match of tokenDateMatches) {
+            const tokensStr = match[1];
+            const date = match[2];
+            const tokens = tokensStr.split(',').map((t) => t.trim());
+
+            for (const token of tokens) {
+              if (token) {
+                listings.push({
+                  token,
+                  tokenName: token,
+                  announcementDate: announceDate.toISOString(),
+                  delistingDate: date || null,
+                  source: 'binance',
+                  type: 'delisting',
+                });
+                parsedTokens = true;
+              }
+            }
+          }
+        }
+
+        // Mark announcement as parsed if we found tokens
+        if (parsedTokens) {
+          await dbService
+            .getDb()
+            .update(announcementsTable)
+            .set({ parsed: true })
+            .where(eq(announcementsTable.id, announcement.id));
+        }
+
+        announcements.push(announcement);
+      }
+    } catch (error) {
+      console.error(`Failed to parse announcements from DB: ${error.message}`);
+    }
+
+    return { listings, announcements };
+  }
+
+  async parseBitgetAnnouncementsFromDB(
+    dbService: DbService,
+    type: 'listing' | 'delisting',
+  ): Promise<{ listings: any[]; announcements: any[] }> {
+    const listings: any[] = [];
+    const announcements: any[] = [];
+
+    try {
+      // Fetch all unparsed Bitget announcements of the specified type
+      const dbAnnouncements = await dbService
+        .getDb()
+        .select()
+        .from(announcementsTable)
+        .where(
+          and(
+            eq(announcementsTable.source, 'bitget'),
+            eq(announcementsTable.parsed, false),
+            type === 'listing'
+              ? ilike(announcementsTable.title, '%list%')
+              : ilike(announcementsTable.title, '%delist%'),
+          ),
+        )
+        .orderBy(desc(announcementsTable.announceDate));
+
+      for (const announcement of dbAnnouncements) {
+        const { title, content, announceDate } = announcement;
+        const $content = cheerio.load(content);
+        const contentText = $content.text();
+        let parsedAnyTokens = false;
+
+        // Extract trading pairs
+        const pairMatches = contentText.matchAll(/(\w+)\/(\w+)/gi);
+        const dateMatches = contentText.matchAll(
+          /(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+\(UTC\))/gi,
+        );
+
+        const pairs = Array.from(pairMatches, (m) => m[0]);
+        const dates = Array.from(dateMatches, (m) => m[0]);
+
+        // Extract from title if not found in content
+        if (pairs.length === 0) {
+          const titlePairs = title.match(/(\w+)\/(\w+)/);
+          if (titlePairs) pairs.push(titlePairs[0]);
+        }
+
+        // Create listing entries
+        for (const pair of pairs) {
+          const [token, quoteAsset] = pair.split('/');
+          listings.push({
+            token,
+            tokenName: token, // Fallback to token symbol
+            quoteAsset,
+            announcementDate: announceDate.toISOString(),
+            [type === 'listing' ? 'listingDate' : 'delistingDate']:
+              dates[0] || null,
+            source: 'bitget',
+            type,
+          });
+          parsedAnyTokens = true;
+        }
+
+        // Update the parsed status in the database if we found any tokens
+        if (parsedAnyTokens) {
+          await dbService
+            .getDb()
+            .update(announcementsTable)
+            .set({ parsed: true })
+            .where(eq(announcementsTable.id, announcement.id));
+        }
+
+        announcements.push(announcement);
+      }
+    } catch (error) {
+      console.error(
+        `Failed to parse Bitget announcements from DB: ${error.message}`,
+      );
+    }
+
+    return { listings, announcements };
   }
 }
