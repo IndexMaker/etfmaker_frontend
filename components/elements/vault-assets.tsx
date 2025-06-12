@@ -24,15 +24,20 @@ import {
 import Info from "../icons/info";
 import { useLanguage } from "@/contexts/language-context";
 import Image from "next/image";
-import BinanceLogo from "./../../public/icons/binance.png"
-import BitgetLogo from "./../../public/icons/bitget.svg"
+import BinanceLogo from "./../../public/icons/binance.png";
+import BitgetLogo from "./../../public/icons/bitget.svg";
 
 interface VaultAssetsProps {
+  isLoading: boolean;
   assets: VaultAsset[];
   visibleColumns: { id: string; name: string; visible: boolean }[];
 }
 
-export function VaultAssets({ assets, visibleColumns }: VaultAssetsProps) {
+export function VaultAssets({
+  isLoading,
+  assets,
+  visibleColumns,
+}: VaultAssetsProps) {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -51,7 +56,7 @@ export function VaultAssets({ assets, visibleColumns }: VaultAssetsProps) {
 
   // Format weights to percentage
   const formatWeights = (value: number) => {
-    return `${(value)}%`;
+    return `${value}%`;
   };
 
   // Helper function to render cell content based on column ID
@@ -68,7 +73,9 @@ export function VaultAssets({ assets, visibleColumns }: VaultAssetsProps) {
           <div className="flex items-center gap-2">
             <span>{asset.assetname}</span>
             <Image
-              src={asset.listing.toLowerCase() === 'bg' ? BitgetLogo : BinanceLogo}
+              src={
+                asset.listing.toLowerCase() === "bg" ? BitgetLogo : BinanceLogo
+              }
               className="h-[17px] rounded-full"
               height={17}
               alt="Listing"
@@ -160,23 +167,51 @@ export function VaultAssets({ assets, visibleColumns }: VaultAssetsProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentAssets.map((asset) => (
-                <TableRow
-                  key={asset.id}
-                  className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
-                >
-                  {visibleColumns
-                    .filter((column) => column.visible)
-                    .map((column, index) => (
-                      <TableCell
-                        className="pl-[20px] text-card pr-18"
-                        key={`${asset.id}-${index}`}
-                      >
-                        {renderCellContent(asset, column.id)}
-                      </TableCell>
-                    ))}
-                </TableRow>
-              ))}
+              {isLoading
+                ? Array.from({ length: 10 }).map((_, index) => (
+                    <TableRow
+                      key={`skeleton-${index}`}
+                      className="h-[54px] border-accent"
+                    >
+                      {visibleColumns
+                        .filter((col) => col.visible)
+                        .map((col) => (
+                          <TableCell
+                            key={`skeleton-${col.id}-${index}`}
+                            className={cn(
+                              "py-2 px-5",
+                              col.id === "actions" &&
+                                "sticky right-0 bg-foreground"
+                            )}
+                          >
+                            <div className="flex items-center">
+                              {col.id === "actions" ? (
+                                <div className="h-8 w-20 rounded bg-accent animate-pulse" />
+                              ) : (
+                                <div className="h-4 w-3/4 rounded bg-accent animate-pulse" />
+                              )}
+                            </div>
+                          </TableCell>
+                        ))}
+                    </TableRow>
+                  ))
+                : currentAssets.map((asset) => (
+                    <TableRow
+                      key={asset.id}
+                      className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
+                    >
+                      {visibleColumns
+                        .filter((column) => column.visible)
+                        .map((column, index) => (
+                          <TableCell
+                            className="pl-[20px] text-card pr-18"
+                            key={`${asset.id}-${index}`}
+                          >
+                            {renderCellContent(asset, column.id)}
+                          </TableCell>
+                        ))}
+                    </TableRow>
+                  ))}
             </TableBody>
           </Table>
         </CardContent>

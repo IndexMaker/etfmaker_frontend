@@ -63,6 +63,7 @@ export const translations: Translations = {
       vaultInfo: "Index Info",
       indexInfo: "Index Info",
       indexBalance: "Index Balance",
+      AssetsToSupply: "Asset to Supply",
       indexOverview: "Index Overview",
       indexPerformance: "Index Performance",
       connect: "Let's Connect",
@@ -157,6 +158,9 @@ export const translations: Translations = {
       market_cap: "Market Cap",
       weights: "Weight",
       sector: "Sector",
+      assetClass: "Asset Class",
+      category: "Category",
+      inceptionDate: "Inception Date",
     },
     type: {
       all: "All Transaction Types",

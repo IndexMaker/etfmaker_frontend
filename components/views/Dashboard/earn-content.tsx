@@ -33,6 +33,9 @@ const initialColumns: ColumnType[] = [
   { id: "totalSupply", title: "Total Supply", visible: true },
   { id: "ytdReturn", title: "YTD return", visible: true },
   { id: "curator", title: "Curator", visible: true },
+  { id: "assetClass", title: "Asset Class", visible: true },
+  { id: "category", title: "Category", visible: true },
+  { id: "inceptionDate", title: "Inception Date", visible: true },
   { id: "collateral", title: "Collateral", visible: true },
   { id: "managementFee", title: "Management Fee", visible: false },
   { id: "actions", title: "", visible: true },
@@ -46,7 +49,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const { t } = useLanguage();
   const [columns, setColumns] = useState(initialColumns);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortColumn, setSortColumn] = useState<string>("name");
+  const [sortColumn, setSortColumn] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
   const [totalManaged, setTotalManaged] = useState<number>(0)
@@ -61,7 +64,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   const dispatch = useDispatch();
 
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [indexLists, setIndexLists] = useState<IndexListEntry[]>([]);
   const [selectedIndexId, setSelectedIndexId] = useState<number | null>(null);
 
@@ -76,6 +79,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
         dispatch(setIndices(data || []))
       } catch (error) {
         console.error("Error fetching performance data:", error);
+        setIsLoading(false);
       } finally {
         setIsLoading(false);
       }
@@ -119,48 +123,50 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
     }
 
     // Then sort the filtered results
-    // return [...filtered].sort((a, b) => {
-    //   let valueA: number | string;
-    //   let valueB: number | string;
+    if (sortColumn !== '')
+      return [...filtered].sort((a, b) => {
+        let valueA: number | string;
+        let valueB: number | string;
 
-    //   // Extract the values to compare based on the sort column
-    //   switch (sortColumn) {
-    //     case "name":
-    //       valueA = a.name;
-    //       valueB = b.name;
-    //       break;
-    //     case "ticker":
-    //       valueA = a.ticker;
-    //       valueB = b.ticker;
-    //       break;
-    //     case "totalSupply":
-    //       // Sort by USD value for totalSupply
-    //       valueA = (a.totalSupply);
-    //       valueB = (b.totalSupply);
-    //       break;
-    //     case "curator":
-    //       valueA = a.curator;
-    //       valueB = b.curator;
-    //       break;
-    //     case "managementFee":
-    //       valueA = (a.managementFee);
-    //       valueB = (b.managementFee);
-    //       break;
-    //     default:
-    //       valueA = a.name;
-    //       valueB = b.name;
-    //   }
+        // Extract the values to compare based on the sort column
+        switch (sortColumn) {
+          case "name":
+            valueA = a.name;
+            valueB = b.name;
+            break;
+          case "ticker":
+            valueA = a.ticker;
+            valueB = b.ticker;
+            break;
+          case "totalSupply":
+            // Sort by USD value for totalSupply
+            valueA = (a.totalSupply);
+            valueB = (b.totalSupply);
+            break;
+          case "curator":
+            valueA = a.curator;
+            valueB = b.curator;
+            break;
+          case "managementFee":
+            valueA = (a.managementFee);
+            valueB = (b.managementFee);
+            break;
+          default:
+            valueA = a.name;
+            valueB = b.name;
+        }
 
-    //   // Compare the values based on sort direction
-    //   if (valueA < valueB) {
-    //     return sortDirection === "asc" ? -1 : 1;
-    //   }
-    //   if (valueA > valueB) {
-    //     return sortDirection === "asc" ? 1 : -1;
-    //   }
-    //   return 0;
-    // });
-    return filtered;
+        // Compare the values based on sort direction
+        if (valueA < valueB) {
+          return sortDirection === "asc" ? -1 : 1;
+        }
+        if (valueA > valueB) {
+          return sortDirection === "asc" ? 1 : -1;
+        }
+        return 0;
+      });
+    else 
+      return filtered;
   }, [searchQuery, sortColumn, sortDirection, storedIndexes]);
   // Function to handle column visibility changes
   const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {
@@ -345,6 +351,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
           </div>
 
           <VaultTable
+            isLoading={isLoading}
             visibleColumns={visibleColumns}
             vaults={filteredAndSortedVaults}
             onSort={handleSort}

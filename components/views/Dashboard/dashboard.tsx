@@ -36,7 +36,6 @@ export default function Dashboard({ children }: DashboardProps) {
   };
 
   useEffect(() => {
-    console.log(selectedVault);
     if (selectedVault.length > 0) {
       setRightbarOpen(true);
     } else {

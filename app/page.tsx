@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 export default function Home() {
   return (
-    <Suspense fallback={<div>Loading ecosystem...</div>}>
+    <Suspense fallback={<div>Loading FundMaker...</div>}>
       <Dashboard />
     </Suspense>
   );

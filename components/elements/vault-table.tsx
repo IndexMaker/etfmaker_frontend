@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { IndexListEntry } from "@/types";
+import FundMaker from "../icons/fundmaker";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -34,6 +35,7 @@ interface VaultTableProps {
     title: string;
     visible: boolean;
   }[];
+  isLoading: boolean;
   vaults: IndexListEntry[];
   onSort?: (columnId: string, direction: "asc" | "desc") => void;
   sortColumn?: string;
@@ -42,6 +44,7 @@ interface VaultTableProps {
 }
 
 export function VaultTable({
+  isLoading,
   visibleColumns,
   vaults,
   onSort,
@@ -82,11 +85,13 @@ export function VaultTable({
   const isSortable = (columnId: string) => {
     // Add all sortable columns here
     return [
-      "vaultName",
+      "name",
+      "ytdReturn",
       "totalSupply",
-      "supplyAPY",
-      "curator",
-      "rewards",
+      "ticker",
+      "assetClass",
+      "category",
+      "inceptionDate",
       "performanceFee",
     ].includes(columnId);
   };
@@ -147,73 +152,104 @@ export function VaultTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentVaults.map((vault: IndexListEntry, index) => (
-              <TableRow
-                key={vault.name}
-                className="hover:bg-accent border-accent h-[54px] text-[13px] cursor-pointer"
-              >
-                {visibleColumns.map(
-                  (col) =>
-                    col.visible && (
-                      <TableCell
-                        key={col.id}
-                        onClick={() => assetDetail(vault)}
-                        className={cn(
-                          "text-card",
-                          col.id === "actions"
-                            ? "sticky right-0 px-5 py-0 bg-foreground border-t before-line max-w-[92px] cursor-default"
-                            : "pl-5 pr-18"
-                        )}
-                      >
-                        {col.id === "name" && (
-                          <>
-                            <div className="flex items-center gap-2 pl-[1.5px]">
-                              {/* <Image
+            {isLoading
+              ? // Skeleton loading state
+                Array.from({ length: 10 }).map((_, index) => (
+                  <TableRow
+                    key={`skeleton-${index}`}
+                    className="h-[54px] border-accent"
+                  >
+                    {visibleColumns
+                      .filter((col) => col.visible)
+                      .map((col) => (
+                        <TableCell
+                          key={`skeleton-${col.id}-${index}`}
+                          className={cn(
+                            "py-2 px-5",
+                            col.id === "actions" &&
+                              "sticky right-0 bg-foreground"
+                          )}
+                        >
+                          <div className="flex items-center">
+                            {col.id === "actions" ? (
+                              <div className="h-8 w-20 rounded bg-accent animate-pulse" />
+                            ) : (
+                              <div className="h-4 w-3/4 rounded bg-accent animate-pulse" />
+                            )}
+                          </div>
+                        </TableCell>
+                      ))}
+                  </TableRow>
+                ))
+              : currentVaults.map((vault: IndexListEntry, index) => (
+                  <TableRow
+                    key={vault.name}
+                    className="hover:bg-accent border-accent h-[54px] text-[13px] cursor-pointer"
+                  >
+                    {visibleColumns.map(
+                      (col) =>
+                        col.visible && (
+                          <TableCell
+                            key={col.id}
+                            onClick={() => assetDetail(vault)}
+                            className={cn(
+                              "text-card",
+                              col.id === "actions"
+                                ? "sticky right-0 px-5 py-0 bg-foreground border-t before-line max-w-[92px] cursor-default"
+                                : "pl-5 pr-18"
+                            )}
+                          >
+                            {col.id === "name" && (
+                              <>
+                                <div className="flex items-center gap-2 pl-[1.5px]">
+                                  {/* <Image
                                 src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
                                 alt={vault.token}
                                 width={17}
                                 height={17}
                               /> */}
-                              <span>{vault.name}</span>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-4 w-4"
-                                  >
-                                    <Info className="h-3 w-3" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs">
-                                    Additional information about this vault
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </>
-                        )}
-                        {col.id === "ticker" && (
-                          <div
-                            className="flex items-center gap-2"
-                            onClick={() => assetDetail(vault)}
-                          >
-                            <span className="text-card">{vault.ticker}</span>
-                          </div>
-                        )}
-                        {col.id === "totalSupply" && (
-                          <div
-                            className="flex items-center"
-                            onClick={() => assetDetail(vault)}
-                          >
-                            <div>{vault.totalSupply}</div>
-                            <div className="text-card p-1 ml-2 bg-accent text-xs">
-                              {vault.totalSupply}
-                            </div>
-                          </div>
-                        )}
-                        {/* {col.id === "instantApy" && (
+                                  <span>{vault.name}</span>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-4 w-4"
+                                      >
+                                        <Info className="h-3 w-3" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="max-w-xs">
+                                        Additional information about this vault
+                                      </p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </div>
+                              </>
+                            )}
+                            {col.id === "ticker" && (
+                              <div
+                                className="flex items-center gap-2"
+                                onClick={() => assetDetail(vault)}
+                              >
+                                <span className="text-card">
+                                  {vault.ticker}
+                                </span>
+                              </div>
+                            )}
+                            {col.id === "totalSupply" && (
+                              <div
+                                className="flex items-center"
+                                onClick={() => assetDetail(vault)}
+                              >
+                                <div>{vault.totalSupply}</div>
+                                <div className="text-card p-1 ml-2 bg-accent text-xs">
+                                  {vault.totalSupply}
+                                </div>
+                              </div>
+                            )}
+                            {/* {col.id === "instantApy" && (
                           <div
                             className="flex items-center gap-1 cursor-pointer"
                             onClick={() => assetDetail(vault)}
@@ -270,144 +306,169 @@ export function VaultTable({
                             )}
                           </div>
                         )} */}
-                        {col.id === "ytdReturn" && (
-                          <div onClick={() => assetDetail(vault)}>
-                            {vault.ytdReturn}
-                          </div>
-                        )}
-                        {col.id === "curator" && (
-                          <div
-                            className="flex items-center gap-2"
-                            onClick={() => assetDetail(vault)}
-                          >
-                            {/* <span>{shortenAddress(vault.curator)}</span> */}
-                            <span>{"OTC"}</span>
-                          </div>
-                        )}
-                        {col.id === "collateral" && (
-                          <div
-                            className="flex items-left gap-0 min-w-[150px]"
-                            onClick={() => assetDetail(vault)}
-                          >
-                            {vault.collateral.length > 0 ? (
-                              <>
-                                {vault.collateral
-                                  .slice(0, 5)
-                                  .map((collateral, index) => (
-                                    <CustomTooltip
-                                      key={index.toString()}
-                                      content={
-                                        <div className="flex flex-col gap-1 min-w-[220px] rounded-[8px]">
-                                          <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                            <span>Collateral</span>
-                                            <div className="flex items-center">
-                                              <Image
-                                                src={collateral.logo}
-                                                alt={"Collateral"}
-                                                width={17}
-                                                height={17}
-                                              />
-                                              <span> {collateral.name}</span>
-                                            </div>
-                                          </div>
-                                          <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                            <span className="">Binance</span>
-                                            {/* <a
+                            {col.id === "ytdReturn" && (
+                              <div onClick={() => assetDetail(vault)}>
+                                {vault.ytdReturn}
+                              </div>
+                            )}
+                            {col.id === "assetClass" && (
+                              <div onClick={() => assetDetail(vault)}>
+                                {vault.assetClass}
+                              </div>
+                            )}
+                            {col.id === "category" && (
+                              <div onClick={() => assetDetail(vault)}>
+                                {vault.category}
+                              </div>
+                            )}
+                            {col.id === "inceptionDate" && (
+                              <div onClick={() => assetDetail(vault)}>
+                                {vault.inceptionDate}
+                              </div>
+                            )}
+                            {col.id === "curator" && (
+                              <div
+                                className="flex items-center gap-2"
+                                onClick={() => assetDetail(vault)}
+                              >
+                                <FundMaker className="w-4 h-4 text-muted" />
+                                <span>{"OTC"}</span>
+                              </div>
+                            )}
+                            {col.id === "collateral" && (
+                              <div
+                                className="flex items-left gap-0 min-w-[150px]"
+                                onClick={() => assetDetail(vault)}
+                              >
+                                {vault.collateral.length > 0 ? (
+                                  <>
+                                    {vault.collateral
+                                      .slice(0, 5)
+                                      .map((collateral, index) => (
+                                        <CustomTooltip
+                                          key={index.toString()}
+                                          content={
+                                            <div className="flex flex-col gap-1 min-w-[220px] rounded-[8px]">
+                                              <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                                <span>Collateral</span>
+                                                <div className="flex items-center">
+                                                  <Image
+                                                    src={collateral.logo}
+                                                    alt={"Collateral"}
+                                                    width={17}
+                                                    height={17}
+                                                  />
+                                                  <span>
+                                                    {" "}
+                                                    {collateral.name}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                              <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                                <span className="">
+                                                  Binance
+                                                </span>
+                                                {/* <a
                                               target="_blank"
                                               href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
                                               className="hover:bg-[afafaf20]"
                                             >
                                               Exchange rate
                                             </a> */}
-                                            <Copy className="w-[15px] h-[15px]" />
-                                          </div>
-                                        </div>
-                                      }
-                                    >
-                                      <span className="hover:px-1 hover:transition-all">
-                                        <div className="flex items-center gap-1">
-                                          {collateral.logo !== "" && (
-                                            <Image
-                                              src={collateral.logo}
-                                              alt={"Collateral"}
-                                              width={17}
-                                              height={17}
-                                              className="mr-1" // Adds slight overlap between images
-                                            />
-                                          )}
-                                        </div>
-                                      </span>
-                                    </CustomTooltip>
-                                  ))}
-                                {vault.collateral.length > 5 && (
-                                  <CustomTooltip
-                                    content={
-                                      <div className="flex flex-col gap-2 p-2">
-                                        {vault.collateral
-                                          .slice(5)
-                                          .map((collateral, index) => (
-                                            <div
-                                              key={index}
-                                              className="flex items-center gap-2"
-                                            >
-                                              {/* <Image
+                                                <Copy className="w-[15px] h-[15px]" />
+                                              </div>
+                                            </div>
+                                          }
+                                        >
+                                          <span className="hover:px-1 hover:transition-all">
+                                            <div className="flex items-center gap-1">
+                                              {collateral.logo !== "" && (
+                                                <Image
+                                                  src={collateral.logo}
+                                                  alt={"Collateral"}
+                                                  width={17}
+                                                  height={17}
+                                                  className="mr-1" // Adds slight overlap between images
+                                                />
+                                              )}
+                                            </div>
+                                          </span>
+                                        </CustomTooltip>
+                                      ))}
+                                    {vault.collateral.length > 5 && (
+                                      <CustomTooltip
+                                        content={
+                                          <div className="flex flex-col gap-2 p-2">
+                                            {vault.collateral
+                                              .slice(5)
+                                              .map((collateral, index) => (
+                                                <div
+                                                  key={index}
+                                                  className="flex items-center gap-2"
+                                                >
+                                                  {/* <Image
                                                 src={collateral.logo}
                                                 alt="Collateral"
                                                 width={17}
                                                 height={17}
                                               /> */}
-                                              <span>{collateral.name}</span>
-                                            </div>
-                                          ))}
-                                      </div>
-                                    }
-                                  >
-                                    <span className="text-[12px] pl-2">
-                                      + {vault.collateral.length - 5}
-                                    </span>
-                                  </CustomTooltip>
-                                )}
-                              </>
-                            ) : null}
-                          </div>
-                        )}
-                        {col.id === "managementFee" && (
-                          <div onClick={() => assetDetail(vault)}>
-                            {vault.managementFee}
-                          </div>
-                        )}
-                        {col.id === "actions" && (
-                          <div className="relative before:absolute before:top-0 before:left-0 before:w-px before:h-full before:bg-accent" onClick={(e) => {return}}>
-                            <Button
-                              className={cn(
-                                "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0",
-                                selectedVault
-                                  .map((v) => v.name)
-                                  .includes(vault.name) ||
-                                  vault.name !== "SY100"
-                                  ? "opacity-30 cursor-not-allowed"
-                                  : "cursor-pointer"
-                              )}
-                              disabled={
-                                selectedVault
-                                  .map((v) => v.name)
-                                  .includes(vault.name) ||
-                                vault.name !== "SY100"
-                              }
-                              onClick={(e) => {
-                                e.stopPropagation(); // Prevent event from bubbling up to the row
-                                onSupplyClick?.(vault.name, vault.ticker);
-                              }}
-                            >
-                              Buy Now
-                            </Button>
-                          </div>
-                        )}
-                      </TableCell>
-                    )
-                )}
-              </TableRow>
-            ))}
+                                                  <span>{collateral.name}</span>
+                                                </div>
+                                              ))}
+                                          </div>
+                                        }
+                                      >
+                                        <span className="text-[12px] pl-2">
+                                          + {vault.collateral.length - 5}
+                                        </span>
+                                      </CustomTooltip>
+                                    )}
+                                  </>
+                                ) : null}
+                              </div>
+                            )}
+                            {col.id === "managementFee" && (
+                              <div onClick={() => assetDetail(vault)}>
+                                {vault.managementFee}
+                              </div>
+                            )}
+                            {col.id === "actions" && (
+                              <div
+                                className="relative before:absolute before:top-0 before:left-0 before:w-px before:h-full before:bg-accent"
+                                onClick={(e) => {
+                                  return;
+                                }}
+                              >
+                                <Button
+                                  className={cn(
+                                    "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0",
+                                    selectedVault
+                                      .map((v) => v.name)
+                                      .includes(vault.name) ||
+                                      vault.name !== "SY100"
+                                      ? "opacity-30 cursor-not-allowed"
+                                      : "cursor-pointer"
+                                  )}
+                                  disabled={
+                                    selectedVault
+                                      .map((v) => v.name)
+                                      .includes(vault.name) ||
+                                    vault.name !== "SY100"
+                                  }
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Prevent event from bubbling up to the row
+                                    onSupplyClick?.(vault.name, vault.ticker);
+                                  }}
+                                >
+                                  Buy Now
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        )
+                    )}
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
         <div className="flex justify-center items-center mt-4 text-primary text-sx">

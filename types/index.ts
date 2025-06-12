@@ -22,4 +22,7 @@ export interface IndexListEntry {
   ytdReturn: number;
   collateral: {name: string, logo: string}[]; // URLs to token logos
   managementFee: number;
+  assetClass?: string;
+  category?: string;
+  inceptionDate?: string;
 }

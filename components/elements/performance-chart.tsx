@@ -36,6 +36,7 @@ interface ChartDataPoint {
 }
 
 interface PerformanceChartProps {
+  isLoading: boolean;
   data: ChartDataPoint[] | null;
   indexId: number;
   ticker: string;
@@ -46,6 +47,7 @@ interface PerformanceChartProps {
 }
 
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({
+  isLoading,
   data,
   indexId,
   ticker,
@@ -65,13 +67,21 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   }, []);
 
   if (!data || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 bg-accent rounded-lg">
-        <p className="text-secondary">
-          No historical data available for this index
-        </p>
-      </div>
-    );
+    if (!isLoading)
+      return (
+        <div className="flex items-center justify-center h-64 bg-accent rounded-lg">
+          <p className="text-secondary">
+            No historical data available for this index
+          </p>
+        </div>
+      );
+    else {
+      return (
+        <div className="w-full h-96">
+          <div className="w-full h-96 rounded bg-accent animate-pulse" />
+        </div>
+      );
+    }
   }
 
   const normalizeData = (
@@ -295,24 +305,28 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
 
   return (
     <div className="w-full h-96">
-      <Line
-        ref={chartRef}
-        data={chartData}
-        options={options}
-        plugins={[
-          {
-            id: "customGradient",
-            beforeDraw(chart: any) {
-              if (!showComparison) {
-                const ctx = chart.ctx;
-                const chartArea = chart.chartArea;
-                const gradient = getGradient(ctx, chartArea);
-                chart.data.datasets[0].backgroundColor = gradient;
-              }
+      {isLoading ? (
+        <div className="w-full h-96 rounded bg-accent animate-pulse" />
+      ) : (
+        <Line
+          ref={chartRef}
+          data={chartData}
+          options={options}
+          plugins={[
+            {
+              id: "customGradient",
+              beforeDraw(chart: any) {
+                if (!showComparison) {
+                  const ctx = chart.ctx;
+                  const chartArea = chart.chartArea;
+                  const gradient = getGradient(ctx, chartArea);
+                  chart.data.datasets[0].backgroundColor = gradient;
+                }
+              },
             },
-          },
-        ]}
-      />
+          ]}
+        />
+      )}
     </div>
   );
 };

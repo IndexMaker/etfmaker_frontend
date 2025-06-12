@@ -91,7 +91,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const isMobile = useMediaQuery({ maxWidth: 1540 });
   const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [historicalLoading, setHistoricalLoading] = useState<boolean>(false);
+  const [indexAssetLoading, setAssetLoading] = useState<boolean>(false);
   const [indexData, setIndexData] = useState<IndexData | null>(null);
   const [btcData, setBtcData] = useState<any[]>([]);
   const [ethData, setEthData] = useState<any[]>([]);
@@ -104,7 +105,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
 
   useEffect(() => {
     const fetchData = async (indexId: number) => {
-      setIsLoading(true);
+      setHistoricalLoading(true);
       try {
         const response = await fetchHistoricalData(indexId);
         const data = response;
@@ -112,14 +113,13 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       } catch (error) {
         console.error("Error fetching performance data:", error);
       } finally {
-        setIsLoading(false);
+        setHistoricalLoading(false);
       }
     };
 
     index?.indexId && fetchData(index.indexId);
 
     const _fetchBtcHistoricalData = async () => {
-      setIsLoading(true);
       try {
         const response = await fetchBtcHistoricalData();
         const data = response;
@@ -127,13 +127,11 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       } catch (error) {
         console.error("Error fetching btc data:", error);
       } finally {
-        setIsLoading(false);
       }
     };
     index?.indexId && _fetchBtcHistoricalData();
 
     const _fetchEthHistoricalData = async () => {
-      setIsLoading(true);
       try {
         const response = await fetchEthHistoricalData();
         const data = response;
@@ -141,13 +139,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       } catch (error) {
         console.error("Error fetching eth data:", error);
       } finally {
-        setIsLoading(false);
       }
     };
     index?.indexId && _fetchEthHistoricalData();
 
     const _fetchVaultAssets = async (_indexId: number) => {
-      setIsLoading(true);
+      setAssetLoading(true);
       try {
         const response = await fetchVaultAssets(_indexId);
         const data = response;
@@ -155,7 +152,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       } catch (error) {
         console.error("Error fetching eth data:", error);
       } finally {
-        setIsLoading(false);
+        setAssetLoading(false);
       }
     };
     index?.indexId && _fetchVaultAssets(index?.indexId);
@@ -367,15 +364,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             {storedWallet ? (
               <div className="pt-20">
                 <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-                  {t("common.indexBalance")}
+                  {t("common.AssetsToSupply")}
                 </h2>
                 <IndexBalance
                   // walletBalance={getBalance}
                   index={index}
                   className={""}
-                  canBuy={index.name === "SY100"}
-                  indexName={index.name}
-                  ticker={index.ticker}
                 />
               </div>
             ) : (
@@ -638,24 +632,23 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 setShowETHComparison={setShowETHComparison}
               />
 
-              {indexData && (
-                <div
-                  className={cn(
-                    "bg-background rounded-lg shadow",
-                    isSmallWindow ? "" : "p-4"
-                  )}
-                >
-                  <PerformanceChart
-                    data={filteredChartData()}
-                    indexId={index.indexId}
-                    btcData={filteredBtcData()}
-                    ticker={index.ticker || ""}
-                    ethData={filteredEthData()}
-                    showComparison={showComparison}
-                    showETHComparison={showETHComparison}
-                  />
-                </div>
-              )}
+              <div
+                className={cn(
+                  "bg-background rounded-lg shadow",
+                  isSmallWindow ? "" : "p-4"
+                )}
+              >
+                <PerformanceChart
+                  isLoading={historicalLoading}
+                  data={filteredChartData()}
+                  indexId={index.indexId}
+                  btcData={filteredBtcData()}
+                  ticker={index.ticker || ""}
+                  ethData={filteredEthData()}
+                  showComparison={showComparison}
+                  showETHComparison={showETHComparison}
+                />
+              </div>
             </div>
 
             {/* Vault Literature */}
@@ -904,6 +897,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 </Popover>
               </h1>
               <VaultAssets
+                isLoading={indexAssetLoading}
                 assets={indexAssets}
                 visibleColumns={visibleColumns}
               />
