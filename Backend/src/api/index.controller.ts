@@ -41,7 +41,7 @@ export class IndexController {
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })
   @Get('/rebalance')
   async rebalance(@Param('indexId') indexId: number): Promise<void> {
-    await this.coinGeckoService.storeMissingPricesUntilToday();
+    // await this.coinGeckoService.storeMissingPricesUntilToday();
     await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
     await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
     await this.etfPriceService.getHistoricalDataFromTempRebalances(23);

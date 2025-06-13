@@ -22,7 +22,11 @@ import {
 } from 'drizzle-orm';
 import { ethers } from 'ethers';
 import * as path from 'path';
-import { IndexListEntry, VaultAsset } from 'src/common/types/index.types';
+import {
+  FundRating,
+  IndexListEntry,
+  VaultAsset,
+} from 'src/common/types/index.types';
 import { calculateLETV, formatTimestamp } from 'src/common/utils/utils';
 
 type Weight = [string, number];
@@ -566,7 +570,6 @@ export class EtfPriceService {
         );
         if (price === null) continue;
         lastKnownPrice = Number(price.toFixed(2));
-        console.log(dateStr, price);
         historicalData.push({
           name: indexData.name,
           date: new Date(ts * 1000),
@@ -1603,7 +1606,29 @@ export class EtfPriceService {
   // fetch Index Lists
   async getIndexList(): Promise<IndexListEntry[]> {
     const indexList: IndexListEntry[] = [];
-
+    const indexMetadata: Record<
+      string,
+      { category: string; assetClass: string }
+    > = {
+      SY100: {
+        category: 'Top 100 Market-Cap Tokens',
+        assetClass: 'Cryptocurrencies',
+      },
+      SYL2: { category: 'Layer-2', assetClass: 'Cryptocurrencies' },
+      SYAI: {
+        category: 'Artificial Intelligence',
+        assetClass: 'Cryptocurrencies',
+      },
+      SYME: { category: 'Meme Tokens', assetClass: 'Cryptocurrencies' },
+      SYDF: {
+        category: 'Decentralized Finance (DeFi)',
+        assetClass: 'Cryptocurrencies',
+      },
+      SYAZ: {
+        category: 'Andreessen Horowitz (a16z) Portfolio',
+        assetClass: 'Cryptocurrencies',
+      },
+    };
     // Assuming the index count is available via a contract function
     for (let indexId = 21; indexId <= 27; indexId++) {
       if (indexId === 26) continue;
@@ -1631,7 +1656,27 @@ export class EtfPriceService {
 
       // Calculate YTD return (you might need to fetch historical prices for this)
       let ytdReturn = await this.calculateYtdReturn(indexId);
+
+      // Add calculations for other periods (similar to calculateYtdReturn)
+      const oneYearReturn = await this.calculatePeriodReturn(indexId, 365);
+      const threeYearReturn = await this.calculatePeriodReturn(
+        indexId,
+        365 * 3,
+      );
+      const fiveYearReturn = await this.calculatePeriodReturn(indexId, 365 * 5);
+      const tenYearReturn = await this.calculatePeriodReturn(indexId, 365 * 10);
+
+      const ratings = await this.calculateRatings(indexId);
+
       ytdReturn = Math.floor(ytdReturn * 100) / 100;
+      const inceptionDate = await this.getInceptionDateForIndex(indexId);
+
+      // Get category and assetClass from the predefined metadata
+      const { category, assetClass } = indexMetadata[ticker] || {
+        category: 'General Cryptocurrencies',
+        assetClass: 'Cryptocurrencies',
+      };
+
       indexList.push({
         indexId,
         name,
@@ -1641,10 +1686,66 @@ export class EtfPriceService {
         ytdReturn,
         collateral: logos,
         managementFee: Number(curatorFee) / 1e18, // Assuming fee is in the smallest unit
+        assetClass,
+        category,
+        inceptionDate: inceptionDate ? inceptionDate : 'N/A',
+        performance: {
+          ytdReturn,
+          oneYearReturn,
+          threeYearReturn,
+          fiveYearReturn,
+          tenYearReturn,
+        },
+        ratings,
       });
     }
     indexList.sort((a, b) => a.indexId - b.indexId);
     return indexList;
+  }
+
+  private async calculatePeriodReturn(
+    indexId: number,
+    days: number,
+  ): Promise<number> {
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() - 2); // Similar to YTD calculation
+    endDate.setUTCHours(0, 0, 0, 0);
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    startDate.setUTCHours(0, 0, 0, 0);
+
+    const endPrice = await this.getPriceForDate(indexId, endDate.getTime());
+    const startPrice = await this.getPriceForDate(indexId, startDate.getTime());
+
+    if (!startPrice || startPrice === 0) return 0;
+    return (((endPrice ? endPrice : 0) - startPrice) / startPrice) * 100;
+  }
+
+  // Method to calculate ratings (example implementation)
+  private async calculateRatings(indexId: number): Promise<FundRating> {
+    // Implement your actual rating logic here
+    // This is just a placeholder example
+    return {
+      overallRating: 'A+',
+      expenseRating: 'B',
+      riskRating: 'C+',
+    };
+  }
+
+  async getInceptionDateForIndex(indexId: number) {
+    const priceRow = await this.dbService
+      .getDb()
+      .select()
+      .from(dailyPrices)
+      .where(eq(dailyPrices.indexId, indexId.toString()))
+      .orderBy(asc(dailyPrices.date))
+      .limit(1);
+
+    if (priceRow[0]) {
+      return priceRow[0].date;
+    }
+    return null;
   }
 
   async getPriceForDate(

@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
+import { fundRisk } from "@/lib/IndexDetailData"
 
 export default function Risk() {
   return (
@@ -8,14 +9,7 @@ export default function Risk() {
       </div>
       <CardContent className="overflow-y-auto px-3">
         <p className="text-[14px] leading-relaxed">
-          Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse
-          issuer, political, regulatory, market, or economic developments. The technology industries can be
-          significantly affected by obsolescence of existing technology, short product cycles, falling prices and
-          profits, and competition from new markets, and general economic conditions. Foreign securities are subject to
-          interest rate, currency exchange rate, economic, and political risks. The securities of smaller, less
-          well-known companies can be more volatile than those of larger companies. The fund may have additional
-          volatility because it can invest a significant portion of assets in securities of a small number of individual
-          issuers.
+          {fundRisk}
         </p>
       </CardContent>
     </Card>

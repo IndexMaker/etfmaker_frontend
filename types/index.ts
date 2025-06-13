@@ -25,4 +25,16 @@ export interface IndexListEntry {
   assetClass?: string;
   category?: string;
   inceptionDate?: string;
+  ratings?: {
+    overallRating: string;
+    expenseRating: string;
+    riskRating: string;
+  };
+  performance?: {
+    ytdReturn: number;
+    oneYearReturn: number;
+    threeYearReturn: number;
+    fiveYearReturn: number;
+    tenYearReturn: number;
+  };
 }

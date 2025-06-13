@@ -307,8 +307,98 @@ export function VaultTable({
                           </div>
                         )} */}
                             {col.id === "ytdReturn" && (
-                              <div onClick={() => assetDetail(vault)}>
-                                {vault.ytdReturn}
+                              <div
+                                onClick={() => assetDetail(vault)}
+                                className="flex items-center justify-between gap-4 pr-4 text-center"
+                              >
+                                <div className="flex flex-col items-center border-r px-4">
+                                  <div className="text-sm font-medium">
+                                    1 Yr
+                                  </div>
+                                  <div
+                                    className={`font-medium ${
+                                      (vault.performance?.oneYearReturn || 0) >=
+                                      0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    {(vault.performance?.oneYearReturn || 0) >=
+                                    0
+                                      ? "+"
+                                      : ""}
+                                    {vault.performance?.oneYearReturn?.toFixed(
+                                      2
+                                    )}
+                                    %
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-center border-r px-4">
+                                  <div className="text-sm font-medium">
+                                    3 Yrs
+                                  </div>
+                                  <div
+                                    className={`font-medium ${
+                                      (vault.performance?.threeYearReturn ||
+                                        0) >= 0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    {(vault.performance?.threeYearReturn ||
+                                      0) >= 0
+                                      ? "+"
+                                      : ""}
+                                    {vault.performance?.threeYearReturn?.toFixed(
+                                      2
+                                    )}
+                                    %
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-center border-r px-4">
+                                  <div className="text-sm font-medium">
+                                    5 Yrs
+                                  </div>
+                                  <div
+                                    className={`font-medium ${
+                                      (vault.performance?.fiveYearReturn ||
+                                        0) >= 0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    {(vault.performance?.fiveYearReturn || 0) >=
+                                    0
+                                      ? "+"
+                                      : ""}
+                                    {vault.performance?.fiveYearReturn?.toFixed(
+                                      2
+                                    )}
+                                    %
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-center px-4">
+                                  <div className="text-sm font-medium">
+                                    10 Yrs
+                                  </div>
+                                  <div
+                                    className={`font-medium ${
+                                      (vault.performance?.tenYearReturn || 0) >=
+                                      0
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    {(vault.performance?.tenYearReturn || 0) >=
+                                    0
+                                      ? "+"
+                                      : ""}
+                                    {vault.performance?.tenYearReturn?.toFixed(
+                                      2
+                                    )}
+                                    %
+                                  </div>
+                                </div>
                               </div>
                             )}
                             {col.id === "assetClass" && (

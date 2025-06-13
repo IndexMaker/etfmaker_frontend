@@ -1,52 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { fundDetails } from "@/lib/IndexDetailData";
 import { Info } from "lucide-react";
 
 export default function FundDetail() {
-  const fundDetails = [
-    { label: "Morningstar Category", value: "Large Growth" },
-    { label: "Fund Inception", value: "12/31/1984" },
-    {
-      label: "Exp Ratio (Gross)",
-      value: "0.73%",
-      date: "09/28/2024",
-      hasTooltip: true,
-    },
-    {
-      label: "Exp Ratio (Net)",
-      value: "0.73%",
-      date: "09/28/2024",
-      hasTooltip: true,
-    },
-    { label: "NAV", value: "$20.60", date: "06/02/2025", hasTooltip: true },
-    { label: "Minimum to Invest", value: "$0.00" },
-    {
-      label: "Turnover Rate",
-      value: "55.00%",
-      date: "01/31/2025",
-      hasTooltip: true,
-    },
-    {
-      label: "Portfolio Net Assets ($M)",
-      value: "$29,465.73",
-      date: "05/31/2025",
-      hasTooltip: true,
-    },
-    {
-      label: "Share Class Net Assets ($M)",
-      value: "$21,799.68",
-      date: "05/31/2025",
-      hasTooltip: true,
-    },
-    {
-      label: "12 Month Low-High",
-      value: "$16.90 - $24.02",
-      date: "05/31/2025",
-      hasTooltip: true,
-    },
-  ];
+  
 
   return (
-    <Card className="w-full min-w-[350px] h-[430px] border-none bg-foreground overflow-auto p-2 gap-2 flex-1">
+    <Card className="w-full min-w-[350px] h-[440px] border-none bg-foreground overflow-auto p-2 gap-2 flex-1">
       <div className="pb-1  border-b-1 border-gray-200">
         <CardTitle className="flex items-center gap-2 text-[16px] px-3 font-semibold">
           Details
