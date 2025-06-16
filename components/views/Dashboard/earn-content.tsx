@@ -32,6 +32,7 @@ const initialColumns: ColumnType[] = [
   { id: "ticker", title: "Ticker", visible: true },
   { id: "totalSupply", title: "Total Supply", visible: true },
   { id: "ytdReturn", title: "YTD return", visible: true },
+  { id: "performance", title: "Average Annual Returns", visible: false },
   { id: "curator", title: "Curator", visible: true },
   { id: "assetClass", title: "Asset Class", visible: true },
   { id: "category", title: "Category", visible: true },

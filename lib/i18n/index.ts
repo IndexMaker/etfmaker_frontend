@@ -161,6 +161,7 @@ export const translations: Translations = {
       assetClass: "Asset Class",
       category: "Category",
       inceptionDate: "Inception Date",
+      performance: "Average Annual Returns"
     },
     type: {
       all: "All Transaction Types",

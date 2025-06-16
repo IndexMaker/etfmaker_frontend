@@ -307,6 +307,11 @@ export function VaultTable({
                           </div>
                         )} */}
                             {col.id === "ytdReturn" && (
+                              <div onClick={() => assetDetail(vault)}>
+                                {vault.ytdReturn}
+                              </div>
+                            )}
+                            {col.id === "performance" && (
                               <div
                                 onClick={() => assetDetail(vault)}
                                 className="flex items-center justify-between gap-4 pr-4 text-center"

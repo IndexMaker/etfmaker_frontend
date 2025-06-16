@@ -27,6 +27,7 @@ export class ScraperService {
       const listingData = await this.fetchBitgetAnnouncements({
         sectionId: '5955813039257', // Innovation Zone listings
         type: 'listing',
+        _pageNumber: 1,
       });
       listings.push(...listingData.listings);
       announcements.push(...listingData.announcements);
@@ -35,6 +36,7 @@ export class ScraperService {
       const delistingData = await this.fetchBitgetAnnouncements({
         businessType: 70, // Delistings
         type: 'delisting',
+        _pageNumber: 1,
       });
       listings.push(...delistingData.listings);
       announcements.push(...delistingData.announcements);
@@ -441,210 +443,280 @@ export class ScraperService {
     sectionId?: string;
     businessType?: number;
     type: 'listing' | 'delisting';
+    _pageNumber?: number;
   }): Promise<{ listings: any[]; announcements: any[] }> {
     const listings: any[] = [];
     const announcements: any[] = [];
-    let pageNum = 1;
+    let pageNum = params._pageNumber ? params._pageNumber : 1;
     const pageSize = 20;
     let hasMore = true;
 
-    // Get the latest announcement date from the database for Bitget
+    // Get the latest announcement date from DB
     const latestAnnouncement = await this.dbService
       .getDb()
       .select({ maxDate: sql<Date>`MAX(announce_date)` })
       .from(announcementsTable)
       .where(eq(announcementsTable.source, 'bitget'));
-
-    const latestDate = latestAnnouncement[0]?.maxDate || new Date(0);
+      const latestDate = latestAnnouncement[0]?.maxDate || new Date(0);
     let shouldContinueFetching = true;
+    // const API_KEYS = [
+    //   { key: '09e54bdeeddc4507bc89a9b43dd9814a7c02deea125', weight: 40 },
+    //   { key: '629f3fee23274f87a48aadd0e4bb28a08e21f3d0ec9', weight: 40 },
+    //   { key: 'fe037744ccb9499ebb3c630a4d5c8d89d18a87a6979', weight: 20 }
+    // ];
+
+
+    // // Pre-calculate cumulative weights
+    // const TOTAL_WEIGHT = API_KEYS.reduce((sum, k) => sum + k.weight, 0);
+    // const CUMULATIVE_WEIGHTS: number[] = [];
+    // API_KEYS.reduce((sum, k) => {
+    //   CUMULATIVE_WEIGHTS.push(sum + k.weight);
+    //   return sum + k.weight;
+    // }, 0);
+    // const getRandomKey = () => {
+    //   const random = Math.random() * TOTAL_WEIGHT;
+    //   for (let i = 0; i < CUMULATIVE_WEIGHTS.length; i++) {
+    //     if (random < CUMULATIVE_WEIGHTS[i]) {
+    //       return API_KEYS[i].key;
+    //     }
+    //   }
+    //   return API_KEYS[0].key; // fallback
+    // }
 
     const token = process.env.SCRAPER_API_KEY;
     while (hasMore && shouldContinueFetching) {
       try {
         const targetUrl =
           'https://www.bitget.com/v1/cms/helpCenter/content/section/helpContentDetail';
-
         let response;
 
-        try {
-          if (params.sectionId) {
-            // Help Center API
-            const config = {
-              method: 'POST',
-              url: `https://api.scrape.do/?token=${token}&url=${targetUrl}`,
+        if (params.sectionId) {
+          // Help Center API
+          response = await axios.post(
+            `https://api.scrape.do/?token=${token}&url=${targetUrl}`,
+            {
+              pageNum,
+              pageSize: 20,
+              params: {
+                sectionId: '5955813039257',
+                languageId: 0,
+                firstSearchTime: Date.now(),
+              },
+            },
+            {
               headers: {
                 'Content-Type': 'application/json',
                 Origin: 'https://www.bitget.com',
                 Referer:
                   'https://www.bitget.com/support/sections/5955813039257',
               },
-              data: JSON.stringify({
-                pageNum: pageNum,
-                pageSize: 20,
-                params: {
-                  sectionId: '5955813039257',
-                  languageId: 0,
-                  firstSearchTime: Date.now(),
-                },
-              }),
-            };
-            response = await axios(config);
-          } else if (params.businessType) {
-            // Delistings API
-            const targetUrl =
-              'https://www.bitget.com/v1/msg/public/station/pageList';
-            response = await axios.post(
-              `https://api.scrape.do/?token=${token}&url=${targetUrl}`,
-              {
-                pageSize,
-                openUnread: 1,
-                businessType: params.businessType,
-                isPre: false,
-                lastEndId: null,
-                languageType: 0,
+            },
+          );
+        } else if (params.businessType) {
+          // Delistings API
+          response = await axios.post(
+            `https://api.scrape.do/?token=${token}&url=${targetUrl}`,
+            {
+              pageNum,
+              pageSize: 20,
+              params: {
+                sectionId: '12508313443290',
+                languageId: 0,
+                firstSearchTime: Date.now(),
               },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                  Origin: 'https://www.bitget.com',
-                  Referer: 'https://www.bitget.com/',
-                  Accept: 'application/json',
-                  'X-Requested-With': 'XMLHttpRequest',
-                },
+            },
+            {
+              headers: {
+                'Content-Type': 'application/json',
+                'User-Agent':
+                  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                Origin: 'https://www.bitget.com',
+                Referer: 'https://www.bitget.com/',
               },
-            );
-          }
+            },
+          );
+        }
 
-          const items = response?.data?.items || response?.data?.list || [];
-          if (items.length === 0) {
-            hasMore = false;
+        const items =
+          response?.data?.data?.items || response?.data?.data?.list || [];
+        if (items.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        let newItemsFound = false;
+
+        for (const item of items) {
+          const publishTime = item.showTime || item.createTime;
+          const announcementDate = new Date(parseInt(publishTime));
+          const _latestDate = new Date(latestDate)
+          if (announcementDate <= _latestDate) {
+            shouldContinueFetching = false;
+            this.logger.log('There is no new annoucement at Bitget')
             break;
           }
+          newItemsFound = true;
+          const contentId = item.contentId || item.id;
+          if (!contentId) continue;
+          const fetchWithRetry = async (contentId: string) => {
+            let retries = 0;
+            const maxRetries = 3;
+            while (retries < maxRetries) {
+              try {
+                const detailResponse = await axios.post(
+                  `https://api.scrape.do/?token=${token}&url=https://www.bitget.com/v1/cms/helpCenter/content/get/helpContentDetail`,
+                  { contentId, languageId: 0 },
+                  {
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                      Origin: 'https://www.bitget.com',
+                      Referer: 'https://www.bitget.com/support',
+                    },
+                  },
+                );
 
-          let newItemsFound = false;
+                return detailResponse;
+              } catch (error) {
+                if (
+                  error.response?.status !== 502 &&
+                  error.response?.status !== 429
+                ) {
+                  throw error; // Re-throw if it's not a 502 or 429 error
+                }
 
-          // Process each announcement
-          for (const item of items) {
-            const publishTime = item.unifiedDisplayTime || item.createTime;
-            const announcementDate = new Date(parseInt(publishTime));
+                retries++;
+                if (retries >= maxRetries) {
+                  throw new Error(
+                    `Failed after ${maxRetries} retries: ${error.message}`,
+                  );
+                }
 
-            // Skip if announcement is older than our latest date
-            if (announcementDate <= latestDate) {
-              shouldContinueFetching = false;
-              continue;
+                // Exponential backoff with jitter
+                const delay = Math.min(
+                  1000 * 2 ** retries + Math.random() * 500,
+                  30000, // Max 30 seconds
+                );
+
+                this.logger.warn(
+                  `Retry ${retries}/${maxRetries} for content ${contentId}. Waiting ${delay}ms...`,
+                );
+                await new Promise((resolve) => setTimeout(resolve, delay));
+              }
             }
+          };
+          // Fetch announcement details
+          const detailResponse = await fetchWithRetry(contentId)
+          console.log(contentId);
+          const detail = detailResponse?.data?.data;
+          const title = detail.title || item.title;
+          const contentHtml = detail.content || '';
 
-            newItemsFound = true;
-            const contentId = item.contentId || item.id;
-            if (!contentId) continue;
+          // Extract pairs (updated logic)
+          const $ = cheerio.load(contentHtml);
+          const pairs: string[] = [];
 
-            // Fetch announcement details
-            const detailTargetUrl =
-              'https://www.bitget.com/v1/cms/helpCenter/content/get/helpContentDetail';
+          // 1. Extract from <a href="/spot/SUSHIUSDT"> (even if text is "SUSHI")
+          $('a[href*="/spot/"]').each((_, el) => {
+            const href = $(el).attr('href');
+            const pairFromHref = href?.split('/spot/')[1]; // "SUSHIUSDT"
+            if (pairFromHref) pairs.push(pairFromHref); // No "/" added
+          });
 
-            const detailResponse = await axios.post(
-              `https://api.scrape.do/?token=${token}&url=${detailTargetUrl}`,
-              {
-                contentId,
-                languageId: 0,
-              },
-              {
-                headers: {
-                  'Content-Type': 'application/json',
-                  'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                  Origin: 'https://www.bitget.com',
-                  Referer: 'https://www.bitget.com/support',
-                  Accept: 'application/json',
-                  'X-Requested-With': 'XMLHttpRequest',
-                },
-              },
-            );
-
-            const detail = detailResponse.data;
-            const title = detail.title || item.title;
-            const contentHtml = detail.content || '';
-
-            // Skip irrelevant announcements
-            if (
-              params.type === 'listing' &&
-              !title.toLowerCase().includes('list')
-            )
-              continue;
-            if (
-              params.type === 'delisting' &&
-              !title.toLowerCase().includes('delist')
-            )
-              continue;
-
-            // Store announcement with parsed=false initially
-            const announcement = {
-              title,
-              source: 'bitget',
-              announceDate: announcementDate,
-              content: contentHtml,
-              parsed: false, // Default to false, will update if we find tokens
-            };
-            announcements.push(announcement);
-
-            // Extract trading pairs (improved regex)
-            const contentText = cheerio.load(contentHtml).text();
-            const pairMatches = contentText.matchAll(/(\w+)\/(\w+)/gi);
-            const dateMatches = contentText.matchAll(
-              /(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+\(UTC\))/gi,
-            );
-
-            const pairs = Array.from(pairMatches, (m) => m[0]);
-            const dates = Array.from(dateMatches, (m) => m[0]);
-
-            // Extract from title if not found in content
-            if (pairs.length === 0) {
-              const titlePairs = title.match(/(\w+)\/(\w+)/);
-              if (titlePairs) pairs.push(titlePairs[0]);
-            }
-
-            // Create listing entries
-            let parsedAnyTokens = false;
-            for (const pair of pairs) {
-              const [token, quoteAsset] = pair.split('/');
-              listings.push({
-                token,
-                tokenName: token, // Fallback to token symbol
-                quoteAsset,
-                announcementDate: announcementDate.toISOString(),
-                [params.type === 'listing' ? 'listingDate' : 'delistingDate']:
-                  dates[0] || null,
-                source: 'bitget',
-                type: params.type,
-              });
-              parsedAnyTokens = true;
-            }
-
-            // Update the parsed status in the announcement object if we found any tokens
-            if (parsedAnyTokens && announcements.length > 0) {
-              const lastAnnouncement = announcements[announcements.length - 1];
-              lastAnnouncement.parsed = true;
-            }
+          // 2. Extract from sentences (delisting only)
+          if (params.type === 'delisting') {
+            const delistRegex =
+              /(delist|suspend|remov(e|al)|halt)\s+([A-Za-z0-9]+)\/?([A-Za-z0-9]+)?/gi;
+            const matches = Array.from(contentHtml.matchAll(delistRegex));
+            matches.forEach((match: any) => {
+              const base = match[3]; // "SUSHI"
+              const quote = match[4] || 'USDT'; // Default to USDT if missing
+              if (base) pairs.push(`${base}${quote}`); // "SUSHIUSDT"
+            });
           }
 
-          // If no new items were found on this page, stop fetching
-          if (!newItemsFound) {
-            hasMore = false;
+          // 3. Fallback: Regex for pairs like "SUSHI/USDT" in text
+          if (pairs.length === 0) {
+            // First remove all HTML tags
+            const textWithoutHtml = contentHtml.replace(/<[^>]*>?/gm, '');
+
+            // Then look for trading pair patterns
+            const pairMatches = Array.from(
+              textWithoutHtml.matchAll(/([A-Za-z0-9]+)\/?([A-Za-z0-9]+)/gi),
+            );
+
+            pairMatches.forEach((match: any) => {
+              // Only add if both parts exist (avoid partial matches)
+              if (match[1] && match[2]) {
+                pairs.push(`${match[1]}${match[2]}`); // Remove "/"
+              }
+            });
           }
 
-          pageNum++;
-        } catch (error) {
-          this.logger.error(
-            `Error fetching Bitget ${params.type} page ${pageNum}: ${error}`,
-          );
-          hasMore = false;
+          // Extract dates (supports multiple formats)
+          const dateRegex = [
+            /(\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4}(?:,\s+\d{2}:\d{2})?\s+\(UTC(?:\+8)?\))/gi,
+            /(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+\(UTC\))/gi,
+          ];
+          const dates: string[] = [];
+          dateRegex.forEach((regex) => {
+            const matches = Array.from(contentHtml.matchAll(regex));
+            matches.forEach((match: any) => dates.push(match[0]));
+          });
+
+          // Store announcement
+          const announcement = {
+            title,
+            source: 'bitget',
+            announceDate: announcementDate,
+            content: contentHtml,
+            parsed: false,
+          };
+          announcements.push(announcement);
+          let hasValidPairs = false;
+          // Create listings
+          pairs.forEach((_rawPair) => {
+            const rawPair =
+              _rawPair.split('?').length > 0
+                ? _rawPair.split('?')[0]
+                : _rawPair;
+            // 1. Check if pair is already uppercase (no lowercase letters)
+            const isUppercase = rawPair === rawPair.toUpperCase();
+
+            // 2. If not, log a warning and convert to uppercase
+            if (isUppercase) {
+              // 3. Enforce uppercase and remove "/" if present
+              const pair = rawPair.toUpperCase().replace(/\//g, '');
+              // 5. Extract token name (e.g., "SUSHI" from "SUSHIUSDT")
+              const tokenName = pair.replace(/(USDT|BTC|ETH|USDC|BUSD)$/i, '');
+              if (pair && tokenName) {
+                hasValidPairs = true;
+                listings.push({
+                  token: pair, // Guaranteed uppercase, no "/" (e.g., "SUSHIUSDT")
+                  tokenName, // Extracted base token (e.g., "SUSHI")
+                  announcementDate: announcementDate.toISOString(),
+                  [params.type === 'listing' ? 'listingDate' : 'delistingDate']:
+                    dates[0] || null,
+                  source: 'bitget',
+                  type: params.type,
+                });
+              }
+            }
+          });
+          if (hasValidPairs) {
+            announcement.parsed = true;
+          }
         }
+
+        if (!newItemsFound) hasMore = false;
+        this.logger.log(`Scraping Bitget ${params.type} page ${pageNum}`);
+        pageNum++;
       } catch (error) {
         this.logger.error(
           `Error fetching Bitget ${params.type} page ${pageNum}: ${error}`,
         );
+        hasMore = false;
       }
     }
 
@@ -848,10 +920,11 @@ export class ScraperService {
           for (const article of articles) {
             const { title, code, releaseDate } = article;
             const articleDate = new Date(releaseDate);
-
+            const _latestDate = new Date(latestDate)
             // Skip if article is older than our latest date
-            if (articleDate <= latestDate) {
+            if (articleDate <= _latestDate) {
               shouldContinueFetching = false;
+              this.logger.log('There is no new annoucement at Binance')
               break;
             }
 
@@ -1090,7 +1163,7 @@ export class ScraperService {
         const content = children.map(parseNode).join('');
         return `<${tag}${attrStr}>${content}</${tag}>`;
       }
-      return '';
+      return bodyData;
     };
 
     // Handle root node with children

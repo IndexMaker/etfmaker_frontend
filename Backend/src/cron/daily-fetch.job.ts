@@ -202,7 +202,7 @@ export class DailyFetchJob {
 
   @Cron(CronExpression.EVERY_HOUR)
   async handleCron() {
-    console.log('Running hourly scraper task');
+    // console.log('Running hourly scraper task');
     // const bitgetData = await this.scraperService.scrapeBitget();
     // const binanceData = await this.scraperService.scrapeBinance();
     // const allListings = [...bitgetData.listings, ...binanceData.listings];

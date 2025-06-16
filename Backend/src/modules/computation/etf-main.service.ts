@@ -6,6 +6,7 @@ import {
   binanceListings,
   bitgetListings,
   compositions,
+  listingsTable,
   rebalances,
   tempCompositions,
   tempRebalances,
@@ -142,6 +143,233 @@ export class EtfMainService {
     }
   }
 
+  // private async computeSY100Weights(
+  //   indexId: number,
+  //   rebalanceTimestamp: number,
+  // ): Promise<{ weights: [string, number][]; price: number }> {
+  //   const db = this.dbService.getDb();
+  //   const chunkSize = 250;
+  //   let eligibleTokens: {
+  //     symbol: string;
+  //     coin: string;
+  //     exchangePair: string;
+  //     historical_price: number;
+  //   }[] = [];
+
+  //   // 1. Prefetch all Binance listings and Bitget pairs
+  //   const [_binanceListings, bitgetPairs] = await Promise.all([
+  //     db
+  //       .select({
+  //         pair: binanceListings.pair,
+  //         timestamp: binanceListings.timestamp,
+  //       })
+  //       .from(binanceListings),
+
+  //     db
+  //       .select({
+  //         base_asset: bitgetListings.baseAsset,
+  //         quote_asset: bitgetListings.quoteAsset,
+  //       })
+  //       .from(bitgetListings),
+  //   ]);
+
+  //   // Create lookup maps
+  //   const binanceListingMap = new Map<string, number>();
+  //   for (const listing of _binanceListings) {
+  //     binanceListingMap.set(listing.pair, listing.timestamp);
+  //   }
+
+  //   const bitgetPairMap = new Map<string, Set<string>>(); // symbol -> Set<quote_asset>
+  //   for (const pair of bitgetPairs) {
+  //     if (!bitgetPairMap.has(pair.base_asset)) {
+  //       bitgetPairMap.set(pair.base_asset, new Set());
+  //     }
+  //     bitgetPairMap.get(pair.base_asset)!.add(pair.quote_asset);
+  //   }
+  //   // 2. Process coins by market cap rank until we get 100
+  //   let page = 1;
+  //   const includedSymbols = new Set<string>();
+
+  //   const MINIMUM_MARKET_CAP = 100000; // $100k for example
+  //   let continueProcessing = true;
+  //   while (eligibleTokens.length < 100 && continueProcessing) {
+  //     const marketCapChunk = await this.coinGeckoService.getMarketCapsByRank(
+  //       page,
+  //       chunkSize,
+  //     );
+  //     console.log(includedSymbols);
+  //     if (marketCapChunk.length === 0) break;
+
+  //     for (const coin of marketCapChunk) {
+  //       if (eligibleTokens.length >= 100) break;
+  //       if (coin.market_cap < MINIMUM_MARKET_CAP) {
+  //         continueProcessing = false;
+  //         break;
+  //       }
+  //       if (!coin.market_cap_rank) continue
+  //       const symbolUpper = coin.symbol.toUpperCase();
+  //       if (includedSymbols.has(symbolUpper)) continue;
+
+  //       // Try to find the best available pair
+  //       let selectedPair: string | null = null;
+
+  //       // Check Binance USDC
+  //       const binanceUsdcPair = `${symbolUpper}USDC`;
+  //       const binanceUsdcTimestamp = binanceListingMap.get(binanceUsdcPair);
+  //       if (
+  //         binanceUsdcTimestamp &&
+  //         Math.floor(binanceUsdcTimestamp / 1000) <= rebalanceTimestamp
+  //       ) {
+  //         selectedPair = `bi.${binanceUsdcPair}`;
+  //       }
+
+  //       // Check Binance USDT
+  //       if (!selectedPair) {
+  //         const binanceUsdtPair = `${symbolUpper}USDT`;
+  //         const binanceUsdtTimestamp = binanceListingMap.get(binanceUsdtPair);
+  //         if (
+  //           binanceUsdtTimestamp &&
+  //           Math.floor(binanceUsdtTimestamp / 1000) <= rebalanceTimestamp
+  //         ) {
+  //           selectedPair = `bi.${binanceUsdtPair}`;
+  //         }
+  //       }
+
+  //       // Check Bitget USDC
+  //       if (!selectedPair && bitgetPairMap.get(symbolUpper)?.has('USDC')) {
+  //         selectedPair = `bg.${symbolUpper}USDC`;
+  //       }
+
+  //       // Check Bitget USDT
+  //       if (!selectedPair && bitgetPairMap.get(symbolUpper)?.has('USDT')) {
+  //         selectedPair = `bg.${symbolUpper}USDT`;
+  //       }
+
+  //       if (!selectedPair) continue;
+
+  //       // Check blacklist
+  //       const categories = await this.coinGeckoService.getCategories(coin.id);
+  //       const isBlacklisted =
+  //         categories.some((c) => this.blacklistedCategories.includes(c)) ||
+  //         this.blacklistedToken.includes(symbolUpper);
+  //       if (isBlacklisted) {
+  //         this.logger.warn(
+  //           `Excluded ${coin.id} (categories: ${categories.join(', ')})`,
+  //         );
+  //         continue;
+  //       }
+
+  //       // Get historical price
+  //       const h_price =
+  //         await this.coinGeckoService.getOrFetchTokenPriceAtTimestamp(
+  //           coin.id,
+  //           coin.symbol,
+  //           rebalanceTimestamp,
+  //         );
+
+  //       if (!h_price) continue;
+
+  //       await this.coinGeckoService.storeDailyPricesForToken(
+  //         coin.id,
+  //         coin.symbol,
+  //         rebalanceTimestamp,
+  //       );
+
+  //       eligibleTokens.push({
+  //         symbol: coin.symbol,
+  //         coin: coin.id,
+  //         exchangePair: selectedPair,
+  //         historical_price: h_price,
+  //       });
+
+  //       includedSymbols.add(symbolUpper);
+  //     }
+
+  //     page++;
+  //   }
+
+  //   if (eligibleTokens.length === 0) {
+  //     throw new Error('No eligible tokens found for the given rebalance date.');
+  //   }
+
+  //   // 3. Normalize weights
+  //   const numTokens = eligibleTokens.length;
+  //   const baseWeight = Math.floor(10000 / numTokens);
+  //   const remainder = 10000 - baseWeight * numTokens;
+
+  //   const weightsForContract: [string, number][] = eligibleTokens.map(
+  //     (token, index) => [
+  //       token.exchangePair,
+  //       index < remainder ? baseWeight + 1 : baseWeight,
+  //     ],
+  //   );
+  //   console.log(
+  //     Object.fromEntries(
+  //       eligibleTokens.map((token, index) => [
+  //         token.coin,
+  //         index < remainder ? baseWeight + 1 : baseWeight,
+  //       ]),
+  //     ),
+  //   );
+  //   const etfPrice = weightsForContract.reduce((sum, [pair, weight]) => {
+  //     const token = eligibleTokens.find((t) => t.exchangePair === pair);
+  //     return sum + token!.historical_price * (weight / 10000);
+  //   }, 0);
+
+  //   // 4. Save to database
+  //   await this.dbService.getDb().transaction(async (tx) => {
+  //     // await tx.insert(tempCompositions).values(
+  //     //   eligibleTokens.map((token, index) => ({
+  //     //     indexId: indexId.toString(),
+  //     //     tokenAddress: token.exchangePair,
+  //     //     coin_id: token.coin,
+  //     //     weight: ((index < remainder ? baseWeight + 1 : baseWeight) / 100).toString(),
+  //     //     validUntil: new Date(),
+  //     //     rebalanceTimestamp,
+  //     //   })),
+  //     // );
+  //     await tx
+  //       .insert(tempRebalances)
+  //       .values({
+  //         indexId: indexId.toString(),
+  //         weights: JSON.stringify(weightsForContract),
+  //         prices: Object.fromEntries(
+  //           eligibleTokens.map((token) => [
+  //             token.exchangePair,
+  //             token.historical_price,
+  //           ]),
+  //         ),
+  //         timestamp: rebalanceTimestamp,
+  //         coins: Object.fromEntries(
+  //           eligibleTokens.map((token, index) => [
+  //             token.coin,
+  //             index < remainder ? baseWeight + 1 : baseWeight,
+  //           ]),
+  //         ),
+  //       })
+  //       .onConflictDoUpdate({
+  //         target: [tempRebalances.indexId, tempRebalances.timestamp],
+  //         set: {
+  //           weights: JSON.stringify(weightsForContract),
+  //           prices: Object.fromEntries(
+  //             eligibleTokens.map((token) => [
+  //               token.exchangePair,
+  //               token.historical_price,
+  //             ]),
+  //           ),
+  //           coins: Object.fromEntries(
+  //             eligibleTokens.map((token, index) => [
+  //               token.coin,
+  //               index < remainder ? baseWeight + 1 : baseWeight,
+  //             ]),
+  //           ),
+  //         },
+  //       });
+  //   });
+
+  //   return { weights: weightsForContract, price: etfPrice };
+  // }
+
   private async computeSY100Weights(
     indexId: number,
     rebalanceTimestamp: number,
@@ -155,14 +383,21 @@ export class EtfMainService {
       historical_price: number;
     }[] = [];
 
-    // 1. Prefetch all Binance listings and Bitget pairs
-    const [_binanceListings, bitgetPairs] = await Promise.all([
+    // Convert rebalanceTimestamp to Date
+    const rebalanceDate = new Date(rebalanceTimestamp * 1000);
+
+    // 1. Prefetch all listings data and Bitget pairs
+    const [allListings, bitgetPairs] = await Promise.all([
       db
         .select({
-          pair: binanceListings.pair,
-          timestamp: binanceListings.timestamp,
+          token: listingsTable.token,
+          tokenName: listingsTable.tokenName,
+          listingAnnouncementDate: listingsTable.listingAnnouncementDate,
+          listingDate: listingsTable.listingDate,
+          delistingAnnouncementDate: listingsTable.delistingAnnouncementDate,
+          delistingDate: listingsTable.delistingDate,
         })
-        .from(binanceListings),
+        .from(listingsTable),
 
       db
         .select({
@@ -172,10 +407,10 @@ export class EtfMainService {
         .from(bitgetListings),
     ]);
 
-    // Create lookup maps
-    const binanceListingMap = new Map<string, number>();
-    for (const listing of _binanceListings) {
-      binanceListingMap.set(listing.pair, listing.timestamp);
+    // Create lookup maps for listings
+    const listingsMap = new Map<string, (typeof allListings)[0]>();
+    for (const listing of allListings) {
+      listingsMap.set(listing.token.toUpperCase(), listing);
     }
 
     const bitgetPairMap = new Map<string, Set<string>>(); // symbol -> Set<quote_asset>
@@ -185,6 +420,37 @@ export class EtfMainService {
       }
       bitgetPairMap.get(pair.base_asset)!.add(pair.quote_asset);
     }
+
+    // Helper function to check if a token is listed on an exchange at rebalance time
+    const isListed = (token: string, exchange: 'binance' | 'bitget') => {
+      const listingData = listingsMap.get(token.toUpperCase());
+      if (!listingData) return false;
+
+      // Check delisting first
+      if (listingData.delistingDate?.[exchange]) {
+        const delistingDate = new Date(listingData.delistingDate[exchange]);
+        if (delistingDate <= rebalanceDate) return false;
+      } else if (listingData.delistingAnnouncementDate?.[exchange]) {
+        const delistingAnnouncementDate = new Date(
+          listingData.delistingAnnouncementDate[exchange],
+        );
+        if (delistingAnnouncementDate <= rebalanceDate) return false;
+      }
+
+      // Check listing
+      if (listingData.listingDate?.[exchange]) {
+        const listingDate = new Date(listingData.listingDate[exchange]);
+        return listingDate <= rebalanceDate;
+      } else if (listingData.listingAnnouncementDate?.[exchange]) {
+        const listingAnnouncementDate = new Date(
+          listingData.listingAnnouncementDate[exchange],
+        );
+        return listingAnnouncementDate <= rebalanceDate;
+      }
+
+      return false;
+    };
+
     // 2. Process coins by market cap rank until we get 100
     let page = 1;
     const includedSymbols = new Set<string>();
@@ -196,7 +462,7 @@ export class EtfMainService {
         page,
         chunkSize,
       );
-      console.log(includedSymbols);
+
       if (marketCapChunk.length === 0) break;
 
       for (const coin of marketCapChunk) {
@@ -205,7 +471,7 @@ export class EtfMainService {
           continueProcessing = false;
           break;
         }
-        if (!coin.market_cap_rank) continue
+        if (!coin.market_cap_rank) continue;
         const symbolUpper = coin.symbol.toUpperCase();
         if (includedSymbols.has(symbolUpper)) continue;
 
@@ -213,34 +479,36 @@ export class EtfMainService {
         let selectedPair: string | null = null;
 
         // Check Binance USDC
-        const binanceUsdcPair = `${symbolUpper}USDC`;
-        const binanceUsdcTimestamp = binanceListingMap.get(binanceUsdcPair);
-        if (
-          binanceUsdcTimestamp &&
-          Math.floor(binanceUsdcTimestamp / 1000) <= rebalanceTimestamp
-        ) {
-          selectedPair = `bi.${binanceUsdcPair}`;
+        if (isListed(symbolUpper, 'binance')) {
+          const binanceUsdcPair = `${symbolUpper}USDC`;
+          if (bitgetPairMap.get(symbolUpper)?.has('USDC')) {
+            selectedPair = `bi.${binanceUsdcPair}`;
+          }
         }
 
         // Check Binance USDT
-        if (!selectedPair) {
+        if (!selectedPair && isListed(symbolUpper, 'binance')) {
           const binanceUsdtPair = `${symbolUpper}USDT`;
-          const binanceUsdtTimestamp = binanceListingMap.get(binanceUsdtPair);
-          if (
-            binanceUsdtTimestamp &&
-            Math.floor(binanceUsdtTimestamp / 1000) <= rebalanceTimestamp
-          ) {
+          if (bitgetPairMap.get(symbolUpper)?.has('USDT')) {
             selectedPair = `bi.${binanceUsdtPair}`;
           }
         }
 
         // Check Bitget USDC
-        if (!selectedPair && bitgetPairMap.get(symbolUpper)?.has('USDC')) {
+        if (
+          !selectedPair &&
+          isListed(symbolUpper, 'bitget') &&
+          bitgetPairMap.get(symbolUpper)?.has('USDC')
+        ) {
           selectedPair = `bg.${symbolUpper}USDC`;
         }
 
         // Check Bitget USDT
-        if (!selectedPair && bitgetPairMap.get(symbolUpper)?.has('USDT')) {
+        if (
+          !selectedPair &&
+          isListed(symbolUpper, 'bitget') &&
+          bitgetPairMap.get(symbolUpper)?.has('USDT')
+        ) {
           selectedPair = `bg.${symbolUpper}USDT`;
         }
 
@@ -302,14 +570,7 @@ export class EtfMainService {
         index < remainder ? baseWeight + 1 : baseWeight,
       ],
     );
-    console.log(
-      Object.fromEntries(
-        eligibleTokens.map((token, index) => [
-          token.coin,
-          index < remainder ? baseWeight + 1 : baseWeight,
-        ]),
-      ),
-    );
+
     const etfPrice = weightsForContract.reduce((sum, [pair, weight]) => {
       const token = eligibleTokens.find((t) => t.exchangePair === pair);
       return sum + token!.historical_price * (weight / 10000);
@@ -317,16 +578,6 @@ export class EtfMainService {
 
     // 4. Save to database
     await this.dbService.getDb().transaction(async (tx) => {
-      // await tx.insert(tempCompositions).values(
-      //   eligibleTokens.map((token, index) => ({
-      //     indexId: indexId.toString(),
-      //     tokenAddress: token.exchangePair,
-      //     coin_id: token.coin,
-      //     weight: ((index < remainder ? baseWeight + 1 : baseWeight) / 100).toString(),
-      //     validUntil: new Date(),
-      //     rebalanceTimestamp,
-      //   })),
-      // );
       await tx
         .insert(tempRebalances)
         .values({

@@ -20,6 +20,13 @@ export class ListingController {
 
   @Get('/scraping')
   async scraping() {
+    const bitgetData = await this.scraperService.scrapeBitget();
+    const bitListings = [...bitgetData.listings];
+    const bitgetAnnouncements = [...bitgetData.announcements];
+    // const transformedListings = await this.scraperService.transformData(allListings);
+    await this.scraperService.saveListingsToDatabase(bitListings);
+    await this.scraperService.saveAnnouncementsToDatabase(bitgetAnnouncements);
+
     const binanceData = await this.scraperService.scrapeBinance();
     const allListings = [...binanceData.listings];
     const allAnnouncements = [...binanceData.announcements];
