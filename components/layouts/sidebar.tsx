@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { TrendingUp, X } from "lucide-react";
+import { TrendingUp, X , LayoutDashboard} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -20,7 +20,8 @@ import { useLanguage } from "@/contexts/language-context";
 import { ThemeToggle } from "../theme-toggle";
 import { useTheme } from "next-themes";
 import Logo from "../icons/logo";
-import FAVICON from '../../public/logo/blue-logo.png'
+import FAVICON from "../../public/logo/blue-logo.png";
+import { useWallet } from "@/contexts/wallet-context";
 
 interface SidebarProps {
   open: boolean;
@@ -28,6 +29,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ open, setOpen }: SidebarProps) {
+  const { wallet, isConnected, isAdmin } = useWallet();
   const { theme } = useTheme();
   const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
@@ -89,18 +91,18 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         >
           <Link href="/" className="flex items-center">
             {collapsed ? (
-                <Image
-                  src={FAVICON}
-                  alt={"LOGO"}
-                  width={24}
-                  height={24}
-                  className="object-cover text-primary"
-                />
+              <Image
+                src={FAVICON}
+                alt={"LOGO"}
+                width={24}
+                height={24}
+                className="object-cover text-primary"
+              />
+            ) : (
               // <Logo
               //   className="w-40 h-6 dark:text-ring"
               //   color={theme == "dark" ? "#D0CECE" : "#2470ff"}
               // />
-            ) : (
               //   <Image
               //     src={DARK}
               //     alt={"LOGO"}
@@ -152,6 +154,20 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             >
               {t("common.curators")}
             </NavItem>
+            {isConnected && wallet && isAdmin ? (
+              <NavItem
+                href="/private-dashboard"
+                active={isRouteActive("/ecosystem")}
+                className="text-[13px] text-secondary py-[6px] px-[10px] h-[32px]"
+                icon={LayoutDashboard}
+                collapsed={collapsed}
+                iconClassName={"p-[1px]"}
+              >
+                {t("common.dashboard")}
+              </NavItem>
+            ) : (
+              <></>
+            )}
           </nav>
 
           <div
@@ -191,7 +207,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               >
                 {t("common.responsibleInvesting")}
               </NavItem>
-              
+
               <NavItem
                 href="https://www.symm.io/"
                 icon={FundMakerDoc}

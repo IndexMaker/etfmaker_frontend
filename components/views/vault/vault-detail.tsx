@@ -67,6 +67,7 @@ import IndexBalance from "./index-balance";
 import { getBalance } from "viem/actions";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { useWallet } from "@/contexts/wallet-context";
 
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
@@ -86,6 +87,15 @@ export interface IndexData {
   formattedTransactions: any[];
 }
 export function VaultDetailPage({ index }: VaultDetailPageProps) {
+  const {
+    wallet,
+    isConnected,
+    connecting,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    switchWallet,
+  } = useWallet();
   const { t } = useLanguage();
   const vault = mockup_vaults[0];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
@@ -101,7 +111,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [showETHComparison, setShowETHComparison] = useState(false);
   const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([]);
 
-  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
 
   useEffect(() => {
     const fetchData = async (indexId: number) => {
@@ -361,7 +371,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             </div>
 
             {/* Vault Description */}
-            {storedWallet ? (
+            {wallet ? (
               <div className="pt-20">
                 <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
                   {t("common.AssetsToSupply")}

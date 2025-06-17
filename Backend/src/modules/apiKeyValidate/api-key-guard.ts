@@ -21,6 +21,7 @@ export class ApiKeyGuard implements CanActivate {
       throw new UnauthorizedException('API key is missing');
     }
 
+    
     const db = this.dbService.getDb();
     const result = await db
       .select()

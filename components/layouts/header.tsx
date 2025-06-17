@@ -8,19 +8,7 @@ import { CustomButton } from "../ui/custom-button";
 import Navigation from "../icons/navigation";
 import { LanguageSelector } from "../elements/language-selector";
 import { useLanguage } from "@/contexts/language-context";
-import onboard, {
-  autoConnectRabby,
-  switchNetwork,
-} from "@/lib/blocknative/web3-onboard";
-import { useDispatch, useSelector } from "react-redux";
-import { clearWallet, setWallet } from "@/redux/walletSlice";
-import {
-  setNetwork as setReduxNetwork,
-  setSelectedNetwork as setReduxSelectedNetwork,
-  setCurrentChainId as setReduxCurrentChainId,
-} from "@/redux/networkSlice";
 import { cn, shortenAddress } from "@/lib/utils";
-import { RootState } from "@/redux/store";
 import NavigationAlert from "../icons/navigation-alert";
 import {
   Popover,
@@ -31,12 +19,11 @@ import RightArrow from "../icons/right-arrow";
 import Switch from "../icons/switch";
 import Disconnect from "../icons/disconnect";
 import { useCallback, useEffect, useState } from "react";
-import { WalletState } from "@web3-onboard/core";
 import { NetworkMismatchModal } from "../elements/network-mismatch-modal";
 import Image from "next/image";
 import Base from "../../public/icons/base.png";
 import Info from "../icons/info";
-import { AdditionalMenu} from "@/components/layouts/additionalMenu";
+import { useWallet } from "../../contexts/wallet-context";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -51,54 +38,54 @@ export function Header({
   setSidebarOpen,
   rightbarOpen,
   setRightbarOpen,
-  isVisible
+  isVisible,
 }: HeaderProps) {
+  const {
+    wallet,
+    isConnected,
+    connecting,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    switchWallet,
+  } = useWallet();
+
   const { t } = useLanguage();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const currentNetwork = searchParams.get("network");
-  const [switchOption, setSwitchOption] = useState<boolean>(false);
-  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
-  const { network, selectedNetwork, currentChainId } = useSelector(
-    (state: RootState) => state.network
-  );
-  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  const [selectedNetwork, setSelectedNetwork] = useState<string>("0x1");
+  const [currentChainId, setCurrentChainId] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
-  const selectedVault = useSelector(
-    (state: RootState) => state.vault.selectedVault
-  );
+  const selectedVault = ""; // Replace with your vault selection logic
 
   const defaultNetwork =
     networks.find((n) => n.id === searchParams.get("network")) || networks[0];
 
-  const dispatch = useDispatch();
   // Initialize network if not set
   useEffect(() => {
-    if (!network) {
-      dispatch(setReduxNetwork(defaultNetwork));
+    if (!selectedNetwork) {
+      setSelectedNetwork(defaultNetwork.chainId);
     }
-  }, [dispatch, defaultNetwork, network]);
-
-  useEffect(() => {
-    storedWallet &&
-      dispatch(setReduxSelectedNetwork(network?.chainId || "0x1"));
-  }, [network, storedWallet, dispatch]);
+  }, [defaultNetwork, selectedNetwork]);
 
   useEffect(() => {
     // Update the URL without reloading the page
     const url = new URL(window.location.href);
-    if (network) {
-      url.searchParams.set("network", network.id);
-      router.replace(url.toString(), { scroll: false });
+    if (selectedNetwork) {
+      const network = networks.find((n) => n.chainId === selectedNetwork);
+      if (network) {
+        url.searchParams.set("network", network.id);
+        router.replace(url.toString(), { scroll: false });
+      }
     }
-  }, [network, router]);
+  }, [selectedNetwork, router]);
 
   // Generate breadcrumb items
   const pathSegments = pathname.split("/").filter((segment) => segment);
-
-  // Only show breadcrumb if there is a second segment (i.e., more than one)
   const shouldShowBreadcrumb = pathSegments.length > 1;
 
   const breadcrumbItems = pathSegments.map((segment, index) => {
@@ -111,48 +98,37 @@ export function Header({
         : `../${pathSegments.slice(0, index + 1).join("/")}`;
     const _segment = t("common." + segment);
     return {
-      name: segment.charAt(0).toUpperCase() + segment.slice(1), // Capitalize first letter
+      name: segment.charAt(0).toUpperCase() + segment.slice(1),
       href: path,
     };
   });
 
-  const [isIndexDetailPage, setIsIndexDetailPage] = useState<boolean>(pathSegments.length > 1 && pathSegments.includes('vault'))
+  const [isIndexDetailPage] = useState<boolean>(
+    pathSegments.length > 1 && pathSegments.includes("vault")
+  );
 
   // Listen for wallet chain changes
   useEffect(() => {
-    if (currentChainId === "0x2105") {
-      setShowModal(false);
-    } else if (currentChainId !== selectedNetwork) {
-      storedWallet && setShowModal(true);
+    if (wallet && wallet.chains.length > 0) {
+      const chainId = wallet.chains[0].id;
+      setCurrentChainId(chainId);
+
+      if (chainId !== selectedNetwork && chainId !== "0x2105") {
+        setShowModal(true);
+      } else {
+        setShowModal(false);
+      }
     } else {
+      setCurrentChainId(null);
       setShowModal(false);
     }
-
-    const subscription = onboard.state
-      .select("wallets")
-      .subscribe((wallets: any[]) => {
-        if (wallets.length > 0) {
-          const chainId = wallets[0].chains[0].id;
-          dispatch(setReduxCurrentChainId(chainId));
-
-          if (chainId !== selectedNetwork && currentChainId !== "0x2105") {
-            setShowModal(true);
-          } else {
-            setShowModal(false);
-          }
-        } else {
-          dispatch(setReduxCurrentChainId(null));
-          setShowModal(false);
-        }
-      });
-    return () => subscription.unsubscribe();
-  }, [selectedNetwork, storedWallet, dispatch]);
+  }, [selectedNetwork, wallet]);
 
   const handleNetworkSwitch = useCallback(
     async (chainId: string) => {
-      if (!storedWallet) return;
+      if (!isConnected) return;
 
-      dispatch(setReduxSelectedNetwork(chainId));
+      setSelectedNetwork(chainId);
 
       if (currentChainId !== chainId) {
         setShowModal(true);
@@ -160,67 +136,12 @@ export function Header({
         setShowModal(false);
       }
     },
-    [storedWallet, currentChainId, dispatch]
+    [isConnected, currentChainId]
   );
 
-  useEffect(() => {
-    // if (!storedWallet && !switchOption) {
-    //   autoConnectRabby()
-    // }
-    if (!storedWallet && switchOption) {
-      connectWallet();
-      setSwitchOption(false);
-    }
-  }, [storedWallet, switchOption, setSwitchOption]);
-
-  const connectWallet = useCallback(async () => {
-    if (storedWallet) {
-      console.log("Wallet already connected:", storedWallet);
-      return;
-    }
-    let connected: null | WalletState[] = null;
-    if (!switchOption) connected = await autoConnectRabby();
-    if (!connected) {
-      const wallets = await onboard.connectWallet();
-      if (wallets.length > 0) {
-        await onboard.setChain({ chainId: selectedNetwork });
-        const { label, accounts, chains, icon } = wallets[0]; // Extract only serializable data
-        console.log("Connected Wallet:", wallets[0]);
-
-        dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
-        // hide onboard-v2 elements...
-
-        // show How earn makes modal...
-      }
-    } else {
-      if (connected && connected.length > 0) {
-        const { label, accounts, chains, icon } = connected[0]; // Extract only serializable data
-        console.log("Connected Wallet:", connected[0]);
-
-        dispatch(setWallet({ label, accounts, chains, icon })); // Store only serializable parts
-      }
-    }
-  }, [storedWallet, dispatch, switchOption]);
-
-  const disconnectWallet = async () => {
-    if (storedWallet) {
-      await onboard.disconnectWallet({ label: storedWallet.label });
-      dispatch(clearWallet()); // Clear from Redux
-    }
-  };
-
-  const switchWallet = useCallback(async () => {
-    setSwitchOption(true);
-    if (storedWallet) {
-      await onboard.disconnectWallet({ label: storedWallet.label });
-      dispatch(clearWallet()); // Clear from Redux
-    }
-  }, [storedWallet, dispatch, setSwitchOption]);
-
-  // Switch wallet's network to match the dApp's selected network
   const handleSwitchWalletNetwork = async () => {
     await switchNetwork(selectedNetwork);
-    setShowModal(false); // Close modal after switching
+    setShowModal(false);
   };
 
   return (
@@ -237,7 +158,6 @@ export function Header({
             <span className="sr-only">Toggle menu</span>
           </Button>
 
-          {/* Breadcrumb (only if there's a second segment) */}
           {shouldShowBreadcrumb && (
             <nav className="text-sm text-secondary hidden md:flex">
               <ol className="flex items-center space-x-2">
@@ -269,20 +189,21 @@ export function Header({
             <LanguageSelector />
             <NetworkSwitcher
               handleNetworkSwitch={handleNetworkSwitch}
-              selectedNetwork={network} // Using Redux state
+              selectedNetwork={networks.find(
+                (n) => n.chainId === selectedNetwork
+              ) || null}
               setSelectedNetwork={(newNetwork) =>
-                dispatch(setReduxNetwork(newNetwork))
+                setSelectedNetwork(newNetwork.chainId)
               }
             />
 
-            {/* Connect Wallet Button */}
-            {storedWallet ? (
+            {isConnected && wallet ? (
               <Popover>
                 <PopoverTrigger asChild>
                   <CustomButton className="flex items-center gap-1 bg-transparent lg:bg-foreground text-[11px] rounded-[3px] cursor-pointer hover:bg-accent">
                     <div className="w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#A5FECA] via-[#3EDCEB] via-[#2594FF] to-[#53F]"></div>
                     <span className="text-secondary hidden lg:flex">
-                      {shortenAddress(storedWallet.accounts[0].address)}
+                      {shortenAddress(wallet.accounts[0].address)}
                     </span>
                     {currentChainId !== selectedNetwork &&
                       currentChainId !== "0x2105" && (
@@ -299,14 +220,14 @@ export function Header({
                     href={
                       `https://etherscan.${
                         currentNetwork === "mainnet" ? "org" : "io"
-                      }/address/` + storedWallet.accounts[0].address
+                      }/address/` + wallet.accounts[0].address
                     }
                     target="_blank"
                     className="flex gap-2 px-[8px] py-[12px] items-center h-[48px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
                   >
                     <div className="w-[17px] h-[17px] rounded-full bg-gradient-to-br from-[#A5FECA] via-[#3EDCEB] via-[#2594FF] to-[#53F]"></div>
                     <span className="text-secondary text-[14px] underline">
-                      {shortenAddress(storedWallet.accounts[0].address)}
+                      {shortenAddress(wallet.accounts[0].address)}
                     </span>
                     <RightArrow
                       className="w-4 h-4 rotate-135"
@@ -359,14 +280,15 @@ export function Header({
                 </PopoverContent>
               </Popover>
             ) : (
-              <>
-                <CustomButton
-                  onClick={connectWallet}
-                  className="bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
-                >
-                  {t("common.connectWallet")}
-                </CustomButton>
-              </>
+              <CustomButton
+                onClick={connectWallet}
+                disabled={connecting}
+                className="bg-[#2470ff] hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer"
+              >
+                {connecting
+                  ? t("common.connecting")
+                  : t("common.connectWallet")}
+              </CustomButton>
             )}
 
             {selectedVault.length > 0 ? (
@@ -392,12 +314,6 @@ export function Header({
             />
           </div>
         </header>
-        {/* <AdditionalMenu
-          className={`
-          transition-all duration-1000 ease-in-out
-          ${isVisible && isIndexDetailPage ? "top-0" : "hidden"}
-        `}
-        /> */}
       </div>
     </>
   );

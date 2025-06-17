@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import axios from "axios";
+import { useWallet } from "../../../contexts/wallet-context";
 import { IndexListEntry } from "@/types";
 import { setIndices } from "@/redux/indexSlice";
 import { fetchAllIndices } from "@/api/indices";
@@ -47,18 +47,27 @@ interface EarnContentProps {
 }
 
 export function EarnContent({ onSupplyClick }: EarnContentProps) {
+  const {
+    wallet,
+    isConnected,
+    connecting,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    switchWallet,
+  } = useWallet();
   const { t } = useLanguage();
   const [columns, setColumns] = useState(initialColumns);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
-  const [totalManaged, setTotalManaged] = useState<number>(0)
-  const [totalVolumn, setTotalVolumn] = useState<number>(0)
+  const [totalManaged, setTotalManaged] = useState<number>(0);
+  const [totalVolumn, setTotalVolumn] = useState<number>(0);
   const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "reward">(
     "position"
   );
-  const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
+  // const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network
   );
@@ -74,10 +83,10 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchAllIndices()
+        const response = await fetchAllIndices();
         const data = response;
         setIndexLists(data || []);
-        dispatch(setIndices(data || []))
+        dispatch(setIndices(data || []));
       } catch (error) {
         console.error("Error fetching performance data:", error);
         setIsLoading(false);
@@ -91,10 +100,10 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   useEffect(() => {
     const termsAccepted = localStorage.getItem("termsAccepted");
-    if ((!termsAccepted || termsAccepted === "false") && storedWallet) {
+    if ((!termsAccepted || termsAccepted === "false") && wallet) {
       setShowHowEarnWorks(true);
     }
-  }, [storedWallet]);
+  }, [wallet]);
   // Function to handle sorting
   const handleSort = (columnId: string, direction: "asc" | "desc") => {
     setSortColumn(columnId);
@@ -105,7 +114,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const filteredAndSortedVaults = useMemo(() => {
     // First filter by search query
     let filtered = storedIndexes;
-    if (!filtered) return []
+    if (!filtered) return [];
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
@@ -124,7 +133,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
     }
 
     // Then sort the filtered results
-    if (sortColumn !== '')
+    if (sortColumn !== "")
       return [...filtered].sort((a, b) => {
         let valueA: number | string;
         let valueB: number | string;
@@ -141,16 +150,16 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
             break;
           case "totalSupply":
             // Sort by USD value for totalSupply
-            valueA = (a.totalSupply);
-            valueB = (b.totalSupply);
+            valueA = a.totalSupply;
+            valueB = b.totalSupply;
             break;
           case "curator":
             valueA = a.curator;
             valueB = b.curator;
             break;
           case "managementFee":
-            valueA = (a.managementFee);
-            valueB = (b.managementFee);
+            valueA = a.managementFee;
+            valueB = b.managementFee;
             break;
           default:
             valueA = a.name;
@@ -166,8 +175,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
         }
         return 0;
       });
-    else 
-      return filtered;
+    else return filtered;
   }, [searchQuery, sortColumn, sortDirection, storedIndexes]);
   // Function to handle column visibility changes
   const handleColumnVisibilityChange = (columnId: string, visible: boolean) => {
@@ -180,7 +188,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   const [visibleColumns, setVisibleColumns] = useState<ColumnType[]>([]);
   useEffect(() => {
-    if (storedWallet && (currentChainId === selectedNetwork)) {
+    if (wallet && currentChainId === selectedNetwork) {
       setVisibleColumns(
         columns
           .filter((column) => column.visible)
@@ -197,7 +205,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
           }))
       );
     }
-  }, [storedWallet, columns, currentChainId, selectedNetwork]);
+  }, [wallet, columns, currentChainId, selectedNetwork]);
 
   if (showHowEarnWorks) {
     return (
@@ -258,7 +266,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
         </div>
 
         <div className="space-y-4 mt-20">
-          {storedWallet ? (
+          {wallet ? (
             <>
               <div className="flex gap-4 md:items-center justify-between flex-wrap">
                 <div className="flex items-center gap-4  flex-wrap">
@@ -335,7 +343,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
             <div className="flex items-center gap-2 justify-between">
               <ColumnVisibilityPopover
-                columns={columns.filter((col) => col.id !== 'actions')}
+                columns={columns.filter((col) => col.id !== "actions")}
                 onColumnVisibilityChange={handleColumnVisibilityChange}
               />
               <div className="relative max-h-[32px]">

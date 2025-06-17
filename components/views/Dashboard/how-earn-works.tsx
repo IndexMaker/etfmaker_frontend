@@ -9,18 +9,28 @@ import { useTheme } from "next-themes";
 import { useLanguage } from "@/contexts/language-context";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
+import { useWallet } from "@/contexts/wallet-context";
 interface HowEarnWorksProps {
   onClose: () => void;
 }
 
 export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
+  const {
+    wallet,
+    isConnected,
+    connecting,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    switchWallet,
+  } = useWallet();
   const { t } = useLanguage();
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const { theme } = useTheme();
   const scrollableRef = useRef<HTMLDivElement | null>(null);
-  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  // const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
   // Load from localStorage on mount
   useEffect(() => {
     const storedValue = localStorage.getItem("termsAccepted");
@@ -54,7 +64,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
         {/* Top disclaimer section */}
         <div className="mb-6">
           <div className="flex justify-end mb-2">
-            {!storedWallet && (
+            {!wallet && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -705,7 +715,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
   return (
     <div className="space-y-0 px-[20px] xl:px-[82px] border-none relative h-auto pb-0">
       <div className="">
-        {!storedWallet && (
+        {!wallet && (
           <Button
             variant="ghost"
             size="icon"

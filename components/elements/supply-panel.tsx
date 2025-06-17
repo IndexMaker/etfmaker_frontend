@@ -27,6 +27,7 @@ import { ERC20_ABI, TOKEN_LIST, TOKEN_METADATA } from "@/lib/data";
 import { removeSelectedVault, updateVaultAmount } from "@/redux/vaultSlice";
 import { IndexListEntry } from "@/types";
 import FundMaker from "../icons/fundmaker";
+import { useWallet } from "@/contexts/wallet-context";
 
 interface SupplyPanelProps {
   vaultIds: VaultInfo[];
@@ -48,14 +49,22 @@ export function SupplyPanel({
   open,
   setOpen,
 }: SupplyPanelProps) {
-  console.log(vaults);
+  const {
+    wallet,
+    isConnected,
+    connecting,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    switchWallet,
+  } = useWallet();
   const [amount, setAmount] = useState<{ [key: string]: number }>({});
   const [balance, setBalance] = useState(0);
   const { t } = useLanguage();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [maxpopoverOpen, setMaxPopoverOpen] = useState(false);
   const [insufficientValue, setInsufficientValue] = useState(false);
-  const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
   const { currentChainId } = useSelector((state: RootState) => state.network);
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
@@ -98,7 +107,7 @@ export function SupplyPanel({
 
   useEffect(() => {
     const fetchBalances = async () => {
-      if (!storedWallet || !currentChainId || !TOKEN_METADATA[currentChainId]) {
+      if (!wallet || !currentChainId || !TOKEN_METADATA[currentChainId]) {
         setBalances({});
         return;
       }
@@ -106,7 +115,7 @@ export function SupplyPanel({
       setLoading(true);
       try {
         const client = getViemClient(currentChainId);
-        const address = storedWallet.accounts[0].address as `0x${string}`;
+        const address = wallet.accounts[0].address as `0x${string}`;
         const newBalances: { [key: string]: number } = {};
         const tokens = TOKEN_METADATA[currentChainId];
         for (const [token, meta] of Object.entries(tokens)) {
@@ -145,7 +154,7 @@ export function SupplyPanel({
     };
 
     fetchBalances();
-  }, [storedWallet, currentChainId]);
+  }, [wallet, currentChainId]);
 
   const handleSupply = () => {
     // In a real app, this would handle the supply transaction
@@ -156,7 +165,7 @@ export function SupplyPanel({
   const setMaxAmount = (vaultId: string) => {
     // Assuming vaultId is unique and corresponds to a vault with a token
     const vault = selectedVault.find((v) => v.name === vaultId);
-    const maxBalance = vault ? balances['USDC'] || 0 : 0;
+    const maxBalance = vault ? balances["USDC"] || 0 : 0;
 
     if (maxBalance === 0) {
       setInsufficientValue(true);
@@ -295,7 +304,9 @@ export function SupplyPanel({
                               }}
                             />
                             <div className="font-mono text-[11px] text-muted">
-                              {balances['USDC'] && balances['USDC'].toFixed(2) || 0.00}
+                              {(balances["USDC"] &&
+                                balances["USDC"].toFixed(2)) ||
+                                0.0}
                             </div>
                           </div>
 

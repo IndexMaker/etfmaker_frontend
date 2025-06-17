@@ -22,6 +22,8 @@ type Translations = {
 export const translations: Translations = {
   en: {
     common: {
+      dashboard: "Dashboard",
+      connecting: "Connecting",
       index: "Our Indexes",
       curators: "Curators",
       analytics: "Analytics",
