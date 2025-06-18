@@ -160,6 +160,7 @@ export const tempRebalances = pgTable(
     prices: jsonb('prices').notNull(),
     timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
     coins: jsonb('coins').notNull(),
+    deployed: boolean('deployed').default(false),
     createdAt: timestamp('created_at').defaultNow(),
   },
   (table) => ({

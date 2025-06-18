@@ -16,6 +16,28 @@ export const fetchAllIndices = async (): Promise<IndexListEntry[]> => {
   return response.json();
 };
 
+export const fetchRebalancesById = async (indexId: number): Promise<any[]> => {
+  const response = await fetch(`${API_BASE_URL}/indices/getCalculatedRebalances/${indexId}`);
+
+  if (!response.ok) {
+    console.log("Failed to fetch rebalances");
+    return []
+  }
+
+  return response.json();
+};
+
+export const fetchCurrentRebalanceById = async (indexId: number): Promise<any[]> => {
+  const response = await fetch(`${API_BASE_URL}/indices/fetchCurrentRebalanceById/${indexId}`);
+
+  if (!response.ok) {
+    console.log("Failed to fetch rebalances");
+    return []
+  }
+
+  return response.json();
+};
+
 export const fetchIndexByTicker = async (
   ticker: string
 ): Promise<IndexListEntry> => {

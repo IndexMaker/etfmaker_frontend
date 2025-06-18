@@ -171,6 +171,28 @@ export class IndexController {
     return response;
   }
 
+  @Get('/getCalculatedRebalances/:indexId')
+  @ApiOperation({ summary: 'Get rebalance data for a specific index' })
+  async getRebalances(@Param('indexId') indexId: number) {
+    if (indexId) {
+      return this.etfMainService.getRebalancesByIndex(indexId);
+    }
+    else{
+      return []
+    }
+  }
+
+  @Get('/fetchCurrentRebalanceById/:indexId')
+  @ApiOperation({ summary: 'Get rebalance data for a specific index' })
+  async fetchCurrentRebalanceById(@Param('indexId') indexId: number) {
+    if (indexId) {
+      return this.etfMainService.getCurrentRebalanceById(indexId);
+    }
+    else{
+      return []
+    }
+  }
+
   @Get('/downloadRebalanceData/:indexId')
   async downloadRebalanceData(
     @Param('indexId') indexId: number,

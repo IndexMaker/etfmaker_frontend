@@ -135,6 +135,20 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               collapsed ? "px-0" : "px-[10px]"
             )}
           >
+            {isConnected && wallet && isAdmin ? (
+              <NavItem
+                href="/private-dashboard"
+                active={isRouteActive("/ecosystem")}
+                className="text-[13px] text-secondary py-[6px] px-[10px] h-[32px]"
+                icon={LayoutDashboard}
+                collapsed={collapsed}
+                iconClassName={"p-[1px]"}
+              >
+                {t("common.dashboard")}
+              </NavItem>
+            ) : (
+              <></>
+            )}
             <NavItem
               href="/"
               active={isRouteActive("/")}
@@ -154,20 +168,6 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             >
               {t("common.curators")}
             </NavItem>
-            {isConnected && wallet && isAdmin ? (
-              <NavItem
-                href="/private-dashboard"
-                active={isRouteActive("/ecosystem")}
-                className="text-[13px] text-secondary py-[6px] px-[10px] h-[32px]"
-                icon={LayoutDashboard}
-                collapsed={collapsed}
-                iconClassName={"p-[1px]"}
-              >
-                {t("common.dashboard")}
-              </NavItem>
-            ) : (
-              <></>
-            )}
           </nav>
 
           <div

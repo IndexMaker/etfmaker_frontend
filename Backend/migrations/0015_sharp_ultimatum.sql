@@ -1,0 +1,1 @@
+ALTER TABLE "temp_rebalances" ADD COLUMN "deployed" boolean DEFAULT false;

@@ -14,7 +14,7 @@ import {
 import { ethers } from 'ethers';
 import { DbService } from 'src/db/db.service';
 import * as path from 'path';
-import { and, eq, inArray, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { BitgetService } from '../data-fetcher/bitget.service';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -1081,6 +1081,25 @@ export class EtfMainService {
     }
   }
 
+  async getRebalancesByIndex(indexId: number) {
+    const rebalance = await this.dbService
+      .getDb()
+      .select()
+      .from(tempRebalances)
+      .where(eq(tempRebalances.indexId, indexId.toString()), eq(tempRebalances.deployed, false))
+      .orderBy(desc(tempRebalances.timestamp));
+
+    return rebalance;
+  }
+
+  async getCurrentRebalanceById(indexId: number) {
+    const rebalance = await this.dbService.getDb().query.rebalances.findFirst({
+      where: eq(rebalances.indexId, indexId.toString()),
+      orderBy: desc(rebalances.timestamp),
+    });
+
+    return rebalance;
+  }
   // Helper: Check if index exists
   async indexExists(indexId: number, indexRegistry) {
     try {

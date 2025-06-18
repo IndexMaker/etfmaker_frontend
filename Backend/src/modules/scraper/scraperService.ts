@@ -892,6 +892,7 @@ export class ScraperService {
               Accept: 'application/json, text/plain, */*',
               Referer: 'https://www.binance.com/',
               Origin: 'https://www.binance.com',
+              
             },
           });
 
