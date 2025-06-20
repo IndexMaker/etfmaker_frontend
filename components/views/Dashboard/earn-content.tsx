@@ -34,10 +34,10 @@ const initialColumns: ColumnType[] = [
   { id: "ytdReturn", title: "YTD return", visible: true },
   { id: "performance", title: "Average Annual Returns", visible: false },
   { id: "curator", title: "Curator", visible: true },
+  { id: "collateral", title: "Collateral", visible: true },
   { id: "assetClass", title: "Asset Class", visible: true },
   { id: "category", title: "Category", visible: true },
   { id: "inceptionDate", title: "Inception Date", visible: true },
-  { id: "collateral", title: "Collateral", visible: true },
   { id: "managementFee", title: "Management Fee", visible: false },
   { id: "actions", title: "", visible: true },
 ];
@@ -64,7 +64,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
   const [totalManaged, setTotalManaged] = useState<number>(0);
   const [totalVolumn, setTotalVolumn] = useState<number>(0);
-  const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "reward">(
+  const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "historic">(
     "position"
   );
   // const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
@@ -290,11 +290,11 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                       size="sm"
                       className={cn(
                         "text-secondary px-[8px] py-[5px] h-[26px] text-[11px] rounded-[4px] cursor-pointer  hover:text-primary",
-                        activeMyearnTab === "reward" ? "bg-accent " : " bg-none"
+                        activeMyearnTab === "historic" ? "bg-accent " : " bg-none"
                       )}
-                      onClick={() => setActiveMyearnTab("reward")}
+                      onClick={() => setActiveMyearnTab("historic")}
                     >
-                      <span>{t("common.rewards")}</span>
+                      <span>{t("common.historics")}</span>
                     </Button>
                   </div>
                 </div>
@@ -318,8 +318,8 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
               <div className="p-4 border-none bg-foreground mb-10">
                 <p className="text-secondary text-center text-[12px]">
                   {activeMyearnTab === "position"
-                    ? t("common.noClaimableRewards")
-                    : t("common.noEarnPosition")}
+                    ? t("common.noEarnPosition")
+                    : t("common.noClaimableRewards")}
                 </p>
               </div>
             </>

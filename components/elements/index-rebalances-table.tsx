@@ -269,7 +269,7 @@ export function RebalanceTable({
                                                 <span className="text-sm">
                                                   {asset
                                                     .split(".")[1]
-                                                    ?.replace("USDC", "") ||
+                                                    ?.replace("USDC", "").replace("USDT", "") ||
                                                     asset}
                                                 </span>
                                                 <span className="text-sm font-medium">

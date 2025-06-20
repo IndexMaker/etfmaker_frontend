@@ -126,8 +126,8 @@ export function VaultTable({
                         <span>
                           {col.id === "actions"
                             ? ""
-                            : col.id === "instantApy"
-                            ? t("table.netAPY")
+                            : col.id === "ytdReturn"
+                            ? t("table.oneYearPerformance")
                             : col.id === "vaultApy"
                             ? t("table.supplyAPY")
                             : t("table." + col.id)}
@@ -308,7 +308,7 @@ export function VaultTable({
                         )} */}
                             {col.id === "ytdReturn" && (
                               <div onClick={() => assetDetail(vault)}>
-                                {vault.ytdReturn}
+                                {vault.performance?.oneYearReturn.toFixed(2) || vault.ytdReturn} %
                               </div>
                             )}
                             {col.id === "performance" && (

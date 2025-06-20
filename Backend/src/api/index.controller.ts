@@ -7,6 +7,7 @@ import { EtfMainService } from 'src/modules/computation/etf-main.service';
 import { BinanceService } from 'src/modules/data-fetcher/binance.service';
 import { Response } from 'express';
 import { CoinGeckoService } from 'src/modules/data-fetcher/coingecko.service';
+import { HuggingFaceService } from 'src/modules/computation/huggingface.service';
 
 @ApiTags('indices')
 @Controller('indices')
@@ -18,6 +19,7 @@ export class IndexController {
     private etfMainService: EtfMainService,
     private coinGeckoService: CoinGeckoService,
     private indexRegistryService: IndexRegistryService,
+    private huggingfaceService: HuggingFaceService
   ) {}
 
   @ApiOperation({ summary: 'Get live ETF price' })
@@ -36,6 +38,11 @@ export class IndexController {
   @Get(':indexId/sharpe')
   async getSharpe(@Param('indexId') indexId: string): Promise<number> {
     return this.metricsService.computeSharpeRatio(indexId, 1);
+  }
+
+  @Get('/parsingAnnouncements')
+  async processAnnouncements() {
+    await this.huggingfaceService.processAnnouncements()
   }
 
   @ApiOperation({ summary: 'Trigger Top 100 rebalance' })

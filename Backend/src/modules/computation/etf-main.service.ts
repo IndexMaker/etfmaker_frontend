@@ -387,7 +387,7 @@ export class EtfMainService {
     const rebalanceDate = new Date(rebalanceTimestamp * 1000);
 
     // 1. Prefetch all listings data and Bitget pairs
-    const [allListings, bitgetPairs] = await Promise.all([
+    const [allListings] = await Promise.all([
       db
         .select({
           token: listingsTable.token,
@@ -397,14 +397,7 @@ export class EtfMainService {
           delistingAnnouncementDate: listingsTable.delistingAnnouncementDate,
           delistingDate: listingsTable.delistingDate,
         })
-        .from(listingsTable),
-
-      db
-        .select({
-          base_asset: bitgetListings.baseAsset,
-          quote_asset: bitgetListings.quoteAsset,
-        })
-        .from(bitgetListings),
+        .from(listingsTable)
     ]);
 
     // Create lookup maps for listings
@@ -413,20 +406,12 @@ export class EtfMainService {
       listingsMap.set(listing.token.toUpperCase(), listing);
     }
 
-    const bitgetPairMap = new Map<string, Set<string>>(); // symbol -> Set<quote_asset>
-    for (const pair of bitgetPairs) {
-      if (!bitgetPairMap.has(pair.base_asset)) {
-        bitgetPairMap.set(pair.base_asset, new Set());
-      }
-      bitgetPairMap.get(pair.base_asset)!.add(pair.quote_asset);
-    }
-
     // Helper function to check if a token is listed on an exchange at rebalance time
     const isListed = (token: string, exchange: 'binance' | 'bitget') => {
       const listingData = listingsMap.get(token.toUpperCase());
       if (!listingData) return false;
-
-      // Check delisting first
+    
+      // Check delisting first (for the given exchange)
       if (listingData.delistingDate?.[exchange]) {
         const delistingDate = new Date(listingData.delistingDate[exchange]);
         if (delistingDate <= rebalanceDate) return false;
@@ -436,8 +421,8 @@ export class EtfMainService {
         );
         if (delistingAnnouncementDate <= rebalanceDate) return false;
       }
-
-      // Check listing
+    
+      // Check listing (for the given exchange)
       if (listingData.listingDate?.[exchange]) {
         const listingDate = new Date(listingData.listingDate[exchange]);
         return listingDate <= rebalanceDate;
@@ -447,7 +432,7 @@ export class EtfMainService {
         );
         return listingAnnouncementDate <= rebalanceDate;
       }
-
+    
       return false;
     };
 
@@ -478,42 +463,26 @@ export class EtfMainService {
         // Try to find the best available pair
         let selectedPair: string | null = null;
 
-        // Check Binance USDC
-        if (isListed(symbolUpper, 'binance')) {
-          const binanceUsdcPair = `${symbolUpper}USDC`;
-          if (bitgetPairMap.get(symbolUpper)?.has('USDC')) {
-            selectedPair = `bi.${binanceUsdcPair}`;
-          }
+        if (isListed(`${symbolUpper}USDC`, 'binance')) {
+          selectedPair = `bi.${symbolUpper}USDC`; // Assume Binance has USDC pair
         }
-
-        // Check Binance USDT
-        if (!selectedPair && isListed(symbolUpper, 'binance')) {
-          const binanceUsdtPair = `${symbolUpper}USDT`;
-          if (bitgetPairMap.get(symbolUpper)?.has('USDT')) {
-            selectedPair = `bi.${binanceUsdtPair}`;
-          }
+        
+        // Check Binance USDT (fallback if USDC not available)
+        if (!selectedPair && isListed(`${symbolUpper}USDT`, 'binance')) {
+          selectedPair = `bi.${symbolUpper}USDT`;
         }
-
-        // Check Bitget USDC
-        if (
-          !selectedPair &&
-          isListed(symbolUpper, 'bitget') &&
-          bitgetPairMap.get(symbolUpper)?.has('USDC')
-        ) {
+        
+        // Check Bitget USDC (if Binance not available)
+        if (!selectedPair && isListed(`${symbolUpper}USDC`, 'bitget')) {
           selectedPair = `bg.${symbolUpper}USDC`;
         }
-
-        // Check Bitget USDT
-        if (
-          !selectedPair &&
-          isListed(symbolUpper, 'bitget') &&
-          bitgetPairMap.get(symbolUpper)?.has('USDT')
-        ) {
+        
+        // Check Bitget USDT (fallback if USDC not available)
+        if (!selectedPair && isListed(`${symbolUpper}USDT`, 'bitget')) {
           selectedPair = `bg.${symbolUpper}USDT`;
         }
 
         if (!selectedPair) continue;
-
         // Check blacklist
         const categories = await this.coinGeckoService.getCategories(coin.id);
         const isBlacklisted =
@@ -616,7 +585,7 @@ export class EtfMainService {
           },
         });
     });
-
+    console.log(weightsForContract)
     return { weights: weightsForContract, price: etfPrice };
   }
 

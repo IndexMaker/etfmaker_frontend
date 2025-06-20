@@ -138,7 +138,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             {isConnected && wallet && isAdmin ? (
               <NavItem
                 href="/private-dashboard"
-                active={isRouteActive("/ecosystem")}
+                active={isRouteActive("/private-dashboard")}
                 className="text-[13px] text-secondary py-[6px] px-[10px] h-[32px]"
                 icon={LayoutDashboard}
                 collapsed={collapsed}
@@ -209,7 +209,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
 
               <NavItem
-                href="https://www.symm.io/"
+                href="https://psymm.gitbook.io/indexmaker"
                 icon={FundMakerDoc}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"

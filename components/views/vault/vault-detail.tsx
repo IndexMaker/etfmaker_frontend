@@ -68,6 +68,7 @@ import { getBalance } from "viem/actions";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useWallet } from "@/contexts/wallet-context";
+import { addSelectedVault } from "@/redux/vaultSlice";
 
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
@@ -97,6 +98,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     switchWallet,
   } = useWallet();
   const { t } = useLanguage();
+  console.log(index)
   const vault = mockup_vaults[0];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
   const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
@@ -112,6 +114,11 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([]);
 
   // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  const dispatch = useDispatch();
+  const handleSupplyClick = (name: string, ticker: string) => {
+    dispatch(addSelectedVault({ name, ticker }));
+  };
+  const selectedVault = useSelector((state: RootState) => state.vault.selectedVault)
 
   useEffect(() => {
     const fetchData = async (indexId: number) => {
@@ -378,6 +385,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                 </h2>
                 <IndexBalance
                   // walletBalance={getBalance}
+                  onSupplyClick={handleSupplyClick}
                   index={index}
                   className={""}
                 />
