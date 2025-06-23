@@ -12,7 +12,7 @@ import { Copy } from "lucide-react";
 interface IndexBalanceProps {
   className?: string;
   index: IndexListEntry;
-  walletBalance?: number;
+  indexBalance?: string;
   tokenSymbol?: string;
   instantAPY?: string;
   onSupplyClick?: (indexId: string, token: string) => void;
@@ -21,7 +21,7 @@ interface IndexBalanceProps {
 export default function IndexBalance({
   className = "",
   index,
-  walletBalance = 0,
+  indexBalance = '-',
   tokenSymbol = "USDC",
   instantAPY = "24.79",
   onSupplyClick,
@@ -34,16 +34,16 @@ export default function IndexBalance({
       <div className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="border-b border-[#434343]">
+            <thead className="border-b ">
               <tr className="p-4">
                 <th className="text-left py-3 px-4 font-medium text-primary">
                   Token
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-primary">
-                  Instant APY
+                  Client Balance
                 </th>
                 <th className="text-left py-3 px-4 font-medium text-primary">
-                  Wallet Balance
+                  Index Balance
                 </th>
                 <th className="text-right py-3 px-4"></th>
               </tr>
@@ -65,9 +65,9 @@ export default function IndexBalance({
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex flex-col gap-2 items-start">
-                    <span className="font-medium text-secondary">{index.collateral.length} {" Assets"}</span>
-                    <div className="flex items-left gap-0 min-w-[150px]">
-                      {index.collateral.length > 0 ? (
+                    <span className="font-medium text-secondary">{indexBalance}</span>
+                    {/* <div className="flex items-left gap-0 min-w-[150px]">
+                       {index.collateral.length > 0 ? (
                         <>
                           {index.collateral
                             .slice(0, 5)
@@ -121,12 +121,6 @@ export default function IndexBalance({
                                         key={index}
                                         className="flex items-center gap-2"
                                       >
-                                        {/* <Image
-                                                src={collateral.logo}
-                                                alt="Collateral"
-                                                width={17}
-                                                height={17}
-                                              /> */}
                                         <span>{collateral.name}</span>
                                       </div>
                                     ))}
@@ -139,8 +133,9 @@ export default function IndexBalance({
                             </CustomTooltip>
                           )}
                         </>
-                      ) : null}
-                    </div>
+                      ) : null} 
+                      
+                    </div> */}
                   </div>
                 </td>
                 <td className="py-4 px-4 text-right border-l border-[#434343] max-w-[140px] w-[140px]">

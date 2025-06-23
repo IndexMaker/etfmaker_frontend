@@ -95,6 +95,7 @@ export const translations: Translations = {
       checkBoxConfirmationWithLink:
         'Check this box to confirm you have read the FundMaker <a href="https://cdn.morpho.org/documents/FundMaker_Terms_of_Use.pdf" class="underline">Terms of Use</a> and understand the associated risks.',
       claim: "Claim rewards",
+      closePosition: "Close Position",
       positions: "Positions",
       rewards: "Rewards",
       historics: "Historics",

@@ -28,6 +28,7 @@ import { removeSelectedVault, updateVaultAmount } from "@/redux/vaultSlice";
 import { IndexListEntry } from "@/types";
 import FundMaker from "../icons/fundmaker";
 import { useWallet } from "@/contexts/wallet-context";
+import { TransactionConfirmModal } from "./transaction-modal";
 
 interface SupplyPanelProps {
   vaultIds: VaultInfo[];
@@ -40,6 +41,17 @@ interface VaultInfo {
   name: string;
   ticker: string;
   amount: number;
+}
+
+interface TransactionData {
+  token: string;
+  amount: number;
+  value: number;
+  apy: number;
+  collateral: {
+    name: string;
+    logo: string;
+  }[];
 }
 
 export function SupplyPanel({
@@ -62,6 +74,8 @@ export function SupplyPanel({
   const [balance, setBalance] = useState(0);
   const { t } = useLanguage();
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [confirmModalOpen, setConfrimModalOpen] = useState(false);
+  const [transactions, setTransactions] = useState<TransactionData[] | null>(null)
   const [maxpopoverOpen, setMaxPopoverOpen] = useState(false);
   const [insufficientValue, setInsufficientValue] = useState(false);
   // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
@@ -77,6 +91,19 @@ export function SupplyPanel({
   useEffect(() => {
     setBalance(0);
   }, []);
+
+  useEffect(() => {
+    const _transactions: TransactionData[] = vaults.map(vault => {
+      return {
+        token: vault.name,
+        amount: vaultIds.find(vaultId => vaultId.name === vault.name)?.amount || 0,
+        value: vaultIds.find(vaultId => vaultId.name === vault.name)?.amount || 0,
+        apy: vault.performance?.oneYearReturn || 0,
+        collateral: vault.collateral,
+      }
+    })
+    setTransactions(_transactions)
+  }, [vaultIds, vaults])
 
   useEffect(() => {
     const handleResize = () => {
@@ -158,8 +185,7 @@ export function SupplyPanel({
 
   const handleSupply = () => {
     // In a real app, this would handle the supply transaction
-    console.log(`Supplying ${amount} to vault ${vaultIds}`);
-    onClose();
+    setConfrimModalOpen(true)
   };
 
   const setMaxAmount = (vaultId: string) => {
@@ -191,6 +217,11 @@ export function SupplyPanel({
       dispatch(updateVaultAmount({ name: vaultId, amount: 0 }));
     }
   };
+
+  const onConfirmTransactionClose = () => {
+    // console.log(`Supplying ${amount} to vault ${vaultIds}`);
+    setConfrimModalOpen(false);
+  }
 
   return (
     <>
@@ -403,14 +434,14 @@ export function SupplyPanel({
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-1">
                           <span className="text-[12px] text-muted">
-                            {t("common.oneDayEarnAPY")}
+                            {t("table.oneYearPerformance")}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="font-normal text-primary text-[12px]">
-                            {vault.ytdReturn} %
+                            {vault.performance?.oneYearReturn || '0'} %
                           </span>
-                          {vault.ytdReturn > 5 && (
+                          {Number(vault.performance?.oneYearReturn) > 5 && (
                             <CustomTooltip
                               key={"instantApy"}
                               content={
@@ -558,7 +589,10 @@ export function SupplyPanel({
             })}
           </div>
           {/* Footer */}
-          <div className="mt-auto px-4 py-6 border-t border-accent relative">
+          <div className="mt-auto px-4 py-6 border-t border-accent relative flex flex-col gap-2">
+            <div className="p-0">
+              <div className="w-full text-[13px] text-secondary text-right">Estimated Fill Time : ~15 Minutes</div>
+            </div>
             <div className="flex gap-10 lg:gap-30 items-center h-[40px] justify-between relative">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
                 <PopoverTrigger asChild>
@@ -611,6 +645,10 @@ export function SupplyPanel({
           </div>
         </div>
       </div>
+      <TransactionConfirmModal
+      isOpen={confirmModalOpen}
+      onClose={onConfirmTransactionClose}
+      transactions={transactions} />
     </>
   );
 }

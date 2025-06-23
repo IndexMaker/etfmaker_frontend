@@ -20,6 +20,11 @@ import { useWallet } from "../../../contexts/wallet-context";
 import { IndexListEntry } from "@/types";
 import { setIndices } from "@/redux/indexSlice";
 import { fetchAllIndices } from "@/api/indices";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ColumnType = {
   id: string;
@@ -64,9 +69,9 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
   const [totalManaged, setTotalManaged] = useState<number>(0);
   const [totalVolumn, setTotalVolumn] = useState<number>(0);
-  const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "historic">(
-    "position"
-  );
+  const [activeMyearnTab, setActiveMyearnTab] = useState<
+    "position" | "historic"
+  >("position");
   // const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network
@@ -290,7 +295,9 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                       size="sm"
                       className={cn(
                         "text-secondary px-[8px] py-[5px] h-[26px] text-[11px] rounded-[4px] cursor-pointer  hover:text-primary",
-                        activeMyearnTab === "historic" ? "bg-accent " : " bg-none"
+                        activeMyearnTab === "historic"
+                          ? "bg-accent "
+                          : " bg-none"
                       )}
                       onClick={() => setActiveMyearnTab("historic")}
                     >
@@ -299,12 +306,20 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                   </div>
                 </div>
                 <div className="gap-4 hidden sm:flex">
-                  <CustomButton
-                    disabled={true}
-                    className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30"
-                  >
-                    {t("common.claim")}
-                  </CustomButton>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <CustomButton
+                        disabled={true}
+                        className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30"
+                      >
+                        {t("common.closePosition")}
+                      </CustomButton>
+                    </TooltipTrigger>
+                    <TooltipContent className="">
+                      <span className="text-foreground text-[12px]">Coming in Beta</span>
+                    </TooltipContent>
+                  </Tooltip>
+
                   {activeMyearnTab === "position" ? (
                     <ColumnVisibilityPopover
                       columns={columns}

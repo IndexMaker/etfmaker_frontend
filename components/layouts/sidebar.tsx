@@ -219,9 +219,9 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 {t("common.fundmakerDocs")}
               </NavItem>
               <NavItem
-                href="https://docs.google.com/forms/d/e/1FAIpQLSc3ZpfvlcBmMgCDfg6ahM6cKNm003bbns5Ao6QfXJNfcfpATw/viewform?embedded=true"
+                active={isRouteActive('/contact-us')}
+                href="/contact-us"
                 icon={Feedback}
-                external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
@@ -229,7 +229,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 {t("common.support")}
               </NavItem>
               <NavItem
-                href="https://cdn.morpho.org/documents/FundMaker_Terms_of_Use.pdf"
+                href="https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use"
                 icon={TOS}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"

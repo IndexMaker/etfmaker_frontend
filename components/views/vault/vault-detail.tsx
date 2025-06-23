@@ -378,21 +378,17 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             </div>
 
             {/* Vault Description */}
-            {wallet ? (
               <div className="pt-20">
                 <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
                   {t("common.AssetsToSupply")}
                 </h2>
                 <IndexBalance
-                  // walletBalance={getBalance}
+                  indexBalance={wallet ? '0' : '-'}
                   onSupplyClick={handleSupplyClick}
                   index={index}
                   className={""}
                 />
               </div>
-            ) : (
-              <></>
-            )}
             {/* Let's connect / Subscribe / Buy Now */}
             {/* <div className="pt-20">
               <AdditionalMenu
@@ -423,9 +419,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     <TokenValue token={vault.token} value={index.totalSupply} />
                   </InfoMobileCard>
 
-                  <InfoMobileCard title={t("table.ytdReturn")}>
+                  <InfoMobileCard title={t("table.oneYearPerformance")}>
                     <div className="text-sm text-secondary">
-                      {index.ytdReturn}
+                      {index.performance?.oneYearReturn || '0'} %
                     </div>
                   </InfoMobileCard>
 
@@ -529,9 +525,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   </InfoCard>
 
                   {/* Instant APY */}
-                  <InfoCard title={t("table.ytdReturn")}>
+                  <InfoCard title={t("table.oneYearPerformance")}>
                     <div className="text-[15px] text-secondary font-normal">
-                      {index.ytdReturn}
+                      {index.performance?.oneYearReturn || '0'} %
                     </div>
                   </InfoCard>
 
@@ -626,13 +622,13 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
                 {t("common.indexOverview")}
               </h2>
-              <div className="flex flex-wrap gap-6 flex-responsive">
+              <div className={cn(`flex gap-6  ` , (isSmallWindow ? 'flex-col' : 'flex-wrap flex-responsive'))}>
                 <FundDetail />
-                <FundManager />
+                {!isSmallWindow && <FundManager />}
                 <FundOverview />
-                <PortfolioManagerInsights />
+                {!isSmallWindow && <PortfolioManagerInsights />}
                 <FundRiskReturn />
-                <Risk />
+                {!isSmallWindow && <Risk />}
               </div>
             </div>
             {/* Chart */}
