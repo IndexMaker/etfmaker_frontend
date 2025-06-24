@@ -225,12 +225,6 @@ export function RebalanceTable({
                             {col.id === "id" && (
                               <>
                                 <div className="flex items-center gap-2 pl-[1.5px]">
-                                  {/* <Image
-                                                    src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
-                                                    alt={vault.token}
-                                                    width={17}
-                                                    height={17}
-                                                  /> */}
                                   <span>{index + 1}</span>
                                 </div>
                               </>

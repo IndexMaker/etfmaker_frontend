@@ -1,8 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { iconComponents, fundOverviewData } from "@/lib/IndexDetailData";
-import { Cpu, MapPin } from "lucide-react"
+import { getIndexData, iconComponents } from "@/lib/IndexMockupData";
 
-export default function FundOverview() {
+export default function FundOverview({indexId = 'SY100'}: {indexId: string}) {
   const {
     asOfDate,
     topSector,
@@ -11,7 +10,7 @@ export default function FundOverview() {
     strategy,
     risk,
     disclosures
-  } = fundOverviewData;
+  } = getIndexData(indexId).fundOverviewData || [];
 
   // Get icon components
   const SectorIcon = iconComponents[topSector.iconName as keyof typeof iconComponents];

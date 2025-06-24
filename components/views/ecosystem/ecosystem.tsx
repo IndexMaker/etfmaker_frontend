@@ -20,18 +20,18 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
   const getIconUrl = (icon: string) => {
     if (theme === "light") {
       if (icon === "safe") {
-        return `https://cdn.morpho.org/v2/communication/images/${icon.toLowerCase()}-logo-bw.svg`;
+        return `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${icon.toLowerCase()}-logo-bw.svg`;
       } else if (["brahma", "vaultcraft", "ionic"].includes(icon)) {
-        return `https://cdn.morpho.org/v2/communication/images/${icon.toLowerCase()}-logo-bw-dark.png`;
+        return `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${icon.toLowerCase()}-logo-bw-dark.png`;
       } else if (icon === "moonwell") {
-        return `https://cdn.morpho.org/v2/communication/images/${icon.toLowerCase()}-logo-bw-black.png`;
+        return `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${icon.toLowerCase()}-logo-bw-black.png`;
       }
-      return `https://cdn.morpho.org/v2/communication/images/${icon.toLowerCase()}-logo-bw.png`;
+      return `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${icon.toLowerCase()}-logo-bw.png`;
     } else {
       if (icon === "ionic") {
-        return `https://cdn.morpho.org/v2/communication/images/${icon.toLowerCase()}-logo-bw-light.png`;
+        return `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${icon.toLowerCase()}-logo-bw-light.png`;
       }
-      return `https://cdn.morpho.org/v2/communication/images/${icon.toLowerCase()}-logo-bw-white.png`;
+      return `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${icon.toLowerCase()}-logo-bw-white.png`;
     }
   };
 

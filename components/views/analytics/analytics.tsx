@@ -38,19 +38,19 @@ export function AnalyticsPage() {
                 name="DefiLlama"
                 icon="defillama"
                 theme={theme}
-                url="https://defillama.com/protocol/morpho"
+                url="https://defillama.com/protocol/indexmaker"
               />
               <AnalyticsLink
                 name="Dune"
                 icon="dune"
                 theme={theme}
-                url="https://dune.com/morpho/"
+                url="https://dune.com/indexmaker/"
               />
               <AnalyticsLink
                 name="TokenTerminal"
                 icon="token-terminal"
                 theme={theme}
-                url="https://tokenterminal.com/terminal/projects/morpho"
+                url="https://tokenterminal.com/terminal/projects/indexmaker"
               />
             </div>
           </div>
@@ -85,19 +85,19 @@ export function AnalyticsPage() {
                 name="BlockAnalytica"
                 icon="fundmaker"
                 theme={theme}
-                url="https://morpho.blockanalitica.com/"
+                url="https://indexmaker.blockanalitica.com/"
               />
               <AnalyticsLink
                 name="DefiLlama - FundMaker"
                 icon="defillama"
                 theme={theme}
-                url="https://defillama.com/protocol/morpho-blue"
+                url="https://defillama.com/protocol/indexmaker-blue"
               />
               <AnalyticsLink
                 name="Dune - FundMaker"
                 icon="dune"
                 theme={theme}
-                url="https://dune.com/morpho/morpho-blue-dashboard"
+                url="https://dune.com/indexmaker/indexmaker-blue-dashboard"
               />
             </div>
           </div>
@@ -179,19 +179,19 @@ export function AnalyticsPage() {
                 name={"FundMaker Optimizers"}
                 icon="fundmaker"
                 theme={theme}
-                url="https://optimizers.morpho.org/"
+                url="https://optimizers.indexmaker.org/"
               />
               <AnalyticsLink
                 name="DefiLlama - FundMaker Aave V3"
                 icon="defillama"
                 theme={theme}
-                url="https://defillama.com/protocol/morpho-aavev3"
+                url="https://defillama.com/protocol/indexmaker-aavev3"
               />
               <AnalyticsLink
                 name="DefiLlama - FundMaker Aave V2"
                 icon="defillama"
                 theme={theme}
-                url="https://defillama.com/protocol/morpho-aave"
+                url="https://defillama.com/protocol/indexmaker-aave"
               />
             </div>
           </div>
@@ -278,7 +278,7 @@ function AnalyticsLink({ name, icon, url, theme }: AnalyticsLinkProps) {
           </div>
         ) : (
           <Image
-            src={`https://cdn.morpho.org/assets/logos/${icon}.svg`}
+            src={`/${icon}.svg`}
             width={15}
             height={15}
             alt="FundMaker"

@@ -186,15 +186,15 @@ export const mockup_vaults: Vault[] = [
     name: "Relend ETH",
     description:
       "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets.",
-    icon: "https://cdn.morpho.org/assets/logos/eth.svg",
+    icon: "https://cdn.indexmaker.org/assets/logos/eth.svg",
     token: {
       symbol: "ETH",
-      icon: "https://cdn.morpho.org/assets/logos/eth.svg",
+      icon: "https://cdn.indexmaker.org/assets/logos/eth.svg",
       address: "0x6b175474e89094c44da98b954eedeac495271d0f",
     },
     curator: {
       name: "B.protocol",
-      icon: "https://cdn.morpho.org/v2/assets/images/bprotocol.png",
+      icon: "https://cdn.indexmaker.org/v2/assets/images/bprotocol.png",
       url: "https://spark.fi",
     },
     totalSupply: {
@@ -230,15 +230,15 @@ export const mockup_vaults: Vault[] = [
     name: "MEV Capital Usual USDC",
     description:
       "MEV Capital's USDC vault optimizes yield through strategic market positioning and MEV capture techniques.",
-    icon: "https://cdn.morpho.org/v2/assets/images/usual.svg",
+    icon: "https://cdn.indexmaker.org/v2/assets/images/usual.svg",
     token: {
       symbol: "USDC",
-      icon: "https://cdn.morpho.org/assets/logos/usdc.svg",
+      icon: "https://cdn.indexmaker.org/assets/logos/usdc.svg",
       address: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
     },
     curator: {
       name: "MEV Capital",
-      icon: "https://cdn.morpho.org/v2/assets/images/mevcapital.png",
+      icon: "https://cdn.indexmaker.org/v2/assets/images/mevcapital.png",
       url: "https://mev.capital",
     },
     totalSupply: {

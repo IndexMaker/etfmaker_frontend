@@ -27,7 +27,7 @@ import { useWallet } from "../../contexts/wallet-context";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentChainId, setSelectedNetwork } from "@/redux/networkSlice";
 import { RootState } from "@/redux/store";
-
+import ETH from "../../public/logos/ethereum.png";
 interface HeaderProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -250,7 +250,7 @@ export function Header({
                     >
                       {currentChainId !== "0x1" ? (
                         <Image
-                          src={"https://cdn.morpho.org/assets/chains/eth.svg"}
+                          src={ETH}
                           alt={"Ethereum"}
                           width={17}
                           height={17}

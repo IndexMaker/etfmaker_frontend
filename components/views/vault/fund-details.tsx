@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fundDetails } from "@/lib/IndexDetailData";
+import { getIndexData } from "@/lib/IndexMockupData";
 import { Info } from "lucide-react";
 
-export default function FundDetail() {
-  
+export default function FundDetail({indexId = 'SY100'}: {indexId: string}) {
+  const fundDetails = getIndexData(indexId).fundDetails || []
 
   return (
     <Card className="w-full min-w-[350px] h-[440px] border-none bg-foreground overflow-auto p-2 gap-2 flex-1">
@@ -14,8 +14,8 @@ export default function FundDetail() {
         </CardTitle>
       </div>
       <CardContent className="space-y-3 overflow-y-auto px-3">
-        {fundDetails.map((item, index) => (
-          <div key={index} className="flex justify-between items-start text-[14px] border-b-1 pb-1">
+        {fundDetails.map((item: any) => (
+          <div key={indexId} className="flex justify-between items-start text-[14px] border-b-1 pb-1">
             <div className="flex gap-2 pr-4">
               <span
                 className={`${

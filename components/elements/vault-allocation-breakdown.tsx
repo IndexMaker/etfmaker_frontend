@@ -83,7 +83,7 @@ export function VaultAllocationBreakdown({
                           target="_blank"
                           rel="noreferrer noopener"
                           className="font-normal text-card text-[11px]"
-                          href="https://docs.fundmaker.cc/interface/warnings/#what-are-the-warnings-on-the-morpho-interface"
+                          href="https://docs.indexmaker.cc/interface/warnings/#what-are-the-warnings-on-the-indexmaker-interface"
                         >
                           Learn more →
                         </a>

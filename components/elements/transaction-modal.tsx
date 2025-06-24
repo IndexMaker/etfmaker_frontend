@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Sparkles, CheckCircle2, Circle, Copy } from "lucide-react";
 import CustomTooltip from "./custom-tooltip";
-
+import USDC from "../../public/logos/usd-coin.png";
 interface TransactionItem {
   token: string;
   amount: number;
@@ -80,14 +80,14 @@ export function TransactionConfirmModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-background border-gray-800 text-primary">
+      <DialogContent className="max-w-2xl bg-background border-accent text-primary">
         <div className="flex flex-row items-center justify-between space-y-0 pb-4">
           <DialogTitle className="text-lg font-medium">
             {step === "review" ? "Review transaction" : "Confirm transaction"}
           </DialogTitle>
           {/* <Button
             variant="ghost"
-            size="sm"
+            size="[12px]"
             onClick={handleClose}
             className="text-secondary hover:text-primary h-auto p-1"
           >
@@ -103,7 +103,7 @@ export function TransactionConfirmModal({
                 {/* Token Info */}
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold">
+                    <span className="text-[12px] font-bold">
                       {transaction.token.charAt(0)}
                     </span>
                   </div>
@@ -112,12 +112,12 @@ export function TransactionConfirmModal({
 
                 {/* Transaction Details */}
                 <div className="space-y-3 bg-foreground rounded-lg p-4">
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-[12px]">
                     <span className="text-secondary">Supply</span>
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 bg-transparent rounded-full flex items-center justify-center">
                         <Image
-                          src="https://cdn.morpho.org/assets/logos/usdc.svg"
+                          src={USDC}
                           alt="USDC"
                           width={20}
                           height={20}
@@ -131,7 +131,7 @@ export function TransactionConfirmModal({
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-[12px]">
                     <span className="text-secondary">Net Supply APY</span>
                     <div className="flex items-center gap-1">
                       <span className="font-medium">{transaction.apy}</span>
@@ -139,7 +139,7 @@ export function TransactionConfirmModal({
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-[12px]">
                     <span className="text-secondary">Collateral</span>
                     <div className="flex items-center gap-1">
                       {transaction.collateral.length > 0 ? (
@@ -156,7 +156,7 @@ export function TransactionConfirmModal({
                                       <Image
                                         src={
                                           collateral.logo ||
-                                          `https://cdn.morpho.org/assets/logos/usdc.svg`
+                                          USDC
                                         }
                                         alt={"USDC"}
                                         width={17}
@@ -186,7 +186,7 @@ export function TransactionConfirmModal({
                                 <Image
                                   src={
                                     collateral.logo ??
-                                    `https://cdn.morpho.org/assets/logos/usdc.svg`
+                                    USDC
                                   }
                                   alt={collateral.name}
                                   width={17}
@@ -226,22 +226,22 @@ export function TransactionConfirmModal({
                 </div>
 
                 {index < transactions.length - 1 && (
-                  <div className="border-t border-gray-700 my-4" />
+                  <div className="border-t border-accent my-4" />
                 )}
               </div>
             ))}
 
             {/* Terms */}
-            <p className="text-xs text-secondary">
+            <p className="text-[11px] text-secondary">
               By confirming this transaction, you agree to the{" "}
-              <span className="underline cursor-pointer">Terms of Use</span> and
-              the services provisions relating to the Morpho Vault.
+              <a target="_blank" href={'https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use'} className="underline cursor-pointer">Terms of Use</a> and
+              the services provisions relating to the IndexMaker Vault.
             </p>
 
             {/* Confirm Button */}
             <Button
               onClick={handleConfirm}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-primary"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               disabled={isProcessing}
             >
               {isProcessing ? "Processing..." : "Confirm"}
@@ -259,14 +259,14 @@ export function TransactionConfirmModal({
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium">
+                <p className="text-[12px] font-medium">
                   Approve the bundler to spend tokens (via permit)
                 </p>
                 {!approvalComplete && (
                   <Button
                     onClick={handleApproval}
                     size="sm"
-                    className="mt-2 bg-blue-600 hover:bg-blue-700"
+                    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={isProcessing}
                   >
                     {isProcessing ? "Approving..." : "Approve"}
@@ -277,7 +277,7 @@ export function TransactionConfirmModal({
 
             {/* Step 2: Bundle Actions */}
             <div className="flex items-start gap-3">
-              <div className="mt-1">
+              <div className="mt-0">
                 <Circle
                   className={`w-5 h-5 ${
                     approvalComplete ? "text-blue-500" : "text-secondary"
@@ -286,14 +286,14 @@ export function TransactionConfirmModal({
               </div>
               <div className="flex-1">
                 <p
-                  className={`text-sm font-medium ${
+                  className={`text-[12px] font-medium ${
                     approvalComplete ? "text-primary" : "text-secondary"
                   }`}
                 >
                   Bundle the following actions
                 </p>
                 <div
-                  className={`mt-2 space-y-2 ${
+                  className={`mt-4 space-y-2 ${
                     approvalComplete ? "" : "opacity-50"
                   }`}
                 >
@@ -301,9 +301,9 @@ export function TransactionConfirmModal({
                     transactions.map((transaction) => (
                       <div
                         key={transaction.token + "-2nd"}
-                        className="p-3 bg-gray-800 rounded-lg"
+                        className="p-3 bg-foreground rounded-lg"
                       >
-                        <p className="text-sm text-secondary">
+                        <p className="text-[12px] text-secondary">
                           Supply {transaction.amount} to {transaction.token}
                         </p>
                       </div>
@@ -316,7 +316,7 @@ export function TransactionConfirmModal({
                       handleClose();
                     }}
                     size="sm"
-                    className="mt-2 bg-blue-600 hover:bg-blue-700"
+                    className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     Execute Transaction
                   </Button>

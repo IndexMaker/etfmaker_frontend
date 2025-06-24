@@ -83,14 +83,14 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
                         ? project.icon !== "ionic" &&
                           project.icon !== "vaultcraft"
                           ? project.icon === "safe"
-                            ? `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw.svg`
-                            : `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw.png`
-                          : `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw-dark.png`
-                        : `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw-black.png`
-                      : `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw-dark.png`
+                            ? `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw.svg`
+                            : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw.png`
+                          : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-dark.png`
+                        : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-black.png`
+                      : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-dark.png`
                     : project.icon !== "ionic"
-                    ? `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw-white.png`
-                    : `https://cdn.morpho.org/v2/communication/images/${project.icon.toLowerCase()}-logo-bw-light.png`
+                    ? `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-white.png`
+                    : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-light.png`
                 }
                 width={24}
                 height={24}

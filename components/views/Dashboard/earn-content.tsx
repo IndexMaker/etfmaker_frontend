@@ -54,12 +54,6 @@ interface EarnContentProps {
 export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const {
     wallet,
-    isConnected,
-    connecting,
-    connectWallet,
-    disconnectWallet,
-    switchNetwork,
-    switchWallet,
   } = useWallet();
   const { t } = useLanguage();
   const [columns, setColumns] = useState(initialColumns);
@@ -193,23 +187,23 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   const [visibleColumns, setVisibleColumns] = useState<ColumnType[]>([]);
   useEffect(() => {
-    if (wallet && currentChainId === selectedNetwork) {
-      setVisibleColumns(
-        columns
-          .filter((column) => column.visible)
-          .map((column) => ({
-            ...column,
-          }))
-      );
-    } else {
-      setVisibleColumns(
-        columns
-          .filter((column) => column.visible && column.id !== "actions")
-          .map((column) => ({
-            ...column,
-          }))
-      );
-    }
+    setVisibleColumns(
+      columns
+        .filter((column) => column.visible)
+        .map((column) => ({
+          ...column,
+        }))
+    );
+    // if (wallet && currentChainId === selectedNetwork) {
+    // } else {
+    //   setVisibleColumns(
+    //     columns
+    //       .filter((column) => column.visible && column.id !== "actions")
+    //       .map((column) => ({
+    //         ...column,
+    //       }))
+    //   );
+    // }
   }, [wallet, columns, currentChainId, selectedNetwork]);
 
   if (showHowEarnWorks) {

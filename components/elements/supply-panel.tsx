@@ -29,6 +29,7 @@ import { IndexListEntry } from "@/types";
 import FundMaker from "../icons/fundmaker";
 import { useWallet } from "@/contexts/wallet-context";
 import { TransactionConfirmModal } from "./transaction-modal";
+import USDC from "../../public/logos/usd-coin.png";
 
 interface SupplyPanelProps {
   vaultIds: VaultInfo[];
@@ -75,7 +76,9 @@ export function SupplyPanel({
   const { t } = useLanguage();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [confirmModalOpen, setConfrimModalOpen] = useState(false);
-  const [transactions, setTransactions] = useState<TransactionData[] | null>(null)
+  const [transactions, setTransactions] = useState<TransactionData[] | null>(
+    null
+  );
   const [maxpopoverOpen, setMaxPopoverOpen] = useState(false);
   const [insufficientValue, setInsufficientValue] = useState(false);
   // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
@@ -93,17 +96,19 @@ export function SupplyPanel({
   }, []);
 
   useEffect(() => {
-    const _transactions: TransactionData[] = vaults.map(vault => {
+    const _transactions: TransactionData[] = vaults.map((vault) => {
       return {
         token: vault.name,
-        amount: vaultIds.find(vaultId => vaultId.name === vault.name)?.amount || 0,
-        value: vaultIds.find(vaultId => vaultId.name === vault.name)?.amount || 0,
+        amount:
+          vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount || 0,
+        value:
+          vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount || 0,
         apy: vault.performance?.oneYearReturn || 0,
         collateral: vault.collateral,
-      }
-    })
-    setTransactions(_transactions)
-  }, [vaultIds, vaults])
+      };
+    });
+    setTransactions(_transactions);
+  }, [vaultIds, vaults]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -185,7 +190,7 @@ export function SupplyPanel({
 
   const handleSupply = () => {
     // In a real app, this would handle the supply transaction
-    setConfrimModalOpen(true)
+    setConfrimModalOpen(true);
   };
 
   const setMaxAmount = (vaultId: string) => {
@@ -221,7 +226,7 @@ export function SupplyPanel({
   const onConfirmTransactionClose = () => {
     // console.log(`Supplying ${amount} to vault ${vaultIds}`);
     setConfrimModalOpen(false);
-  }
+  };
 
   return (
     <>
@@ -345,7 +350,7 @@ export function SupplyPanel({
                             {/* Asset Logo */}
                             <span className="flex items-center w-[20px] h-[20px]">
                               <Image
-                                src="https://cdn.morpho.org/assets/logos/usdc.svg"
+                                src={USDC}
                                 alt="USDC"
                                 width={20}
                                 height={20}
@@ -359,7 +364,14 @@ export function SupplyPanel({
                             </span>
 
                             {/* Max Button */}
-                            <Popover
+                            <Button
+                              type="button"
+                              className="px-[8px] py-[5px] h-[26px] text-[12px] rounded-[4px] bg-accent text-primary hover:bg-muted cursor-pointer"
+                              onClick={() => setMaxAmount(vault.name)}
+                            >
+                              {t("common.max")}
+                            </Button>
+                            {/* <Popover
                               open={maxpopoverOpen}
                               onOpenChange={setMaxPopoverOpen}
                             >
@@ -409,7 +421,7 @@ export function SupplyPanel({
                                   </div>
                                 </div>
                               </PopoverContent>
-                            </Popover>
+                            </Popover> */}
                           </div>
                         </div>
                       </div>
@@ -424,7 +436,7 @@ export function SupplyPanel({
                       <div className="flex justify-end mt-1">
                         <span className="text-xs text-secondary">
                           {t("common.balance")}:{" "}
-                          {balances["USDC"]?.toFixed(2) || 0} {"USDC"}
+                          {balances["USDC"]?.toFixed(4) || 0} {"USDC"}
                         </span>
                       </div>
                     </div>
@@ -439,7 +451,8 @@ export function SupplyPanel({
                         </div>
                         <div className="flex items-center gap-1">
                           <span className="font-normal text-primary text-[12px]">
-                            {vault.performance?.oneYearReturn || '0'} %
+                            {vault.performance?.oneYearReturn.toFixed(2) || "0"}{" "}
+                            %
                           </span>
                           {Number(vault.performance?.oneYearReturn) > 5 && (
                             <CustomTooltip
@@ -461,7 +474,7 @@ export function SupplyPanel({
                                   <div className="flex justify-between border-b py-1 px-3 border-accent">
                                     <div className="flex items-center gap-1">
                                       <Image
-                                        src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
+                                        src={USDC}
                                         alt={"USDC"}
                                         width={14}
                                         height={14}
@@ -513,10 +526,7 @@ export function SupplyPanel({
                                         <span>Collateral</span>
                                         <div className="flex items-center">
                                           <Image
-                                            src={
-                                              collateral.logo ||
-                                              `https://cdn.morpho.org/assets/logos/usdc.svg`
-                                            }
+                                            src={collateral.logo || USDC}
                                             alt={"USDC"}
                                             width={17}
                                             height={17}
@@ -543,10 +553,7 @@ export function SupplyPanel({
                                     {collateral.name}
                                   </span> */}
                                     <Image
-                                      src={
-                                        collateral.logo ??
-                                        `https://cdn.morpho.org/assets/logos/usdc.svg`
-                                      }
+                                      src={collateral.logo ?? USDC}
                                       alt={collateral.name}
                                       width={17}
                                       height={17}
@@ -591,7 +598,9 @@ export function SupplyPanel({
           {/* Footer */}
           <div className="mt-auto px-4 py-6 border-t border-accent relative flex flex-col gap-2">
             <div className="p-0">
-              <div className="w-full text-[13px] text-secondary text-right">Estimated Fill Time : ~15 Minutes</div>
+              <div className="w-full text-[13px] text-secondary text-right">
+                Estimated Fill Time : ~15 Minutes
+              </div>
             </div>
             <div className="flex gap-10 lg:gap-30 items-center h-[40px] justify-between relative">
               <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
@@ -631,7 +640,7 @@ export function SupplyPanel({
               </Popover>
 
               <Button
-                className="flex-1 h-[40px] bg-blue-600 hover:bg-blue-700 text-primary text-[14px] cursor-pointer"
+                className="flex-1 h-[40px] bg-blue-600 hover:bg-blue-700 text-white text-[14px] cursor-pointer"
                 disabled={
                   selectedVault.filter(
                     (_vault) => isNaN(_vault.amount) || _vault.amount === 0
@@ -646,9 +655,10 @@ export function SupplyPanel({
         </div>
       </div>
       <TransactionConfirmModal
-      isOpen={confirmModalOpen}
-      onClose={onConfirmTransactionClose}
-      transactions={transactions} />
+        isOpen={confirmModalOpen}
+        onClose={onConfirmTransactionClose}
+        transactions={transactions}
+      />
     </>
   );
 }

@@ -36,13 +36,13 @@ export default function IndexBalance({
           <table className="w-full">
             <thead className="border-b ">
               <tr className="p-4">
-                <th className="text-left py-3 px-4 font-medium text-primary">
+                <th className="text-left py-3 px-4 font-medium text-secondary text-[13px]">
                   Token
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-primary">
+                <th className="text-left py-3 px-4 font-medium text-secondary text-[13px]">
                   Client Balance
                 </th>
-                <th className="text-left py-3 px-4 font-medium text-primary">
+                <th className="text-left py-3 px-4 font-medium text-secondary text-[13px]">
                   Index Balance
                 </th>
                 <th className="text-right py-3 px-4"></th>
@@ -55,12 +55,12 @@ export default function IndexBalance({
                     <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center">
                       <FundMaker className="w-5 h-5 text-muted" />
                     </div>
-                    <span className="font-medium text-secondary">
+                    <span className="font-medium text-secondary text-[13px]">
                       {index.name}
                     </span>
                   </div>
                 </td>
-                <td className="py-4 px-4 font-medium text-secondary">
+                <td className="py-4 px-4 font-medium text-secondary text-[13px]">
                   {index.performance?.oneYearReturn.toFixed(2)} %
                 </td>
                 <td className="py-4 px-4">
@@ -138,7 +138,7 @@ export default function IndexBalance({
                     </div> */}
                   </div>
                 </td>
-                <td className="py-4 px-4 text-right border-l border-[#434343] max-w-[140px] w-[140px]">
+                <td className="py-4 px-4 text-right max-w-[140px] w-[140px]">
                   <CustomButton
                     className="min-w-[100px] text-white"
                     onClick={() => onClickBuyButton()}

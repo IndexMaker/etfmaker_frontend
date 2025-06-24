@@ -91,9 +91,9 @@ export const translations: Translations = {
       vaultsGenerateYield:
         "Indexes generate a yield from over-collateralized lending. Borrowers deposit collateral and borrow liquidity from the underlying markets, paying interest to the index.",
       fundmakerSecurityWithLinks:
-        'FundMaker is committed to industry-leading security practices, but there are still risks associated with <a href="https://docs.fundmaker.cc/morpho/concepts/risk-documentation" class="underline">FundMaker</a> and <a href="https://docs.fundmaker.cc/morpho-vaults/concepts/risk-documentation" class="underline">FundMaker Index</a>.',
+        'FundMaker is committed to industry-leading security practices, but there are still risks associated with <a href="https://docs.fundmaker.cc/indexmaker/concepts/risk-documentation" class="underline">FundMaker</a> and <a href="https://docs.fundmaker.cc/indexmaker-vaults/concepts/risk-documentation" class="underline">FundMaker Index</a>.',
       checkBoxConfirmationWithLink:
-        'Check this box to confirm you have read the FundMaker <a href="https://cdn.morpho.org/documents/FundMaker_Terms_of_Use.pdf" class="underline">Terms of Use</a> and understand the associated risks.',
+        'Check this box to confirm you have read the FundMaker <a href="https://cdn.indexmaker.org/documents/FundMaker_Terms_of_Use.pdf" class="underline">Terms of Use</a> and understand the associated risks.',
       claim: "Claim rewards",
       closePosition: "Close Position",
       positions: "Positions",

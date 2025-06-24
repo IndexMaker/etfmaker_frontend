@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 import Base from "../../public/icons/base.png";
-import { useRouter } from "next/navigation";
+import ETH from "../../public/logos/ethereum.png";
 export const networks: Network[] = [
   {
     id: "base",
@@ -96,7 +96,7 @@ export const getNetworkIcon = (iconIdentifier: string) => {
     case "ethereum":
       return (
         <Image
-          src={"https://cdn.morpho.org/assets/chains/eth.svg"}
+          src={ETH}
           alt={"Ethereum"}
           width={17}
           height={17}

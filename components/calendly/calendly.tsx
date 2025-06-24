@@ -37,7 +37,7 @@ export function CalendlyPage() {
             <InlineWidget
               url={CALENDLY_ACCOUNT || ""}
               pageSettings={{
-                backgroundColor: "ff0000",
+                backgroundColor: "1a1a1a",
                 hideEventTypeDetails: false,
                 hideLandingPageDetails: false,
                 //   primaryColor: theme === "dark" ? "3b82f6" : "2563eb", // Blue shades
