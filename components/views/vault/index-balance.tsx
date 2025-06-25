@@ -8,6 +8,7 @@ import { IndexListEntry } from "@/types";
 import CustomTooltip from "@/components/elements/custom-tooltip";
 import Image from "next/image";
 import { Copy } from "lucide-react";
+import { useWallet } from "@/contexts/wallet-context";
 
 interface IndexBalanceProps {
   className?: string;
@@ -21,14 +22,18 @@ interface IndexBalanceProps {
 export default function IndexBalance({
   className = "",
   index,
-  indexBalance = '-',
+  indexBalance = "-",
   tokenSymbol = "USDC",
   instantAPY = "24.79",
   onSupplyClick,
 }: IndexBalanceProps) {
-  const onClickBuyButton = useCallback(() => {
+  const { wallet, connectWallet } = useWallet();
+
+  const onClickBuyButton = useCallback(async () => {
+    if (!wallet) await connectWallet()
+      
     onSupplyClick && onSupplyClick(index.name, index.ticker);
-  }, []);
+  }, [wallet]);
   return (
     <div className={`w-full bg-foreground rounded-lg shadow ${className}`}>
       <div className="p-0">
@@ -65,7 +70,9 @@ export default function IndexBalance({
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex flex-col gap-2 items-start">
-                    <span className="font-medium text-secondary">{indexBalance}</span>
+                    <span className="font-medium text-secondary">
+                      {indexBalance}
+                    </span>
                     {/* <div className="flex items-left gap-0 min-w-[150px]">
                        {index.collateral.length > 0 ? (
                         <>

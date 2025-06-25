@@ -12,6 +12,7 @@ import Image from "next/image";
 import { Sparkles, CheckCircle2, Circle, Copy } from "lucide-react";
 import CustomTooltip from "./custom-tooltip";
 import USDC from "../../public/logos/usd-coin.png";
+import FundMaker from "../icons/fundmaker";
 interface TransactionItem {
   token: string;
   amount: number;
@@ -82,7 +83,7 @@ export function TransactionConfirmModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl bg-background border-accent text-primary">
         <div className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <DialogTitle className="text-lg font-medium">
+          <DialogTitle className="text-lg font-bold">
             {step === "review" ? "Review transaction" : "Confirm transaction"}
           </DialogTitle>
           {/* <Button
@@ -102,16 +103,16 @@ export function TransactionConfirmModal({
               <div key={transaction.token} className="space-y-3">
                 {/* Token Info */}
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center">
                     <span className="text-[12px] font-bold">
-                      {transaction.token.charAt(0)}
+                      <FundMaker className="w-[24px] h-[24px] text-muted" />
                     </span>
                   </div>
-                  <span className="font-medium">{transaction.token}</span>
+                  <span className="font-bold text-[18px]">{transaction.token}</span>
                 </div>
 
                 {/* Transaction Details */}
-                <div className="space-y-3 bg-foreground rounded-lg p-4">
+                <div className="space-y-3 bg-foreground rounded-lg p-4 pt-8 pb-4">
                   <div className="flex justify-between items-center text-[12px]">
                     <span className="text-secondary">Supply</span>
                     <div className="flex items-center gap-2">
@@ -154,10 +155,7 @@ export function TransactionConfirmModal({
                                     <span>Collateral</span>
                                     <div className="flex items-center">
                                       <Image
-                                        src={
-                                          collateral.logo ||
-                                          USDC
-                                        }
+                                        src={collateral.logo || USDC}
                                         alt={"USDC"}
                                         width={17}
                                         height={17}
@@ -184,10 +182,7 @@ export function TransactionConfirmModal({
                                     {collateral.name}
                                   </span> */}
                                 <Image
-                                  src={
-                                    collateral.logo ??
-                                    USDC
-                                  }
+                                  src={collateral.logo ?? USDC}
                                   alt={collateral.name}
                                   width={17}
                                   height={17}
@@ -234,8 +229,16 @@ export function TransactionConfirmModal({
             {/* Terms */}
             <p className="text-[11px] text-secondary">
               By confirming this transaction, you agree to the{" "}
-              <a target="_blank" href={'https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use'} className="underline cursor-pointer">Terms of Use</a> and
-              the services provisions relating to the IndexMaker Vault.
+              <a
+                target="_blank"
+                href={
+                  "https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use"
+                }
+                className="underline cursor-pointer"
+              >
+                Terms of Use
+              </a>{" "}
+              and the services provisions relating to the IndexMaker Vault.
             </p>
 
             {/* Confirm Button */}
@@ -259,7 +262,7 @@ export function TransactionConfirmModal({
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-[12px] font-medium">
+                <p className="text-[15px] font-medium">
                   Approve the bundler to spend tokens (via permit)
                 </p>
                 {!approvalComplete && (
@@ -286,7 +289,7 @@ export function TransactionConfirmModal({
               </div>
               <div className="flex-1">
                 <p
-                  className={`text-[12px] font-medium ${
+                  className={`text-[15px] font-medium ${
                     approvalComplete ? "text-primary" : "text-secondary"
                   }`}
                 >

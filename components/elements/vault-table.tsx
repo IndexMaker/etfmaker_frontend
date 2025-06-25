@@ -562,19 +562,14 @@ export function VaultTable({
                                     Buy Now
                                   </Button>
                                 ) : (
-                                  <Link
+                                  <Button
                                     className={cn(
                                       "bg-[#2470ff] px-4 hover:bg-blue-700 text-white text-[11px] rounded-[4px] py-[8px] h-[26px] sticky right-0",
                                       "cursor-pointer"
                                     )}
-                                    href={"/"}
-                                    onClick={(e) => {
-                                      e.stopPropagation(); // Prevent event from bubbling up to the row
-                                      router.push('/');
-                                    }}
                                   >
                                     Learn
-                                  </Link>
+                                  </Button>
                                 )}
                               </div>
                             )}

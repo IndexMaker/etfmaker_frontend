@@ -122,19 +122,22 @@ export const switchNetwork = async (chainId: string) => {
   }
 };
 
-export const autoConnectRabby = async () => {
-  return null;
-  const rabbyProvider = getRabbyProvider();
-  if (rabbyProvider) {
+export const autoConnectWallet = async () => {
+  try {
+    // Check if any wallet is already connected
+    const previouslyConnectedWallets = onboard.state.get().wallets;
+    if (previouslyConnectedWallets.length > 0) {
+      return previouslyConnectedWallets;
+    }
+
+    // Attempt silent connection (works for injected wallets like MetaMask/Rabby)
     const wallets = await onboard.connectWallet({
-      autoSelect: {
-        label: "MetaMask", // Rabby pretends to be MetaMask
-        disableModals: true,
-      },
+      autoSelect: { label: "injected", disableModals: true },
     });
 
     return wallets;
-  } else {
+  } catch (error) {
+    console.error("Auto-connect failed:", error);
     return null;
   }
 };

@@ -490,7 +490,7 @@ export class EtfPriceService {
     };
 
     // 4. Process each period between rebalances
-    for (let i = 1; i < rebalanceEvents.length; i++) {
+    for (let i = 0; i < rebalanceEvents.length; i++) {
       // for (let i = 40; i < 41; i++) {
       const rebalance = {
         timestamp: Number(rebalanceEvents[i].timestamp),
@@ -1642,12 +1642,22 @@ export class EtfPriceService {
         lastPriceUpdateTimestamp,
         curatorFee,
       ] = await this.indexRegistry.getIndexDatas(indexId);
-      const weights = await this.indexRegistry.curatorWeights(
-        indexId,
-        lastWeightUpdateTimestamp,
-      );
-      const tokenLists = this.indexRegistryService.decodeWeights(weights);
-      const tokenSymbols = tokenLists.map(([token]) => token);
+      // const weights = await this.indexRegistry.curatorWeights(
+      //   indexId,
+      //   lastWeightUpdateTimestamp,
+      // );
+      // const tokenLists = this.indexRegistryService.decodeWeights(weights);
+
+      const result = await this.dbService
+        .getDb()
+        .select()
+        .from(tempRebalances)
+        .where(eq(tempRebalances.indexId, indexId.toString()))
+        .orderBy(desc(tempRebalances.timestamp))
+        .limit(1);
+
+      const tokenLists = JSON.parse(result[0].weights)
+      const tokenSymbols = tokenLists.map(([token, weight]) => token);
       // Fetch collateral (logos) from token symbols (weights) related to the index
       const logos = await this.getLogosForSymbols(tokenSymbols);
 

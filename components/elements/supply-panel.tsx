@@ -18,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@radix-ui/react-popover";
 import { getViemClient } from "@/lib/blocknative/viem";
-import { base } from "viem/chains";
 import { RootState } from "@/redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import Info from "../icons/info";
@@ -340,9 +339,7 @@ export function SupplyPanel({
                               }}
                             />
                             <div className="font-mono text-[11px] text-muted">
-                              {(balances["USDC"] &&
-                                balances["USDC"].toFixed(2)) ||
-                                0.0}
+                              {0.00}
                             </div>
                           </div>
 

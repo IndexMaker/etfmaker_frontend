@@ -28,6 +28,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setCurrentChainId, setSelectedNetwork } from "@/redux/networkSlice";
 import { RootState } from "@/redux/store";
 import ETH from "../../public/logos/ethereum.png";
+import { clearSelectedVault } from "@/redux/vaultSlice";
 interface HeaderProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -151,6 +152,16 @@ export function Header({
     setShowModal(false);
   };
 
+  const disconnect = async () => {
+    await disconnectWallet()
+    await dispatch(clearSelectedVault())
+  }
+
+  const _switchWallet = useCallback(async () => {
+    await disconnect()
+    setTimeout(() => connectWallet(), 1000)
+  }, [isConnected, connectWallet, disconnect])
+
   return (
     <>
       <div className="flex flex-col gap-0">
@@ -268,7 +279,7 @@ export function Header({
                   )}
                   <div
                     className="flex gap-2 p-[6px] items-center h-[36px] border-b-[1px] border-accent cursor-pointer hover:bg-accent"
-                    onClick={switchWallet}
+                    onClick={_switchWallet}
                   >
                     <Switch className="w-4 h-4 text-primary" />
                     <span className="text-secondary text-[14px]">
@@ -277,7 +288,7 @@ export function Header({
                   </div>
                   <div
                     className="flex gap-2 p-[6px] items-center h-[36px] cursor-pointer hover:bg-accent"
-                    onClick={disconnectWallet}
+                    onClick={disconnect}
                   >
                     <Disconnect className="w-4 h-4 text-primary" />
                     <span className="text-secondary text-[14px]">

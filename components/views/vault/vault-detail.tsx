@@ -390,7 +390,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
             </div>
 
             {isSmallWindow ? (
-              <Accordion type="multiple" className="w-full space-y-4 pt-6">
+              <Accordion type="multiple" className="w-full space-y-4 pt-6" defaultValue={["Balance"]}>
                 {/* Index Balance */}
                 <AccordionItem value="Balance">
                   <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
