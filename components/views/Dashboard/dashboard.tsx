@@ -12,9 +12,13 @@ import { addSelectedVault, clearSelectedVault } from "@/redux/vaultSlice";
 import { AdditionalMenu } from "@/components/layouts/additionalMenu";
 interface DashboardProps {
   children?: React.ReactNode;
+  _sidebarOpen?: boolean;
 }
-export default function Dashboard({ children }: DashboardProps) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function Dashboard({ children, _sidebarOpen = false}: DashboardProps) {
+  const [sidebarOpen, setSidebarOpen] = useState(_sidebarOpen);
+  useEffect(() => {
+    setSidebarOpen(_sidebarOpen)
+  }, [_sidebarOpen])
   const [rightbarOpen, setRightbarOpen] = useState(false);
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
