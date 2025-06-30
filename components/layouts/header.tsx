@@ -35,6 +35,8 @@ interface HeaderProps {
   rightbarOpen: boolean;
   setRightbarOpen: (open: boolean) => void;
   isVisible: boolean;
+  showHowEarnWorks: boolean;
+  setShowHowEarnWorks: (showHowEarnWorks: boolean) => void;
 }
 
 export function Header({
@@ -43,6 +45,8 @@ export function Header({
   rightbarOpen,
   setRightbarOpen,
   isVisible,
+  showHowEarnWorks,
+  setShowHowEarnWorks,
 }: HeaderProps) {
   const {
     wallet,
@@ -153,28 +157,32 @@ export function Header({
   };
 
   const disconnect = async () => {
-    await disconnectWallet()
-    await dispatch(clearSelectedVault())
-  }
+    await disconnectWallet();
+    await dispatch(clearSelectedVault());
+  };
 
   const _switchWallet = useCallback(async () => {
-    await disconnect()
-    setTimeout(() => connectWallet(), 1000)
-  }, [isConnected, connectWallet, disconnect])
+    await disconnect();
+    setTimeout(() => connectWallet(), 1000);
+  }, [isConnected, connectWallet, disconnect]);
 
   return (
     <>
       <div className="flex flex-col gap-0">
         <header className="flex h-[55px] md:h-[50px] pt-0 shrink-0 items-center border-b border-transparent bg-background px-[11px] lg:px-[40px]">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-          >
-            <Navigation className="h-6 w-6 text-primary" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
+          {!showHowEarnWorks ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <Navigation className="h-6 w-6 text-primary" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          ) : (
+            <></>
+          )}
 
           {shouldShowBreadcrumb && (
             <nav className="text-sm text-secondary hidden md:flex">

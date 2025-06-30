@@ -49,9 +49,11 @@ const initialColumns: ColumnType[] = [
 
 interface EarnContentProps {
   onSupplyClick?: (vaultId: string, token: string) => void;
+  showHowEarnWorks: boolean;
+  setShowHowEarnWorks: (showHowEarnWorks: boolean) => void;
 }
 
-export function EarnContent({ onSupplyClick }: EarnContentProps) {
+export function EarnContent({ onSupplyClick, showHowEarnWorks, setShowHowEarnWorks }: EarnContentProps) {
   const {
     wallet,
   } = useWallet();
@@ -60,7 +62,7 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
+  
   const [totalManaged, setTotalManaged] = useState<number>(0);
   const [totalVolumn, setTotalVolumn] = useState<number>(0);
   const [activeMyearnTab, setActiveMyearnTab] = useState<

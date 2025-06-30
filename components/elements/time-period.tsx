@@ -77,7 +77,7 @@ export const TimePeriodSelector: React.FC<TimePeriodSelectorProps> = ({
             className={`px-3 py-1 rounded-md text-sm ${
               selectedPeriod === period.value
                 ? "bg-[#2470ff] text-white"
-                : "bg-foreground text-secondary hover:text-white"
+                : "bg-foreground text-secondary hover:text-primary"
             }`}
           >
             {period.label}
