@@ -26,7 +26,7 @@ import { useLanguage } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import FundMaker from "../icons/fundmaker";
+import IndexMaker from "../icons/indexmaker";
 
 interface RebalanceTableProps {
   visibleColumns: {

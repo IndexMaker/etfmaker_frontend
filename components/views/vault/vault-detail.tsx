@@ -54,7 +54,7 @@ import {
   fetchHistoricalData,
   fetchVaultAssets,
 } from "@/api/indices";
-import FundMaker from "@/components/icons/fundmaker";
+import IndexMaker from "@/components/icons/indexmaker";
 import { VaultAssets } from "@/components/elements/vault-assets";
 import FundDetail from "./fund-details";
 import FundManager from "./fund-manager";
@@ -344,7 +344,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   )}
                 >
                   {vault.icon ? (
-                    <FundMaker className="w-[80px] h-[80px] text-muted" />
+                    <IndexMaker className="w-[80px] h-[80px] text-muted" />
                   ) : (
                     <div className="text-4xl">
                       {vault.token.symbol.charAt(0) || ""}
@@ -372,7 +372,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                        <FundMaker className="w-[17px] h-[17px] text-muted" />
+                        <IndexMaker className="w-[17px] h-[17px] text-muted" />
                       </div>
                       <span className="text-secondary text-[20px]">
                         {"SYMMIO"}
@@ -662,7 +662,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       <InfoCard title={t("table.curator")}>
                         <div className="flex items-center gap-2">
                           <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                            <FundMaker className="h-5 w-5 text-muted" />
+                            <IndexMaker className="h-5 w-5 text-muted" />
                           </div>
                           <span className="text-secondary text-[14px] font-normal">
                             {"SYMMIO"}
@@ -1385,7 +1385,7 @@ function InfoMobileCard({ title, tooltip, children }: InfoCardProps) {
 const CuratorInfo = ({ curator }: { curator: string }) => (
   <div className="flex items-center gap-2">
     <div className="relative h-5 w-5 rounded-full overflow-hidden bg-forground flex items-center justify-center">
-      <FundMaker className="h-5 w-5 text-muted" />
+      <IndexMaker className="h-5 w-5 text-muted" />
     </div>
     <span className="text-secondary text-[13px] font-normal">{"SYMMIO"}</span>
     {

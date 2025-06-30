@@ -169,7 +169,7 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
             {project.integrationDetails && (
               <div className="space-y-4">
                 <h2 className="text-[16px] font-semibold text-card">
-                  {t("common.fundmakerIntegration")}
+                  {t("common.indexmakerIntegration")}
                 </h2>
                 <p className="text-muted-foreground text-[14px]">
                   {project.integrationDetails}

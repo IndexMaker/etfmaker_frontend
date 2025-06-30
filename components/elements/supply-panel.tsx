@@ -25,7 +25,7 @@ import { formatEther, formatUnits } from "viem";
 import { ERC20_ABI, TOKEN_LIST, TOKEN_METADATA } from "@/lib/data";
 import { removeSelectedVault, updateVaultAmount } from "@/redux/vaultSlice";
 import { IndexListEntry } from "@/types";
-import FundMaker from "../icons/fundmaker";
+import IndexMaker from "../icons/indexmaker";
 import { useWallet } from "@/contexts/wallet-context";
 import { TransactionConfirmModal } from "./transaction-modal";
 import USDC from "../../public/logos/usd-coin.png";
@@ -259,7 +259,7 @@ export function SupplyPanel({
                   <div className="flex items-start justify-between py-8 px-4">
                     <div className="flex items-start gap-2">
                       <div className="w-[40px] h-[40px] rounded-full p-1 flex items-start justify-center text-ellipsis overflow-hidden">
-                        <FundMaker className="w-[36px] h-[36px] text-muted" />
+                        <IndexMaker className="w-[36px] h-[36px] text-muted" />
                       </div>
                       <div className="flex flex-col gap-1">
                         <h2 className="font-normal text-[15px] text-secondary">
@@ -476,7 +476,7 @@ export function SupplyPanel({
                                         width={14}
                                         height={14}
                                       />
-                                      <span className="text-xs">FundMaker</span>
+                                      <span className="text-xs">IndexMaker</span>
                                       <Copy className="w-[15px] h-[15px] cursor-pointer" />
                                     </div>
                                     <span className="font-bold">+1.16%</span>
@@ -485,7 +485,7 @@ export function SupplyPanel({
                                     <div className="flex items-center">
                                       <InstantAPY className="w-[17px] h-[17px]" />
                                       <span className="text-[#2470FFe6]">
-                                        FundMaker
+                                        IndexMaker
                                       </span>
                                     </div>
                                     <span className="font-bold text-[#2470FFe6]">

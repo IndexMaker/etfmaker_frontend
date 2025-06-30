@@ -12,7 +12,7 @@ import Image from "next/image";
 import { Sparkles, CheckCircle2, Circle, Copy } from "lucide-react";
 import CustomTooltip from "./custom-tooltip";
 import USDC from "../../public/logos/usd-coin.png";
-import FundMaker from "../icons/fundmaker";
+import IndexMaker from "../icons/indexmaker";
 interface TransactionItem {
   token: string;
   amount: number;
@@ -105,7 +105,7 @@ export function TransactionConfirmModal({
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center">
                     <span className="text-[12px] font-bold">
-                      <FundMaker className="w-[24px] h-[24px] text-muted" />
+                      <IndexMaker className="w-[24px] h-[24px] text-muted" />
                     </span>
                   </div>
                   <span className="font-bold text-[18px]">{transaction.token}</span>

@@ -1,4 +1,4 @@
-import FundMaker from "@/components/icons/fundmaker";
+import IndexMaker from "@/components/icons/indexmaker";
 import Dashboard from "@/components/views/Dashboard/dashboard";
 import { Suspense } from "react";
 
@@ -7,7 +7,7 @@ export default function Home() {
     <Suspense
       fallback={
         <div className="bg-background w-[100vw] h-[100vh] flex items-center justify-center">
-          <FundMaker className="w-20 h-20 text-muted" />
+          <IndexMaker className="w-20 h-20 text-muted" />
         </div>
       }
     >

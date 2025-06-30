@@ -11,8 +11,8 @@ import { usePathname } from "next/navigation";
 import RightArrow from "../icons/right-arrow";
 import EcosystemSvg from "../icons/ecosystem";
 import AnalyticsSvg from "../icons/analytics";
-import FundMakerSvg from "../icons/fundmakerSvg";
-import FundMakerDoc from "../icons/fundmakerDoc";
+import IndexMakerSvg from "../icons/indexmakerSvg";
+import IndexMakerDoc from "../icons/indexmakerDoc";
 import Feedback from "../icons/feedback";
 import TOS from "../icons/tos";
 import Image from "next/image";
@@ -189,7 +189,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://www.symm.io/"
-                icon={FundMakerSvg}
+                icon={IndexMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -199,7 +199,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://www.symm.io/"
-                icon={FundMakerSvg}
+                icon={IndexMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -210,13 +210,13 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
 
               <NavItem
                 href="https://psymm.gitbook.io/indexmaker"
-                icon={FundMakerDoc}
+                icon={IndexMakerDoc}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                {t("common.fundmakerDocs")}
+                {t("common.indexmakerDocs")}
               </NavItem>
               <NavItem
                 active={isRouteActive('/contact-us')}

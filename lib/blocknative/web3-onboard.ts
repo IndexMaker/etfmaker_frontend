@@ -72,8 +72,8 @@ const onboard = Onboard({
     },
   ],
   appMetadata: {
-    name: "Fundmaker",
-    description: "Fundmaker APP",
+    name: "indexmaker",
+    description: "indexmaker APP",
     icon: `<svg
     xmlns="http://www.w3.org/2000/svg"
     x="0px"

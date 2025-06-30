@@ -11,7 +11,7 @@ import TVL from "@/components/icons/tvl";
 import Borrow from "@/components/icons/borrow";
 import Deposit from "@/components/icons/deposit";
 import Markets from "@/components/icons/market-created";
-import FundMaker from "@/components/icons/fundmaker";
+import IndexMaker from "@/components/icons/indexmaker";
 import APY from "@/components/icons/apy";
 import { useLanguage } from "@/contexts/language-context";
 import Cube from "@/components/icons/cube";
@@ -27,11 +27,11 @@ export function AnalyticsPage() {
           {t("common.analytics")}
         </div>
 
-        {/* Total FundMaker Section */}
+        {/* Total IndexMaker Section */}
         <div className="space-y-4 pt-16">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-card">
-              {t("common.totalFundMaker")}
+              {t("common.totalIndexMaker")}
             </h2>
             <div className="flex gap-2">
               <AnalyticsLink
@@ -74,27 +74,27 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        {/* FundMaker - Mainnet Section */}
+        {/* IndexMaker - Mainnet Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-card">
-              {t("common.fundmakerMainnet")}
+              {t("common.indexmakerMainnet")}
             </h2>
             <div className="flex gap-2 flex-wrap">
               <AnalyticsLink
                 name="BlockAnalytica"
-                icon="fundmaker"
+                icon="indexmaker"
                 theme={theme}
                 url="https://indexmaker.blockanalitica.com/"
               />
               <AnalyticsLink
-                name="DefiLlama - FundMaker"
+                name="DefiLlama - IndexMaker"
                 icon="defillama"
                 theme={theme}
                 url="https://defillama.com/protocol/indexmaker-blue"
               />
               <AnalyticsLink
-                name="Dune - FundMaker"
+                name="Dune - IndexMaker"
                 icon="dune"
                 theme={theme}
                 url="https://dune.com/indexmaker/indexmaker-blue-dashboard"
@@ -124,18 +124,18 @@ export function AnalyticsPage() {
               icon={<Markets className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title={t("common.fundmakerVaults")}
+              title={t("common.indexmakerVaults")}
               value="153"
               icon={<Cube className="h-3 w-3 text-blue-400" />}
             />
           </div>
         </div>
 
-        {/* FundMaker - Base Section */}
+        {/* IndexMaker - Base Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-center justify-between">
             <h2 className="text-[16px] font-normal text-primary">
-              {t("common.fundmakerBase")}
+              {t("common.indexmakerBase")}
             </h2>
           </div>
 
@@ -161,34 +161,34 @@ export function AnalyticsPage() {
               icon={<Markets className="h-3 w-3 text-blue-400" />}
             />
             <SMMetricCard
-              title={t("common.fundmakerVaults")}
+              title={t("common.indexmakerVaults")}
               value="145"
               icon={<Cube className="h-3 w-3 text-blue-400" />}
             />
           </div>
         </div>
 
-        {/* FundMaker Optimizer Section */}
+        {/* IndexMaker Optimizer Section */}
         <div className="space-y-4 pt-12">
           <div className="flex items-start gap-4 md:items-center flex-col md:flex-row justify-between">
             <h2 className="text-[16px] font-normal text-primary">
-              {t("common.fundmakerOptimizer")}
+              {t("common.indexmakerOptimizer")}
             </h2>
             <div className="flex gap-2 flex-wrap">
               <AnalyticsLink
-                name={"FundMaker Optimizers"}
-                icon="fundmaker"
+                name={"IndexMaker Optimizers"}
+                icon="indexmaker"
                 theme={theme}
                 url="https://optimizers.indexmaker.org/"
               />
               <AnalyticsLink
-                name="DefiLlama - FundMaker Aave V3"
+                name="DefiLlama - IndexMaker Aave V3"
                 icon="defillama"
                 theme={theme}
                 url="https://defillama.com/protocol/indexmaker-aavev3"
               />
               <AnalyticsLink
-                name="DefiLlama - FundMaker Aave V2"
+                name="DefiLlama - IndexMaker Aave V2"
                 icon="defillama"
                 theme={theme}
                 url="https://defillama.com/protocol/indexmaker-aave"
@@ -272,16 +272,16 @@ function AnalyticsLink({ name, icon, url, theme }: AnalyticsLinkProps) {
         variant="outline"
         className="bg-accent border-none hover:bg-muted text-[11px] text-primary rounded-[2px] flex items-center gap-1"
       >
-        {icon === "fundmaker" ? (
+        {icon === "indexmaker" ? (
           <div className="w-4 h-4">
-            <FundMaker className="w-4 h-4 text-muted" color={theme === 'dark' ? "#00000080" : "#191d2080"} />
+            <IndexMaker className="w-4 h-4 text-muted" color={theme === 'dark' ? "#00000080" : "#191d2080"} />
           </div>
         ) : (
           <Image
             src={`/${icon}.svg`}
             width={15}
             height={15}
-            alt="FundMaker"
+            alt="IndexMaker"
           />
         )}
         <div>{name}</div>

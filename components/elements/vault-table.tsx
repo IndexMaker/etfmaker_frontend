@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { IndexListEntry } from "@/types";
-import FundMaker from "../icons/fundmaker";
+import IndexMaker from "../icons/indexmaker";
 import { useWallet } from "../../contexts/wallet-context";
 import Link from "next/link";
 
@@ -280,7 +280,7 @@ export function VaultTable({
                                           width={14}
                                           height={14}
                                         />
-                                        <span className="text-xs">FundMaker</span>
+                                        <span className="text-xs">IndexMaker</span>
                                         <Copy className="w-[15px] h-[15px] cursor-pointer" />
                                       </div>
                                       <span className="font-bold">+1.16%</span>
@@ -289,7 +289,7 @@ export function VaultTable({
                                       <div className="flex items-center">
                                         <InstantAPY className="w-[17px] h-[17px]" />
                                         <span className="text-[#2470FFe6]">
-                                          FundMaker
+                                          IndexMaker
                                         </span>
                                       </div>
                                       <span className="font-bold text-[#2470FFe6]">
@@ -428,7 +428,7 @@ export function VaultTable({
                                 className="flex items-center gap-2"
                                 onClick={() => assetDetail(vault)}
                               >
-                                <FundMaker className="w-4 h-4 text-muted" />
+                                <IndexMaker className="w-4 h-4 text-muted" />
                                 <span>{"OTC"}</span>
                               </div>
                             )}

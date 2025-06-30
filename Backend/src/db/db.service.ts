@@ -27,7 +27,7 @@ export class DbService {
       throw new Error('Invalid DATABASE_URL format');
     }
 
-    // Connect to default 'postgres' database to check/create 'fundmaker'
+    // Connect to default 'postgres' database to check/create 'indexmaker'
     const defaultUrl = databaseUrl.replace(dbName, 'postgres');
     const client = new Client({ connectionString: defaultUrl });
 
@@ -46,7 +46,7 @@ export class DbService {
       await client.end();
     }
 
-    // Initialize Drizzle ORM with the fundmaker database
+    // Initialize Drizzle ORM with the indexmaker database
     const pool = new Pool({ connectionString: databaseUrl });
     this.db = pgDrizzle(pool, { schema });
   }

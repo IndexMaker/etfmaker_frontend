@@ -185,7 +185,7 @@ export const mockup_vaults: Vault[] = [
     id: "relend-eth",
     name: "Relend ETH",
     description:
-      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets.",
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     icon: "https://cdn.indexmaker.org/assets/logos/eth.svg",
     token: {
       symbol: "ETH",

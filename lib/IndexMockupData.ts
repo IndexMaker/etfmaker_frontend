@@ -118,7 +118,7 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
   },
   'SYAZ': {
     fundDetails: [
@@ -230,7 +230,7 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
   },
   'SYAI': {
     fundDetails: [
@@ -342,7 +342,7 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
   },
   'SYME': {
     fundDetails: [
@@ -454,7 +454,7 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
   },
   'SYL2': {
     fundDetails: [
@@ -566,7 +566,7 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
   },
   'SYDF': {
     fundDetails: [
@@ -678,7 +678,7 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to FundMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
   }
 };
 

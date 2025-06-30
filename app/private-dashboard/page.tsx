@@ -17,7 +17,7 @@ export default function PrivateDashboard() {
   if (!isAdmin) return null // Redirect will happen
   
   return (
-    <Suspense fallback={<div>Loading FundMaker...</div>}>
+    <Suspense fallback={<div>Loading IndexMaker...</div>}>
       <Dashboard>
         <AdminDashboard />
       </Dashboard>

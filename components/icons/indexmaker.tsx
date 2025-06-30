@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function FundMaker({ className = "", color='#E2E0FF' }) {
+export default function IndexMaker({ className = "", color='#E2E0FF' }) {
   const fillColor = className.includes('text-muted') ? 'currentColor' : color;
   return (
     <svg

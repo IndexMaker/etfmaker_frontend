@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function FundMakerDoc({ className = "" }) {
+export default function IndexMakerDoc({ className = "" }) {
   return (
     <svg
       viewBox="0 0 16 18"

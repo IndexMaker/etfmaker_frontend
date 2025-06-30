@@ -37,7 +37,7 @@ const EcosystemClient = () => {
             {t("common.ecosystem")}
           </h1>
           <p className="text-secondary text-[14px]">
-            {t("common.projectsOnFundMaker")}
+            {t("common.projectsOnIndexMaker")}
           </p>
         </div>
 

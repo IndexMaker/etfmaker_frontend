@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import FundMaker from "@/components/icons/fundmaker";
+import IndexMaker from "@/components/icons/indexmaker";
 import { CustomButton } from "@/components/ui/custom-button";
 import { useCallback } from "react";
 import { IndexListEntry } from "@/types";
@@ -58,7 +58,7 @@ export default function IndexBalance({
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center">
-                      <FundMaker className="w-5 h-5 text-muted" />
+                      <IndexMaker className="w-5 h-5 text-muted" />
                     </div>
                     <span className="font-medium text-secondary text-[13px]">
                       {index.name}
