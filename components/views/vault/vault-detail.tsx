@@ -1150,41 +1150,20 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               <div className="grid grid-cols-1">
                 <div className="col-span-1">
                   <h4 className="text-[13px] pb-2 pt-3 font-bold text-primary">
-                    Note on the Fund management company and the fund
+                  Before investing, consider the index' investment objectives, risks, charges and expenses. Contact your investment professional or visit indexmaker.global for a prospectus containing this information. Read it carefully.
                   </h4>
+                  
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    Multi Units Luxembourg, RCS B115129 and Lyxor Index Fund,
-                    RCS B117500, both Luxembourg SICAV located 9, rue de
-                    Bitbourg, L-1273 Luxembourg, and managed by Amundi Asset
-                    Management. Lyxor SICAV, Luxembourg SICAV, RCS B140772,
-                    located 5, Allée Scheffer, L-2520 Luxembourg, managed by
-                    Amundi Luxembourg S.A..
-                  </p>
-                  <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The Fund is described in a Key Information Document (KID),
-                    or Key Investor Information Document (KIID) for UK
-                    investors, and prospectus. The Funds KID, or KIID for UK
-                    investors, must be made available to potential subscribers
+                    The index is described in a Key Information Document (KID),
+                    or Key Investor Information Document (KIID) for
+                    investors, and prospectus. The Funds KID, or KIID, must be made available to potential subscribers
                     prior to subscription.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
                     The Funds reference material (KIID, prospectus, annual and
-                    semi-annual reports) can be obtained from Amundi on request,
-                    or obtained via the amundietf.com website. <br></br>
-                    For Professional Clients only. In the United Kingdom (the
-                    "UK"), this website is being issued by Amundi (UK) Limited,
-                    77 Coleman Street, London EC2R 5BJ, UK. Amundi (UK) Limited
-                    is authorised and regulated by the Financial Conduct
-                    Authority ("FCA") and entered on the FCA's Financial
-                    Services Register under number 114503. This may be checked
-                    at https://register.fca.org.uk/ and further information of
-                    its authorisation is available on request. Each fund and its
-                    relevant sub-fund(s) under its respective fund range that is
-                    referred to in this website (each, a "Fund") is a recognised
-                    collective investment scheme for the purposes of Section 264
-                    of the Financial Services and Markets Act 2000 (the "FSMA")
-                    or an unregulated collective investment scheme under the
-                    Financial Services and Markets Act 2000 (the "FSMA"). This
+                    semi-annual reports) can be obtained from IndexMaker on request,
+                    or obtained via the indexmaker.global website. <br></br>
+                    For Professional Clients only. This
                     website is addressed only to those persons in the UK falling
                     within one or more of the following exemptions from the
                     restrictions in Section 238 FSMA:<br></br>- Authorised firms
@@ -1203,7 +1182,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     Professional Clients or Eligible Counterparties.<br></br>
                     The distribution of this website's information to any person
                     in the UK not falling within one of the above categories is
-                    not permitted by Amundi (UK) Limited and may contravene
+                    not permitted by IndexMkaer Limited and may contravene
                     FSMA. No person in the UK falling outside those categories
                     should rely or act on it for any purposes whatsoever.{" "}
                     <br></br>
@@ -1214,25 +1193,24 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     persons for any purposes whatsoever. <br></br>
                     Potential investors in the UK should be aware that none of
                     the protections afforded by the UK regulatory system will
-                    apply to an investment in a Fund and that compensation will
+                    apply to an investment in an Index and that compensation will
                     not be available under the UK Financial Services
                     Compensation Scheme. <br></br>
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    Regarding Funds admitted on a regulated market, the listing
+                    Regarding Index admitted on a regulated market, the listing
                     is subject to a volatility control mechanisms to ensure that
-                    the ETF price does not deviate significantly from a
+                    the Index price does not deviate significantly from a
                     reference price set by the listing rules of the relevant
                     regulated market, notably through the implementation of a
                     trading halt mechanism in case of significant deviation from
                     this reference price.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The Fund offers no capital guarantee. Investors may not get
+                    The Index offers no capital guarantee. Investors may not get
                     back the full amount of their initial investment,
                     particularly in the event that the benchmark index falls.
-                    Subscribing to a UCITS may involve risks. Potential
-                    investors are advised to read the Funds risk profile, which
+                    Potential investors are advised to read the Funds risk profile, which
                     is described in detail in the prospectus. The amount that is
                     reasonable to invest in the Fund will depend on the personal
                     circumstances of each investor. To determine this amount,
@@ -1248,8 +1226,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     purchasing any units of the Fund.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The source of the data contained in this document is Amundi
-                    Asset Management unless otherwise stated.
+                    The source of the data contained in this document is IndexMaker
+                    unless otherwise stated.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 font-bold text-secondary">
                     Policy regarding portfolio transparency and warning on
@@ -1257,12 +1235,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
                     The policy regarding portfolio transparency and information
-                    on the funds assets are available on amundietf.com.
+                    on the funds assets are available on indexmaker.global.
                     Indicative net asset value is published by stock exchanges.
                     Shares purchased on the secondary market cannot usually be
                     sold directly back to the fund. Investors must buy and sell
                     shares on a secondary market with the assistance of an
-                    intermediary (e.g. a stockbroker) and may incur fees for
+                    intermediary (e.g. a broker) and may incur fees for
                     doing so. Investors may pay more than the current net asset
                     value when buying shares and may receive less than the
                     current net asset value when selling them.

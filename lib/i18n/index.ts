@@ -80,18 +80,19 @@ export const translations: Translations = {
       page: "Page",
       of: "of",
       proceed: "Proceed",
-      howEarnWorks: "How Earn Works",
-      depositInIndexMakerVault: "Deposit in a IndexMaker Index",
-      assetsAreSuppliedOnIndexMaker: "Assets are supplied on IndexMaker",
+      howEarnWorks: "How Indexes Works",
+      depositInIndexMakerVault: "Deposit in an IndexMaker custody",
+      assetsAreSuppliedOnIndexMaker: "Assets are transfered to destination",
+      indexYieldFromBorrowers: "Solver acquire underlying assets",
       earnYieldFromBorrowers: "Earn yield from borrowers",
-      earnYieldByDepositingAssetIntoVault:
+      indexYieldByDepositingAssetIntoVault:
         "Earn yield by depositing an asset into a index curated by third-party risk experts. Each index has a unique risk profile and strategy determined by the curator. Creating IndexMaker Indexes is permissionless, so users should assess a index&apos;s curator and risk exposure before depositing.",
       indexmakerVaultAllocation:
         "A IndexMaker Index can only allocate deposits on IndexMaker Markets primary listed by the curator. Depositors are exposed to risks related to the parameters of each market, including the collateral asset, liquidation LTV, and oracles.",
       vaultsGenerateYield:
         "Indexes generate a yield from over-collateralized lending. Borrowers deposit collateral and borrow liquidity from the underlying markets, paying interest to the index.",
       indexmakerSecurityWithLinks:
-        'IndexMaker is committed to industry-leading security practices, but there are still risks associated with <a href="https://docs.indexmaker.cc/indexmaker/concepts/risk-documentation" class="underline">IndexMaker</a> and <a href="https://docs.indexmaker.cc/indexmaker-vaults/concepts/risk-documentation" class="underline">IndexMaker Index</a>.',
+        'IndexMaker is committed to industry-leading security practices, but there are still risks associated with <a href="https://docs.indexmaker.global/indexmaker/concepts/risk-documentation" class="underline">IndexMaker</a> and <a href="https://docs.indexmaker.global/indexmaker-vaults/concepts/risk-documentation" class="underline">IndexMaker Index</a>.',
       checkBoxConfirmationWithLink:
         'Check this box to confirm you have read the IndexMaker <a href="https://cdn.indexmaker.org/documents/IndexMaker_Terms_of_Use.pdf" class="underline">Terms of Use</a> and understand the associated risks.',
       claim: "Claim rewards",

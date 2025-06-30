@@ -79,7 +79,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           <p
             className="text-secondary text-sm mb-4"
             dangerouslySetInnerHTML={{
-              __html: t("common.indexmakerSecurityWithLinks"),
+              __html: t("common.fundmakerSecurityWithLinks"),
             }}
           ></p>
 
@@ -678,7 +678,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           {activeStep === 1 && (
             <div>
               <h3 className="text-[16px] text-card font-normal mb-2">
-                {t("common.depositInIndexMakerVault")}
+                {t("common.depositInFundMakerVault")}
               </h3>
               <p className="text-secondary text-[13px] leading-[16px]">
                 {t("common.indexYieldByDepositingAssetIntoVault")}
@@ -689,10 +689,10 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
           {activeStep === 2 && (
             <div>
               <h3 className="text-[16px] text-card font-normal mb-2">
-                {t("common.assetsAreSuppliedOnIndexMaker")}
+                {t("common.assetsAreSuppliedOnFundMaker")}
               </h3>
               <p className="text-secondary text-[13px] leading-[16px]">
-                {t("common.indexmakerVaultAllocation")}
+                {t("common.fundmakerVaultAllocation")}
               </p>
             </div>
           )}
@@ -1282,7 +1282,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 01
               </div>
               <h3 className="text-[16px] font-normal text-card">
-                {t("common.depositInIndexMakerVault")}
+                {t("common.depositInFundMakerVault")}
               </h3>
             </div>
             <p
@@ -1308,7 +1308,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 02
               </div>
               <h3 className="text-[16px] font-normal text-card leading-[16px]">
-                {t("common.assetsAreSuppliedOnIndexMaker")}
+                {t("common.assetsAreSuppliedOnFundMaker")}
               </h3>
             </div>
             <p
@@ -1316,7 +1316,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 activeStep === 2 ? "opacity-100" : "opacity-100"
               }`}
             >
-              {t("common.indexmakerVaultAllocation")}
+              {t("common.fundmakerVaultAllocation")}
             </p>
           </div>
 
@@ -1351,7 +1351,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
             <p
               className="text-secondary text-[13px]"
               dangerouslySetInnerHTML={{
-                __html: t("common.indexmakerSecurityWithLinks"),
+                __html: t("common.fundmakerSecurityWithLinks"),
               }}
             ></p>
 
