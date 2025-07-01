@@ -457,14 +457,13 @@ export class ScraperService {
       .select({ maxDate: sql<Date>`MAX(announce_date)` })
       .from(announcementsTable)
       .where(eq(announcementsTable.source, 'bitget'));
-      const latestDate = latestAnnouncement[0]?.maxDate || new Date(0);
+    const latestDate = latestAnnouncement[0]?.maxDate || new Date(0);
     let shouldContinueFetching = true;
     // const API_KEYS = [
     //   { key: '09e54bdeeddc4507bc89a9b43dd9814a7c02deea125', weight: 40 },
     //   { key: '629f3fee23274f87a48aadd0e4bb28a08e21f3d0ec9', weight: 40 },
     //   { key: 'fe037744ccb9499ebb3c630a4d5c8d89d18a87a6979', weight: 20 }
     // ];
-
 
     // // Pre-calculate cumulative weights
     // const TOTAL_WEIGHT = API_KEYS.reduce((sum, k) => sum + k.weight, 0);
@@ -549,10 +548,10 @@ export class ScraperService {
         for (const item of items) {
           const publishTime = item.showTime || item.createTime;
           const announcementDate = new Date(parseInt(publishTime));
-          const _latestDate = new Date(latestDate)
+          const _latestDate = new Date(latestDate);
           if (announcementDate <= _latestDate) {
             shouldContinueFetching = false;
-            this.logger.log('There is no new annoucement at Bitget')
+            this.logger.log('There is no new annoucement at Bitget');
             break;
           }
           newItemsFound = true;
@@ -607,7 +606,7 @@ export class ScraperService {
             }
           };
           // Fetch announcement details
-          const detailResponse = await fetchWithRetry(contentId)
+          const detailResponse = await fetchWithRetry(contentId);
           console.log(contentId);
           const detail = detailResponse?.data?.data;
           const title = detail.title || item.title;
@@ -852,7 +851,7 @@ export class ScraperService {
         .from(announcementsTable)
         .where(eq(announcementsTable.source, 'binance'));
 
-      const latestDate = latestAnnouncement[0]?.maxDate || new Date(0);
+        const latestDate = latestAnnouncement[0]?.maxDate || new Date(0);
 
       // Define API configurations
       const apiConfigs = [
@@ -884,15 +883,35 @@ export class ScraperService {
         while (hasMoreItems && shouldContinueFetching) {
           this.logger.log(`Scraping Binance ${config.type} page ${page}`);
           const url = config.url(page, pageSize);
-
+          const bncUuid = crypto.randomUUID();
+          const traceId = crypto.randomUUID();
           const response = await axios.get(url, {
             headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/114.0.0.0 Safari/537.36',
-              Accept: 'application/json, text/plain, */*',
-              Referer: 'https://www.binance.com/',
-              Origin: 'https://www.binance.com',
-              
+              authority: 'www.binance.com',
+              accept: '*/*',
+              'accept-language': 'en-US,en;q=0.9',
+              'bnc-uuid': bncUuid,
+              clienttype: 'web',
+              'content-type': 'application/json',
+              cookie: `bnc-uuid=${bncUuid}; BNC_FV_KEY=330181b01cc1a06a809fa2b9743895800a8e917e`, // Add other cookies if needed
+              'device-info':
+                'eyJzY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTA4MCIsImF2YWlsYWJsZV9zY3JlZW5fcmVzb2x1dGlvbiI6IjE5MjAsMTAzMiIsInN5c3RlbV92ZXJzaW9uIjoiV2luZG93cyAxMCIsImJyYW5kX21vZGVsIjoidW5rbm93biIsInN5c3RlbV9sYW5nIjoiZW4tVVMiLCJ0aW1lem9uZSI6IkdNVC0wNDowMCIsInRpbWV6b25lT2Zmc2V0IjoyNDAsInVzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoV2luZG93cyBOVCAxMC4wOyBXaW42NDsgeDY0KSBBcHBsZVdlYktpdC81MzcuMzYgKEtIVE1MLCBsaWtlIEdlY2tvKSBDaHJvbWUvMTM3LjAuMC4wIFNhZmFyaS81MzcuMzYiLCJsaXN0X3BsdWdpbiI6IlBERiBWaWV3ZXIsQ2hyb21lIFBERiBWaWV3ZXIsQ2hyb21pdW0gUERGIFZpZXdlcixNaWNyb3NvZnQgRWRnZSBQREYgVmlld2VyLFdlYktpdCBidWlsdC1pbiBQREYiLCJjYW52YXNfY29kZSI6IjA2ZjM3MzkzIiwid2ViZ2xfdmVuZG9yIjoiR29vZ2xlIEluYy4gKE5WSURJQSkiLCJ3ZWJnbF9yZW5kZXJlciI6IkFOR0xFIChOVklESUEsIE5WSURJQSBHZUZvcmNlIEdUWCAxMDUwIFRpICgweDAwMDAxQzgyKSBEaXJlY3QzRDExIHZzXzVfMCBwc181XzAsIEQzRDExKSIsImF1ZGlvIjoiMTI0LjA0MzQ3NTI3NTE2MDc0IiwicGxhdGZvcm0iOiJXaW4zMiIsIndlYl90aW1lem9uZSI6IkFtZXJpY2EvTmV3X1lvcmsiLCJkZXZpY2VfbmFtZSI6IkNocm9tZSBWMTM3LjAuMC4wIChXaW5kb3dzKSIsImZpbmdlcnByaW50IjoiYmJlMjRkYWI0MTE3N2Q1MGMwZjM0OWFmNzVlZTU4NzkiLCJkZXZpY2VfaWQiOiIiLCJyZWxhdGVkX2RldmljZV9pZHMiOiIifQ==',
+              'fvideo-id': '330181b01cc1a06a809fa2b9743895800a8e917e',
+              'fvideo-token':
+                'Z6xvaln79AXWBPcswcIr8Hv8D1GDhPXzokqL+osVc19TdIwSQ6uBXVko1cXURaOCW0lHO5bDsjkDE5EaLCZvjFoSf0uaOzX5JlKonoi4FBPtY5dRdKGcK8ex6IRknn+jA1RomhOjhEJlJm72rLCuK1A1oAlN+tbN7Yuc60lva/hjsuURAhguxzRhoBgTJphUE=0a',
+              lang: 'en',
+              priority: 'u=1, i',
+              referer:
+                'https://www.binance.com/en/support/announcement/list/48',
+              'sec-ch-ua':
+                '"Google Chrome";v="137", "Chromium";v="137", "Not/A)Brand";v="24"',
+              'sec-ch-ua-mobile': '?0',
+              'sec-ch-ua-platform': '"Windows"',
+              'sec-fetch-dest': 'empty',
+              'sec-fetch-mode': 'cors',
+              'sec-fetch-site': 'same-origin',
+              'x-trace-id': traceId,
+              'x-ui-request-trace': traceId,
             },
           });
 
@@ -921,11 +940,11 @@ export class ScraperService {
           for (const article of articles) {
             const { title, code, releaseDate } = article;
             const articleDate = new Date(releaseDate);
-            const _latestDate = new Date(latestDate)
+            const _latestDate = new Date(latestDate);
             // Skip if article is older than our latest date
             if (articleDate <= _latestDate) {
               shouldContinueFetching = false;
-              this.logger.log('There is no new annoucement at Binance')
+              this.logger.log('There is no new annoucement at Binance');
               break;
             }
 
@@ -934,7 +953,8 @@ export class ScraperService {
             // Fetch detail content using API
             const detailUrl = `https://www.binance.com/bapi/apex/v1/public/cms/article/detail/query?articleCode=${code}`;
             const detailResponse = await axios.get(detailUrl);
-            const body = detailResponse.data.data?.body || '';
+            const body =
+              detailResponse.data.data?.body || detailResponse.data.body || '';
             let contentHtml = '';
             let tableData: { headers: string[]; rows: string[][] } | null =
               null;
@@ -962,9 +982,7 @@ export class ScraperService {
                   tableData = { headers, rows };
                 }
               } catch (error) {
-                this.logger.error(
-                  `Failed to parse body for article ${code}: ${error.message}`,
-                );
+                contentHtml = body
               }
             }
 
@@ -978,144 +996,144 @@ export class ScraperService {
             };
             announcements.push(announcement);
 
-            if (config.type === 'listing') {
-              // Parse table for listings
-              let tableData: { headers: string[]; rows: string[][] } | null =
-                null;
-              if (contentHtml) {
-                try {
-                  const $detail = cheerio.load(contentHtml);
-                  const table = $detail('table');
-                  if (table.length) {
-                    const headers = table
-                      .find('th')
-                      .map((_, el) => $detail(el).text().trim())
-                      .get();
-                    const rows: string[][] = [];
-                    table.find('tr').each((_, tr) => {
-                      const cells = $detail(tr)
-                        .find('td')
-                        .map((_, td) => $detail(td).text().trim())
-                        .get();
-                      if (cells.length) rows.push(cells);
-                    });
-                    tableData = { headers, rows };
-                  }
-                } catch (error) {
-                  this.logger.error(
-                    `Failed to parse table for article ${code}: ${error.message}`,
-                  );
-                }
-              }
+            // if (config.type === 'listing') {
+            //   // Parse table for listings
+            //   let tableData: { headers: string[]; rows: string[][] } | null =
+            //     null;
+            //   if (contentHtml) {
+            //     try {
+            //       const $detail = cheerio.load(contentHtml);
+            //       const table = $detail('table');
+            //       if (table.length) {
+            //         const headers = table
+            //           .find('th')
+            //           .map((_, el) => $detail(el).text().trim())
+            //           .get();
+            //         const rows: string[][] = [];
+            //         table.find('tr').each((_, tr) => {
+            //           const cells = $detail(tr)
+            //             .find('td')
+            //             .map((_, td) => $detail(td).text().trim())
+            //             .get();
+            //           if (cells.length) rows.push(cells);
+            //         });
+            //         tableData = { headers, rows };
+            //       }
+            //     } catch (error) {
+            //       this.logger.error(
+            //         `Failed to parse table for article ${code}: ${error.message}`,
+            //       );
+            //     }
+            //   }
 
-              if (tableData) {
-                let pairs: string[] = [];
-                let dates: string[] = [];
-                let underlyingAssets: string[] = [];
-                let quoteAssets: string[] = [];
+            //   if (tableData) {
+            //     let pairs: string[] = [];
+            //     let dates: string[] = [];
+            //     let underlyingAssets: string[] = [];
+            //     let quoteAssets: string[] = [];
 
-                for (const row of tableData.rows) {
-                  const key = row[0]?.toLowerCase() || '';
-                  const values = row.slice(1);
+            //     for (const row of tableData.rows) {
+            //       const key = row[0]?.toLowerCase() || '';
+            //       const values = row.slice(1);
 
-                  if (
-                    key.includes('usdⓢ-m perpetual contract') ||
-                    key.includes('spot trading pair')
-                  ) {
-                    pairs = values.filter((v) => v.match(/^\w+$/i));
-                  } else if (key.includes('launch time')) {
-                    dates = values.filter((v) => v.match(/\d{4}-\d{2}-\d{2}/));
-                  } else if (key.includes('underlying asset')) {
-                    underlyingAssets = values.map((v) => v);
-                  } else if (key.includes('settlement asset')) {
-                    quoteAssets = values;
-                  }
-                }
+            //       if (
+            //         key.includes('usdⓢ-m perpetual contract') ||
+            //         key.includes('spot trading pair')
+            //       ) {
+            //         pairs = values.filter((v) => v.match(/^\w+$/i));
+            //       } else if (key.includes('launch time')) {
+            //         dates = values.filter((v) => v.match(/\d{4}-\d{2}-\d{2}/));
+            //       } else if (key.includes('underlying asset')) {
+            //         underlyingAssets = values.map((v) => v);
+            //       } else if (key.includes('settlement asset')) {
+            //         quoteAssets = values;
+            //       }
+            //     }
 
-                for (let i = 0; i < pairs.length; i++) {
-                  const pair = pairs[i];
-                  const token = pair;
-                  const quoteAsset = quoteAssets[i] || pair.replace(token, '');
-                  const date = dates[i] || dates[0] || '';
-                  const tokenName = underlyingAssets[i] || token;
+            //     for (let i = 0; i < pairs.length; i++) {
+            //       const pair = pairs[i];
+            //       const token = pair;
+            //       const quoteAsset = quoteAssets[i] || pair.replace(token, '');
+            //       const date = dates[i] || dates[0] || '';
+            //       const tokenName = underlyingAssets[i] || token;
 
-                  if (token && quoteAsset) {
-                    listings.push({
-                      token,
-                      tokenName,
-                      announcementDate: articleDate.toISOString(),
-                      listingDate: date || null,
-                      source: 'binance',
-                      type: 'listing',
-                    });
-                    parsedTokens = true;
-                  }
-                }
-              }
-            } else if (config.type === 'delisting' && contentHtml) {
-              // Parse content for delistings
-              const $content = cheerio.load(contentHtml);
-              const contentText = $content.text();
+            //       if (token && quoteAsset) {
+            //         listings.push({
+            //           token,
+            //           tokenName,
+            //           announcementDate: articleDate.toISOString(),
+            //           listingDate: date || null,
+            //           source: 'binance',
+            //           type: 'listing',
+            //         });
+            //         parsedTokens = true;
+            //       }
+            //     }
+            //   }
+            // } else if (config.type === 'delisting' && contentHtml) {
+            //   // Parse content for delistings
+            //   const $content = cheerio.load(contentHtml);
+            //   const contentText = $content.text();
 
-              // Extract pairs and dates (e.g., "At 2025-03-28 03:00 (UTC): GALA/BNB, PERP/BTC")
-              const pairDateMatches = contentText.matchAll(
-                /At\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+\(UTC\)):\s+([^\n]+)/gi,
-              );
-              for (const match of pairDateMatches) {
-                const date = match[1];
-                const pairsStr = match[2];
-                const pairs = pairsStr
-                  .split(',')
-                  .map((p) => p.trim().replace(/\s+/g, ''));
+            //   // Extract pairs and dates (e.g., "At 2025-03-28 03:00 (UTC): GALA/BNB, PERP/BTC")
+            //   const pairDateMatches = contentText.matchAll(
+            //     /At\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+\(UTC\)):\s+([^\n]+)/gi,
+            //   );
+            //   for (const match of pairDateMatches) {
+            //     const date = match[1];
+            //     const pairsStr = match[2];
+            //     const pairs = pairsStr
+            //       .split(',')
+            //       .map((p) => p.trim().replace(/\s+/g, ''));
 
-                for (const pair of pairs) {
-                  if (pair.includes('/')) {
-                    const token = pair.split('/')[0];
-                    const quoteAsset = pair.split('/')[1];
-                    if (token && quoteAsset) {
-                      listings.push({
-                        token: quoteAsset ? token + quoteAsset : token,
-                        tokenName: token,
-                        announcementDate: articleDate.toISOString(),
-                        delistingDate: date || null,
-                        source: 'binance',
-                        type: 'delisting',
-                      });
-                      parsedTokens = true;
-                    }
-                  }
-                }
-              }
+            //     for (const pair of pairs) {
+            //       if (pair.includes('/')) {
+            //         const token = pair.split('/')[0];
+            //         const quoteAsset = pair.split('/')[1];
+            //         if (token && quoteAsset) {
+            //           listings.push({
+            //             token: quoteAsset ? token + quoteAsset : token,
+            //             tokenName: token,
+            //             announcementDate: articleDate.toISOString(),
+            //             delistingDate: date || null,
+            //             source: 'binance',
+            //             type: 'delisting',
+            //           });
+            //           parsedTokens = true;
+            //         }
+            //       }
+            //     }
+            //   }
 
-              // Extract individual tokens (e.g., "delist BADGER, BAL, BETA on 2025-04-16")
-              const tokenDateMatches = contentText.matchAll(
-                /delist\s+([^.]+?)\s+on\s+(\d{4}-\d{2}-\d{2})(?:\s+\d{2}:\d{2}\s+\(UTC\))?/gi,
-              );
-              for (const match of tokenDateMatches) {
-                const tokensStr = match[1];
-                const date = match[2];
-                const tokens = tokensStr.split(',').map((t) => t.trim());
+            //   // Extract individual tokens (e.g., "delist BADGER, BAL, BETA on 2025-04-16")
+            //   const tokenDateMatches = contentText.matchAll(
+            //     /delist\s+([^.]+?)\s+on\s+(\d{4}-\d{2}-\d{2})(?:\s+\d{2}:\d{2}\s+\(UTC\))?/gi,
+            //   );
+            //   for (const match of tokenDateMatches) {
+            //     const tokensStr = match[1];
+            //     const date = match[2];
+            //     const tokens = tokensStr.split(',').map((t) => t.trim());
 
-                for (const token of tokens) {
-                  if (token) {
-                    listings.push({
-                      token,
-                      tokenName: token,
-                      announcementDate: articleDate.toISOString(),
-                      delistingDate: date || null,
-                      source: 'binance',
-                      type: 'delisting',
-                    });
-                    parsedTokens = true;
-                  }
-                }
-              }
-            }
+            //     for (const token of tokens) {
+            //       if (token) {
+            //         listings.push({
+            //           token,
+            //           tokenName: token,
+            //           announcementDate: articleDate.toISOString(),
+            //           delistingDate: date || null,
+            //           source: 'binance',
+            //           type: 'delisting',
+            //         });
+            //         parsedTokens = true;
+            //       }
+            //     }
+            //   }
+            // }
 
             // Update the parsed status in the announcement object
             if (announcements.length > 0) {
               const lastAnnouncement = announcements[announcements.length - 1];
-              lastAnnouncement.parsed = parsedTokens;
+              lastAnnouncement.parsed = false;
             }
           }
 

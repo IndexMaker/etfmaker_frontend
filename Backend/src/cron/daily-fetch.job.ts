@@ -21,14 +21,19 @@ export class DailyFetchJob {
     private dbService: DbService,
     private indexService: IndexService,
     private bitgetService: BitgetService,
-    private etfPriceservice: EtfPriceService,
+    private etfPriceService: EtfPriceService,
     private scraperService: ScraperService,
   ) {}
 
   @Cron('10 21 * * *')
   async temp() {
     // await this.etfPriceservice.storeDailyETFPrices([21, 22, 23, 24, 25, 26]);
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(21);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
+    // await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
   }
   @Cron('10 0 * * *')
   async handleDailyFetch() {
@@ -131,6 +136,14 @@ export class DailyFetchJob {
 
   @Cron('30 0 * * *') // Triggers daily at 00:30 (but filters dates)
   async rebalanceSY100() {
+    // Compute daily price again.
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(21);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(22);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(23);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(24);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(25);
+    await this.etfPriceService.getHistoricalDataFromTempRebalances(27);
+    return;
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     const firstRunDate = new Date('2024-05-26T00:00:00'); // Starting point: May 26, 2024
@@ -151,13 +164,14 @@ export class DailyFetchJob {
           new DbService(),
         );
         const timestamp = Math.floor(today.getTime() / 1000);
-        await etfMainService.rebalanceSY100(21, timestamp);
+        await etfMainService.rebalanceSY100(timestamp);
       });
     }
   }
 
   @Cron('40 0 * * *')
   async rebalanceAllETFs() {
+    return;
     await this.dbService.getDb().transaction(async (tx) => {
       const etfMainService = new EtfMainService(
         this.coinGeckoService,
@@ -189,16 +203,7 @@ export class DailyFetchJob {
         timestamp,
       ); // SYDF
     });
-
-    // Compute daily price again.
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(21);
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(22);
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(23);
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(24);
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(25);
-    await this.etfPriceservice.getHistoricalDataFromTempRebalances(27);
   }
-
 
   @Cron(CronExpression.EVERY_HOUR)
   async handleCron() {

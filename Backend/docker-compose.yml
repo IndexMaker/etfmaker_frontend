@@ -8,7 +8,7 @@ services:
     ports:
       - '0.0.0.0:5000:5000'
     environment:
-      - DATABASE_URL=postgresql://postgres:root@postgres:5432/fundmaker?sslmode=disable  # Updated host to 'postgres'
+      - DATABASE_URL=postgresql://postgres:root@postgres:5432/indexmaker?sslmode=disable  # Updated host to 'postgres'
       - COINGECKO_API_KEY=${COINGECKO_API_KEY}
       - COINMARKETCAP_API_KEY=${COINMARKETCAP_API_KEY}
       - BINANCE_API_KEY=${BINANCE_API_KEY}
@@ -39,7 +39,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=root
-      - POSTGRES_DB=fundmaker
+      - POSTGRES_DB=indexmaker
     ports:
       - '5432:5432'  # Exposed for host access (optional)
     volumes:

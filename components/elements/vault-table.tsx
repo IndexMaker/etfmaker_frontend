@@ -52,6 +52,7 @@ export function VaultTable({
   sortDirection,
   onSupplyClick,
 }: VaultTableProps) {
+  console.log(visibleColumns)
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;

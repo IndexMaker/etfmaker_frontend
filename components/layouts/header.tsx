@@ -24,6 +24,9 @@ import Image from "next/image";
 import Base from "../../public/icons/base.png";
 import Info from "../icons/info";
 import { useWallet } from "../../contexts/wallet-context";
+import { useDispatch, useSelector } from "react-redux";
+import { setCurrentChainId, setSelectedNetwork } from "@/redux/networkSlice";
+import { RootState } from "@/redux/store";
 
 interface HeaderProps {
   sidebarOpen: boolean;
@@ -55,9 +58,11 @@ export function Header({
   const searchParams = useSearchParams();
   const currentNetwork = searchParams.get("network");
   const router = useRouter();
-
-  const [selectedNetwork, setSelectedNetwork] = useState<string>("0x1");
-  const [currentChainId, setCurrentChainId] = useState<string | null>(null);
+  const dispatch = useDispatch()
+  // const [selectedNetwork, setSelectedNetwork] = useState<string>("0x1");
+  const { selectedNetwork, currentChainId } = useSelector(
+    (state: RootState) => state.network
+  );
   const [showModal, setShowModal] = useState(false);
 
   const selectedVault = ""; // Replace with your vault selection logic
@@ -68,7 +73,7 @@ export function Header({
   // Initialize network if not set
   useEffect(() => {
     if (!selectedNetwork) {
-      setSelectedNetwork(defaultNetwork.chainId);
+      dispatch(setSelectedNetwork(defaultNetwork.chainId));
     }
   }, [defaultNetwork, selectedNetwork]);
 
@@ -111,7 +116,7 @@ export function Header({
   useEffect(() => {
     if (wallet && wallet.chains.length > 0) {
       const chainId = wallet.chains[0].id;
-      setCurrentChainId(chainId);
+      dispatch(setCurrentChainId(chainId));
 
       if (chainId !== selectedNetwork && chainId !== "0x2105") {
         setShowModal(true);
@@ -119,16 +124,16 @@ export function Header({
         setShowModal(false);
       }
     } else {
-      setCurrentChainId(null);
+      dispatch(setCurrentChainId(null));
       setShowModal(false);
     }
-  }, [selectedNetwork, wallet]);
+  }, [selectedNetwork, wallet, dispatch]);
 
   const handleNetworkSwitch = useCallback(
     async (chainId: string) => {
       if (!isConnected) return;
 
-      setSelectedNetwork(chainId);
+      dispatch(setSelectedNetwork(chainId));
 
       if (currentChainId !== chainId) {
         setShowModal(true);
@@ -136,7 +141,7 @@ export function Header({
         setShowModal(false);
       }
     },
-    [isConnected, currentChainId]
+    [isConnected, currentChainId, dispatch]
   );
 
   const handleSwitchWalletNetwork = async () => {
