@@ -27,7 +27,9 @@ import { cn } from "@/lib/utils";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { IndexListEntry } from "@/types";
-import FundMaker from "../icons/fundmaker";
+import IndexMaker from "../icons/indexmaker";
+import { useWallet } from "../../contexts/wallet-context";
+import Link from "next/link";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -54,6 +56,7 @@ export function VaultTable({
 }: VaultTableProps) {
   console.log(visibleColumns)
   const { t } = useLanguage();
+  const { wallet } = useWallet();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const router = useRouter();
@@ -63,6 +66,9 @@ export function VaultTable({
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
+  );
+  const { selectedNetwork, currentChainId } = useSelector(
+    (state: RootState) => state.network
   );
   // Function to handle column header click for sorting
   const handleSort = (columnId: string) => {
@@ -127,8 +133,8 @@ export function VaultTable({
                         <span>
                           {col.id === "actions"
                             ? ""
-                            : col.id === "instantApy"
-                            ? t("table.netAPY")
+                            : col.id === "ytdReturn"
+                            ? t("table.oneYearPerformance")
                             : col.id === "vaultApy"
                             ? t("table.supplyAPY")
                             : t("table." + col.id)}
@@ -203,12 +209,6 @@ export function VaultTable({
                             {col.id === "name" && (
                               <>
                                 <div className="flex items-center gap-2 pl-[1.5px]">
-                                  {/* <Image
-                                src={`https://cdn.morpho.org/assets/logos/${vault.token.toLocaleLowerCase()}.svg`}
-                                alt={vault.token}
-                                width={17}
-                                height={17}
-                              /> */}
                                   <span>{vault.name}</span>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -276,12 +276,12 @@ export function VaultTable({
                                     <div className="flex justify-between border-b py-1 px-3 border-accent">
                                       <div className="flex items-center gap-1">
                                         <Image
-                                          src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
+                                          src={USDC}
                                           alt={vault.token}
                                           width={14}
                                           height={14}
                                         />
-                                        <span className="text-xs">FundMaker</span>
+                                        <span className="text-xs">IndexMaker</span>
                                         <Copy className="w-[15px] h-[15px] cursor-pointer" />
                                       </div>
                                       <span className="font-bold">+1.16%</span>
@@ -290,7 +290,7 @@ export function VaultTable({
                                       <div className="flex items-center">
                                         <InstantAPY className="w-[17px] h-[17px]" />
                                         <span className="text-[#2470FFe6]">
-                                          FundMaker
+                                          IndexMaker
                                         </span>
                                       </div>
                                       <span className="font-bold text-[#2470FFe6]">
@@ -309,7 +309,9 @@ export function VaultTable({
                         )} */}
                             {col.id === "ytdReturn" && (
                               <div onClick={() => assetDetail(vault)}>
-                                {vault.ytdReturn}
+                                {vault.performance?.oneYearReturn.toFixed(2) ||
+                                  vault.ytdReturn}{" "}
+                                %
                               </div>
                             )}
                             {col.id === "performance" && (
@@ -427,7 +429,7 @@ export function VaultTable({
                                 className="flex items-center gap-2"
                                 onClick={() => assetDetail(vault)}
                               >
-                                <FundMaker className="w-4 h-4 text-muted" />
+                                <IndexMaker className="w-4 h-4 text-muted" />
                                 <span>{"OTC"}</span>
                               </div>
                             )}
@@ -535,29 +537,41 @@ export function VaultTable({
                                   return;
                                 }}
                               >
-                                <Button
-                                  className={cn(
-                                    "bg-blue-600 hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0",
-                                    selectedVault
-                                      .map((v) => v.name)
-                                      .includes(vault.name) ||
+                                {wallet &&
+                                currentChainId === selectedNetwork ? (
+                                  <Button
+                                    className={cn(
+                                      "bg-[#2470ff] hover:bg-blue-700 text-white text-[11px] rounded-[4px] px-[5px] py-[8px] h-[26px] sticky right-0",
+                                      selectedVault
+                                        .map((v) => v.name)
+                                        .includes(vault.name) ||
+                                        vault.name !== "SY100"
+                                        ? "opacity-30 cursor-not-allowed"
+                                        : "cursor-pointer"
+                                    )}
+                                    disabled={
+                                      selectedVault
+                                        .map((v) => v.name)
+                                        .includes(vault.name) ||
                                       vault.name !== "SY100"
-                                      ? "opacity-30 cursor-not-allowed"
-                                      : "cursor-pointer"
-                                  )}
-                                  disabled={
-                                    selectedVault
-                                      .map((v) => v.name)
-                                      .includes(vault.name) ||
-                                    vault.name !== "SY100"
-                                  }
-                                  onClick={(e) => {
-                                    e.stopPropagation(); // Prevent event from bubbling up to the row
-                                    onSupplyClick?.(vault.name, vault.ticker);
-                                  }}
-                                >
-                                  Buy Now
-                                </Button>
+                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // Prevent event from bubbling up to the row
+                                      onSupplyClick?.(vault.name, vault.ticker);
+                                    }}
+                                  >
+                                    Buy Now
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    className={cn(
+                                      "bg-[#2470ff] px-4 hover:bg-blue-700 text-white text-[11px] rounded-[4px] py-[8px] h-[26px] sticky right-0",
+                                      "cursor-pointer"
+                                    )}
+                                  >
+                                    Learn
+                                  </Button>
+                                )}
                               </div>
                             )}
                           </TableCell>

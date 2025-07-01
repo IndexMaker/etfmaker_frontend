@@ -407,7 +407,6 @@ export class EtfMainService {
     const isListed = (token: string, exchange: 'binance' | 'bitget') => {
       const listingData = listingsMap.get(token.toUpperCase());
       if (!listingData) return false;
-
       // Check delisting first (for the given exchange)
       if (listingData.delistingDate?.[exchange]) {
         const delistingDate = new Date(listingData.delistingDate[exchange]);
@@ -418,7 +417,6 @@ export class EtfMainService {
         );
         if (delistingAnnouncementDate <= rebalanceDate) return false;
       }
-
       // Check listing (for the given exchange)
       if (listingData.listingDate?.[exchange]) {
         const listingDate = new Date(listingData.listingDate[exchange]);
@@ -429,7 +427,7 @@ export class EtfMainService {
         );
         return listingAnnouncementDate <= rebalanceDate;
       }
-
+    
       return false;
     };
 
@@ -463,17 +461,14 @@ export class EtfMainService {
         if (isListed(`${symbolUpper}USDC`, 'binance')) {
           selectedPair = `bi.${symbolUpper}USDC`; // Assume Binance has USDC pair
         }
-
         // Check Binance USDT (fallback if USDC not available)
         if (!selectedPair && isListed(`${symbolUpper}USDT`, 'binance')) {
           selectedPair = `bi.${symbolUpper}USDT`;
         }
-
         // Check Bitget USDC (if Binance not available)
         if (!selectedPair && isListed(`${symbolUpper}USDC`, 'bitget')) {
           selectedPair = `bg.${symbolUpper}USDC`;
         }
-
         // Check Bitget USDT (fallback if USDC not available)
         if (!selectedPair && isListed(`${symbolUpper}USDT`, 'bitget')) {
           selectedPair = `bg.${symbolUpper}USDT`;
@@ -582,7 +577,7 @@ export class EtfMainService {
           },
         });
     });
-    console.log(weightsForContract);
+    console.log(weightsForContract)
     return { weights: weightsForContract, price: etfPrice };
   }
 

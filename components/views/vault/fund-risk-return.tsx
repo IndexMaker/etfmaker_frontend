@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Info } from "lucide-react"
+import { getIndexData } from "@/lib/IndexMockupData";
 
-export default function FundRiskReturn() {
+export default function FundRiskReturn({indexId = 'SY100'}: {indexId: string}) {
   const RiskReturnScale = ({
     title,
     selectedIndex,

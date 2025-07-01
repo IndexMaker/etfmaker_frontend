@@ -1,6 +1,6 @@
 "use client";
 
-import { RefreshCw, Search } from "lucide-react";
+import { CircleCheck, RefreshCw, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { VaultTable } from "@/components/elements/vault-table";
@@ -290,7 +290,7 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                           className="h-[54px] border-accent"
                         >
                           <TableCell
-                            key={`skeleton-cell-${index}`}
+                            key={`skeleton-1-${index}`}
                             className={cn("py-2 px-5")}
                           >
                             <div className="flex items-center">
@@ -298,7 +298,7 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                             </div>
                           </TableCell>
                           <TableCell
-                            key={`skeleton-cell-${index}`}
+                            key={`skeleton-2-${index}`}
                             className={cn("py-2 px-5")}
                           >
                             <div className="flex items-center">
@@ -311,7 +311,11 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                         return (
                           <TableRow
                             key={`skeleton-${i}`}
-                            className="h-[54px] border-accent"
+                            className={`h-[54px] border-accent ${
+                              selectedIndexId === index.indexId
+                                ? "bg-accent"
+                                : ""
+                            }`}
                             onClick={() => setSelectedIndexId(index.indexId)}
                           >
                             <TableCell
@@ -322,9 +326,16 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                             </TableCell>
                             <TableCell
                               key={`table-body-${i} - 1`}
-                              className={cn("py-2 px-5")}
+                              className={cn("py-2 px-5", "")}
                             >
-                              {index.ticker}
+                              <div className="flex justify-between flex-row ">
+                                <span>{index.ticker}</span>
+                                {selectedIndexId === index.indexId ? (
+                                  <CircleCheck className="w-4 h-4 text-green-600" />
+                                ) : (
+                                  <></>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         );
@@ -340,7 +351,9 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                   </CardTitle>
                   <span className="text-sm text-muted-foreground">
                     {currentRebalance
-                      ? (new Date(currentRebalance.createdAt).toLocaleDateString())
+                      ? new Date(
+                          currentRebalance.timestamp * 1000
+                        ).toDateString()
                       : ""}
                   </span>
                 </CardHeader>
@@ -349,9 +362,15 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                     <Table>
                       <TableHeader className="text-primary hover:bg-accent border-accent">
                         <TableRow className="text-primary hover:bg-accent border-accent">
-                          <TableHead className="text-primary hover:bg-accent border-accent">ID</TableHead>
-                          <TableHead className="text-primary hover:bg-accent border-accent">Asset</TableHead>
-                          <TableHead className="text-primary hover:bg-accent border-accent">Weight</TableHead>
+                          <TableHead className="text-primary hover:bg-accent border-accent">
+                            ID
+                          </TableHead>
+                          <TableHead className="text-primary hover:bg-accent border-accent">
+                            Asset
+                          </TableHead>
+                          <TableHead className="text-primary hover:bg-accent border-accent">
+                            Weight
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody className="max-h-[400px] overflow-y-auto">
@@ -374,7 +393,9 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[80px] text-priamry">ID</TableHead>
+                          <TableHead className="w-[80px] text-priamry">
+                            ID
+                          </TableHead>
                           <TableHead className=" text-priamry">Asset</TableHead>
                           <TableHead className="text-right text-priamry">
                             Weight (%)
@@ -394,8 +415,10 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                               <TableCell>
                                 <div className="flex flex-col">
                                   <span className="font-medium">
-                                    {asset.split(".")[1]?.replace("USDC", "").replace("USDT", "") ||
-                                      asset}
+                                    {asset
+                                      .split(".")[1]
+                                      ?.replace("USDC", "")
+                                      .replace("USDT", "") || asset}
                                   </span>
                                   <span className="text-xs text-muted-foreground">
                                     {asset.split(".")[1]}
@@ -436,7 +459,11 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                 </div>
               </CardHeader>
               <CardContent>
-                <RebalanceTable visibleColumns={visibleColumns} isLoading={isLoading} rebalances={rebalanceLists} />
+                <RebalanceTable
+                  visibleColumns={visibleColumns}
+                  isLoading={isLoading}
+                  rebalances={rebalanceLists}
+                />
               </CardContent>
             </Card>
           </div>

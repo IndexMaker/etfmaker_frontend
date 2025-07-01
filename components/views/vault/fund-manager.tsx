@@ -1,9 +1,9 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { fundManagerData } from "@/lib/IndexDetailData";
+import { getIndexData } from "@/lib/IndexMockupData";
 import { Info, MoreVertical } from "lucide-react"
 
-export default function FundManager() {
-  const { manager, managedFunds, commentaryLinks } = fundManagerData;
+export default function FundManager({indexId = 'SY100'}: {indexId: string}) {
+  const { manager, managedFunds, commentaryLinks } = getIndexData(indexId).fundManagerData || [];
 
   return (
     <Card className="w-full min-w-[350px] h-[440px] border-none bg-foreground overflow-auto flex flex-1 p-2 gap-2">
@@ -49,8 +49,8 @@ export default function FundManager() {
           </div>
           <div className="h-[1px] bg-[#2470ff] w-full mb-3"></div>
           <ul className="space-y-3">
-            {managedFunds.map((fund, index) => (
-              <li key={index} className="text-[13px] pl-2">
+            {managedFunds.map((fund: any, index: number) => (
+              <li key={index + '-managed'} className="text-[13px] pl-2">
                 <span 
                   dangerouslySetInnerHTML={{ 
                     __html: `${fund.name} <span class="text-gray-500">(since ${fund.startDate})</span>`
@@ -68,9 +68,9 @@ export default function FundManager() {
         <div className="w-full">
           <h3 className="font-medium mb-2">Commentary</h3>
           <div className="grid grid-cols-2 gap-2">
-            {commentaryLinks.map((link, index) => (
+            {commentaryLinks.map((link: any, index: number) => (
               <a
-                key={index}
+                key={index + '-commentary'}
                 href={link.url}
                 className="text-sm text-[#2470ff] hover:underline cursor-pointer"
               >

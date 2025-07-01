@@ -468,7 +468,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 </animateMotion>
               </g>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_person.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_person.png`}
                 height="136"
                 x="222"
                 opacity={activeStep === 1 ? "1" : "0.1"}
@@ -476,7 +476,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
               ></image>
               <rect width="10" height="95" x="263" y="190" fill="none"></rect>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_weth.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_weth.png`}
                 height="97"
                 x="232"
                 y="187"
@@ -484,7 +484,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               ></image>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_eth_in_cube.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_eth_in_cube.png`}
                 height="219"
                 x="174"
                 y="342"
@@ -493,7 +493,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
               ></image>
               <image
                 id="step-3"
-                href="https://cdn.morpho.org/v2/assets/images/graph_yield.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_yield.png`}
                 height="98"
                 x="232"
                 y="1090"
@@ -501,7 +501,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               ></image>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_person.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_person.png`}
                 height="136"
                 x="222"
                 y="1310"
@@ -515,14 +515,14 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               >
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="33"
                   width="152"
                   height="175"
                 ></image>
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="22"
                   width="152"
@@ -530,7 +530,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="11"
                   width="152"
@@ -538,7 +538,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="0"
                   width="152"
@@ -553,14 +553,14 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               >
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="33"
                   width="152"
                   height="175"
                 ></image>
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="22"
                   width="152"
@@ -568,7 +568,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="11"
                   width="152"
@@ -576,7 +576,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="0"
                   width="152"
@@ -591,14 +591,14 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               >
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="33"
                   width="152"
                   height="175"
                 ></image>
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="22"
                   width="152"
@@ -606,7 +606,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="11"
                   width="152"
@@ -614,7 +614,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="0"
                   width="152"
@@ -1091,7 +1091,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 </animateMotion>
               </g>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_person.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_person.png`}
                 height="136"
                 x="222"
                 opacity={activeStep === 1 ? "1" : "0.1"}
@@ -1099,7 +1099,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
               ></image>
               <rect width="10" height="95" x="263" y="190" fill="none"></rect>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_weth.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_weth.png`}
                 height="97"
                 x="232"
                 y="187"
@@ -1107,7 +1107,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               ></image>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_eth_in_cube.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_eth_in_cube.png`}
                 height="219"
                 x="174"
                 y="342"
@@ -1116,7 +1116,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
               ></image>
               <image
                 id="step-3"
-                href="https://cdn.morpho.org/v2/assets/images/graph_yield.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_yield.png`}
                 height="98"
                 x="232"
                 y="1090"
@@ -1124,7 +1124,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               ></image>
               <image
-                href="https://cdn.morpho.org/v2/assets/images/graph_person.png"
+                href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_person.png`}
                 height="136"
                 x="222"
                 y="1310"
@@ -1138,14 +1138,14 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               >
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="33"
                   width="152"
                   height="175"
                 ></image>
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="22"
                   width="152"
@@ -1153,7 +1153,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="11"
                   width="152"
@@ -1161,7 +1161,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="0"
                   width="152"
@@ -1176,14 +1176,14 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               >
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="33"
                   width="152"
                   height="175"
                 ></image>
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="22"
                   width="152"
@@ -1191,7 +1191,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="11"
                   width="152"
@@ -1199,7 +1199,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="0"
                   width="152"
@@ -1214,14 +1214,14 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 //   style="transition: var(--transitions-appear);"
               >
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="33"
                   width="152"
                   height="175"
                 ></image>
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="22"
                   width="152"
@@ -1229,7 +1229,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin.png`}
                   x="25.9502"
                   y="11"
                   width="152"
@@ -1237,7 +1237,7 @@ export function HowEarnWorks({ onClose }: HowEarnWorksProps) {
                 ></image>
                 ;
                 <image
-                  href="https://cdn.morpho.org/v2/assets/images/graph_coin_flipped.png"
+                  href={`${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/assets/images/graph_coin_flipped.png`}
                   x="25.9502"
                   y="0"
                   width="152"

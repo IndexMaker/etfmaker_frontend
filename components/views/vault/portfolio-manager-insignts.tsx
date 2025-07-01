@@ -2,9 +2,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import Chri_Lin from "../../../public/images/chris-lin.png"
 import Chri_Lin_Bio from "../../../public/images/Chris Lin biotech.jpg"
 import Image from 'next/image'
-import { portfolioManagerInsights } from "@/lib/IndexDetailData"
-export default function PortfolioManagerInsights() {
-
+import { getIndexData } from "@/lib/IndexMockupData";
+export default function PortfolioManagerInsights({indexId = 'SY100'}: {indexId: string}) {
+  const portfolioManagerInsights = getIndexData(indexId).portfolioManagerInsights || []
   return (
     <Card className="w-full min-w-[350px] h-[430px] border-none bg-foreground overflow-auto p-2 gap-2 flex-1">
       <div className="px-3 pb-1 border-b border-gray-200">
@@ -12,7 +12,7 @@ export default function PortfolioManagerInsights() {
       </div>
       
       <CardContent className="p-4 overflow-y-auto flex-1 space-y-6">
-        {portfolioManagerInsights.map((insight) => (
+        {portfolioManagerInsights.map((insight: any) => (
           <div key={insight.id} className="space-y-3">
             <div className="w-full">
               <Image

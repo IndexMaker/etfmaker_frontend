@@ -16,7 +16,7 @@ export const fallbackProjects: Project[] = [
       "/project/aragon2.png"
     ],
     overview: "Symmio was founded in 2016 with the belief that the fate of humanity will be decided at the frontier of technological innovation. Symmio launched the first DAO Framework in 2017 which secures over $40 billion in TVL. Symmio's tech stack allows anyone to launch a DAO, enabling organizations to securely govern their protocols and assets onchain.",
-    integrationDetails: "Symmio is integrated with FundMaker on multiple levels. First, Metafundmaker vault curators can easily spin up trustless guardians for their vaults using the Symmio App. For example, Steakhouse Financial secures vaults for their depositors with Symmio Guardian DAOs. Second, any DAO or multisig on Symmio can now seamlessly use FundMaker using Symmio's DappConnect, which enables onchain organizations to create actions directly through a Dapps user interface - no code required."
+    integrationDetails: "Symmio is integrated with IndexMaker on multiple levels. First, Metaindexmaker vault curators can easily spin up trustless guardians for their vaults using the Symmio App. For example, Steakhouse Financial secures vaults for their depositors with Symmio Guardian DAOs. Second, any DAO or multisig on Symmio can now seamlessly use IndexMaker using Symmio's DappConnect, which enables onchain organizations to create actions directly through a Dapps user interface - no code required."
   },
   {
     id: 2,
@@ -33,7 +33,7 @@ export const fallbackProjects: Project[] = [
       "/project/aragon2.png"
     ],
     overview: "Carbon was founded in 2016 with the belief that the fate of humanity will be decided at the frontier of technological innovation. Carbon launched the first DAO Framework in 2017 which secures over $40 billion in TVL. Carbon's tech stack allows anyone to launch a DAO, enabling organizations to securely govern their protocols and assets onchain.",
-    integrationDetails: "Carbon is integrated with FundMaker on multiple levels. First, Metafundmaker vault curators can easily spin up trustless guardians for their vaults using the Carbon App. For example, Steakhouse Financial secures vaults for their depositors with Carbon Guardian DAOs. Second, any DAO or multisig on Carbon can now seamlessly use FundMaker using Carbon's DappConnect, which enables onchain organizations to create actions directly through a Dapps user interface - no code required."
+    integrationDetails: "Carbon is integrated with IndexMaker on multiple levels. First, Metaindexmaker vault curators can easily spin up trustless guardians for their vaults using the Carbon App. For example, Steakhouse Financial secures vaults for their depositors with Carbon Guardian DAOs. Second, any DAO or multisig on Carbon can now seamlessly use IndexMaker using Carbon's DappConnect, which enables onchain organizations to create actions directly through a Dapps user interface - no code required."
   }
 ];
 

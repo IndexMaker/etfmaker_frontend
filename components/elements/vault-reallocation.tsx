@@ -17,6 +17,7 @@ import LeftArrow from "../icons/left-arrow";
 import RightArrow from "../icons/right-arrow";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
+import USDC from "../../public/logos/usd-coin.png";
 
 interface VaultReAllocationProps {
   reallocations: ReAllocation[];
@@ -92,7 +93,7 @@ export function VaultReAllocation({
         return (
           <div className="flex items-center gap-2">
             <Image
-              src={"https://cdn.morpho.org/assets/logos/dai.svg"}
+              src={USDC}
               alt="currency"
               width={21}
               height={21}

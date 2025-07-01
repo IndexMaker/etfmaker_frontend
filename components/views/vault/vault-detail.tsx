@@ -54,7 +54,7 @@ import {
   fetchHistoricalData,
   fetchVaultAssets,
 } from "@/api/indices";
-import FundMaker from "@/components/icons/fundmaker";
+import IndexMaker from "@/components/icons/indexmaker";
 import { VaultAssets } from "@/components/elements/vault-assets";
 import FundDetail from "./fund-details";
 import FundManager from "./fund-manager";
@@ -68,7 +68,15 @@ import { getBalance } from "viem/actions";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { useWallet } from "@/contexts/wallet-context";
-
+import { addSelectedVault } from "@/redux/vaultSlice";
+import USDC from "../../../public/logos/usd-coin.png";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordian";
+import { getIndexData } from "@/lib/IndexMockupData";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -112,6 +120,15 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([]);
 
   // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
+  const dispatch = useDispatch();
+  const handleSupplyClick = (name: string, ticker: string) => {
+    dispatch(addSelectedVault({ name, ticker }));
+  };
+  const selectedVault = useSelector(
+    (state: RootState) => state.vault.selectedVault
+  );
+
+  const [indexDescription, setIndexDescription] = useState('')
 
   useEffect(() => {
     const fetchData = async (indexId: number) => {
@@ -166,6 +183,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
       }
     };
     index?.indexId && _fetchVaultAssets(index?.indexId);
+
+    index && index.ticker && (setIndexDescription(getIndexData(index.ticker).description))
   }, [index]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -325,7 +344,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   )}
                 >
                   {vault.icon ? (
-                    <FundMaker className="w-[80px] h-[80px] text-muted" />
+                    <IndexMaker className="w-[80px] h-[80px] text-muted" />
                   ) : (
                     <div className="text-4xl">
                       {vault.token.symbol.charAt(0) || ""}
@@ -340,7 +359,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     <div className="flex items-center gap-2">
                       <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
                         <Image
-                          src={`https://cdn.morpho.org/assets/logos/usdc.svg`}
+                          src={USDC}
                           alt={vault.token.symbol}
                           width={17}
                           height={17}
@@ -353,7 +372,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                        <FundMaker className="w-[17px] h-[17px] text-muted" />
+                        <IndexMaker className="w-[17px] h-[17px] text-muted" />
                       </div>
                       <span className="text-secondary text-[20px]">
                         {"SYMMIO"}
@@ -365,750 +384,786 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               {/* Vault Description */}
               <div className="bg-foreground rounded-sm p-5  flex items-center w-full">
                 <p className="text-secondary text-[13px] leading-[16px]">
-                  {vault.description}
+                  {indexDescription || ''}
                 </p>
               </div>
             </div>
 
-            {/* Vault Description */}
-            {wallet ? (
-              <div className="pt-20">
-                <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-                  {t("common.AssetsToSupply")}
-                </h2>
-                <IndexBalance
-                  // walletBalance={getBalance}
-                  index={index}
-                  className={""}
-                />
-              </div>
-            ) : (
-              <></>
-            )}
-            {/* Let's connect / Subscribe / Buy Now */}
-            {/* <div className="pt-20">
-              <AdditionalMenu
-                className=""
-                canBuy={index.name === "SY100"}
-                indexName={index.name}
-                ticker={index.ticker}
-              />
-            </div> */}
-            {/* Index Info */}
-            <div className="pt-10">
-              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-                {t("common.indexInfo")}
-              </h2>
-              {isMobile ? (
-                <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
-                  <InfoMobileCard title={t("table.curator")}>
-                    <div className="flex items-center flex-row">
-                      <CuratorInfo curator={index.curator} />
-                    </div>
-                  </InfoMobileCard>
-
-                  <InfoMobileCard title={t("table.token")}>
-                    <TokenInfo token={vault.token} />
-                  </InfoMobileCard>
-
-                  <InfoMobileCard title={t("table.totalSupply")}>
-                    <TokenValue token={vault.token} value={index.totalSupply} />
-                  </InfoMobileCard>
-
-                  <InfoMobileCard title={t("table.ytdReturn")}>
-                    <div className="text-sm text-secondary">
-                      {index.ytdReturn}
-                    </div>
-                  </InfoMobileCard>
-
-                  <InfoMobileCard title={t("table.managementFee")}>
-                    <div className="text-sm text-secondary">
-                      {index.managementFee || ""}%
-                    </div>
-                  </InfoMobileCard>
-
-                  <InfoMobileCard title={t("table.vaultAddress")}>
-                    <AddressInfo
-                      address={getERC20AddressForIndex(index.indexId) || ""}
+            {isSmallWindow ? (
+              <Accordion type="multiple" className="w-full space-y-4 pt-6" defaultValue={["Balance"]}>
+                {/* Index Balance */}
+                <AccordionItem value="Balance">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.AssetsToSupply")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <IndexBalance
+                      indexBalance={wallet ? "0" : "-"}
+                      onSupplyClick={handleSupplyClick}
+                      index={index}
+                      className={""}
                     />
-                  </InfoMobileCard>
+                  </AccordionContent>
+                </AccordionItem>
 
-                  <InfoMobileCard title={t("table.liquidity")}>
-                    <TokenValue token={vault.token} value={index.totalSupply} />
-                  </InfoMobileCard>
+                {/* Index Info */}
+                <AccordionItem value="Info">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.indexInfo")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
+                      <InfoMobileCard title={t("table.curator")}>
+                        <div className="flex items-center flex-row">
+                          <CuratorInfo curator={index.curator} />
+                        </div>
+                      </InfoMobileCard>
 
-                  <InfoMobileCard title={t("table.guardianAddress")}>
-                    <AddressInfo address={vault.guardianAddress || ""} />
-                  </InfoMobileCard>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
-                  {/* Curator */}
-                  <InfoCard title={t("table.curator")}>
-                    <div className="flex items-center gap-2">
-                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                        <FundMaker className="h-5 w-5 text-muted" />
-                      </div>
-                      <span className="text-secondary text-[15px] font-normal">
-                        {"SYMMIO"}
-                      </span>
-                      {
-                        <Link
-                          href={`https://basescan.org/address/${index.curator}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ArrowUpRight className="h-4 w-4 text-secondary" />
-                        </Link>
-                      }
-                    </div>
-                  </InfoCard>
+                      <InfoMobileCard title={t("table.token")}>
+                        <TokenInfo token={vault.token} />
+                      </InfoMobileCard>
 
-                  {/* Token */}
-                  <InfoCard title={t("table.token")}>
-                    <div className="flex items-center gap-2">
-                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                        <Image
-                          src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
-                          alt={"USDC"}
-                          className="object-cover w-full h-full"
-                          width={17}
-                          height={17}
+                      <InfoMobileCard title={t("table.totalSupply")}>
+                        <TokenValue
+                          token={vault.token}
+                          value={index.totalSupply}
                         />
-                      </div>
-                      <span className="text-secondary text-[15px] font-normal">
-                        {"USDC"}
-                      </span>
-                      {USDC_ADDRESS_IN_BASE && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                          onClick={() =>
-                            copyToClipboard(
-                              USDC_ADDRESS_IN_BASE || "",
-                              "Token address"
-                            )
-                          }
-                        >
-                          <Copy className="h-3 w-3 text-secondary hover:text-primary" />
-                        </Button>
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.oneYearPerformance")}>
+                        <div className="text-sm text-secondary">
+                          {index.performance?.oneYearReturn.toFixed(2) || "0"} %
+                        </div>
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.managementFee")}>
+                        <div className="text-sm text-secondary">
+                          {index.managementFee || ""}%
+                        </div>
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.vaultAddress")}>
+                        <AddressInfo
+                          address={getERC20AddressForIndex(index.indexId) || ""}
+                        />
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.liquidity")}>
+                        <TokenValue
+                          token={vault.token}
+                          value={index.totalSupply}
+                        />
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.guardianAddress")}>
+                        <AddressInfo address={vault.guardianAddress || ""} />
+                      </InfoMobileCard>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Index Overview */}
+                <AccordionItem value="Overview">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.indexOverview")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <div
+                      className={cn(
+                        `flex gap-6  `,
+                        isSmallWindow ? "flex-col" : "flex-wrap flex-responsive"
                       )}
+                    >
+                      <FundDetail indexId={index.ticker} />
+                      <FundOverview indexId={index.ticker} />
+                      <FundRiskReturn indexId={index.ticker} />
                     </div>
-                  </InfoCard>
+                  </AccordionContent>
+                </AccordionItem>
 
-                  {/* Total Supply */}
-                  <InfoCard title={t("table.totalSupply")}>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
-                          <Image
-                            src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
-                            alt={"USDC"}
-                            className="object-cover w-full h-full"
-                            width={17}
-                            height={17}
-                          />
-                        </div>
-                        <span className="text-secondary text-[15px] font-normal">
-                          {index.totalSupply} USDC
-                        </span>
-                      </div>
-                      <div className="text-[13px] text-secondary px-[2px] bg-accent">
-                        {index.totalSupply}
-                      </div>
-                    </div>
-                  </InfoCard>
-
-                  {/* Instant APY */}
-                  <InfoCard title={t("table.ytdReturn")}>
-                    <div className="text-[15px] text-secondary font-normal">
-                      {index.ytdReturn}
-                    </div>
-                  </InfoCard>
-
-                  {/* Performance Fee */}
-                  <InfoCard
-                    title={t("table.managementFee")}
-                    tooltip="The fee charged on earnings by the vault curator"
-                  >
-                    <div className="text-[15px] text-secondary font-normal">
-                      {index.managementFee} %
-                    </div>
-                  </InfoCard>
-
-                  {/* Vault Address */}
-                  <InfoCard title={t("table.vaultAddress")}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-secondary text-[15px] font-normal">
-                        {shortenAddress(getERC20AddressForIndex(index.indexId))}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                        onClick={() =>
-                          copyToClipboard(
-                            getERC20AddressForIndex(index.indexId),
-                            "Index address"
-                          )
-                        }
-                      >
-                        <Copy className="h-3 w-3 text-secondary" />
-                      </Button>
-                    </div>
-                  </InfoCard>
-
-                  {/* liquidity */}
-                  <InfoCard
-                    title={t("table.liquidity")}
-                    tooltip="The amount of tokens available for borrowing"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
-                          <Image
-                            src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
-                            alt={"USDC"}
-                            className="object-cover w-full h-full"
-                            width={17}
-                            height={17}
-                          />
-                        </div>
-                        <span className="text-secondary text-[15px] font-normal">
-                          {index.totalSupply} USDC
-                        </span>
-                      </div>
-                      <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
-                        {index.totalSupply}
-                      </div>
-                    </div>
-                  </InfoCard>
-
-                  {/* Guardian Address */}
-                  <InfoCard
-                    title={t("table.guardianAddress")}
-                    tooltip="The blockchain address of the vault guardian"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-secondary text-[15px] font-normal">
-                        {vault.guardianAddress}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
-                        onClick={() =>
-                          copyToClipboard(
-                            vault.guardianAddress,
-                            "Guardian address"
-                          )
-                        }
-                      >
-                        <Copy className="h-3 w-3 text-secondary" />
-                      </Button>
-                    </div>
-                  </InfoCard>
-                </div>
-              )}
-            </div>
-
-            {/* Index Overview */}
-            <div className="pt-20">
-              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-                {t("common.indexOverview")}
-              </h2>
-              <div className="flex flex-wrap gap-6 flex-responsive">
-                <FundDetail />
-                <FundManager />
-                <FundOverview />
-                <PortfolioManagerInsights />
-                <FundRiskReturn />
-                <Risk />
-              </div>
-            </div>
-            {/* Chart */}
-            <div className="pt-20">
-              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-                {t("common.indexPerformance")}
-              </h2>
-
-              <TimePeriodSelector
-                selectedPeriod={selectedPeriod}
-                onPeriodChange={setSelectedPeriod}
-                showComparison={showComparison}
-                showETHComparison={showETHComparison}
-                setShowComparison={setShowComparison}
-                setShowETHComparison={setShowETHComparison}
-              />
-
-              <div
-                className={cn(
-                  "bg-background rounded-lg shadow",
-                  isSmallWindow ? "" : "p-4"
-                )}
-              >
-                <PerformanceChart
-                  isLoading={historicalLoading}
-                  data={filteredChartData()}
-                  indexId={index.indexId}
-                  btcData={filteredBtcData()}
-                  ticker={index.ticker || ""}
-                  ethData={filteredEthData()}
-                  showComparison={showComparison}
-                  showETHComparison={showETHComparison}
-                />
-              </div>
-            </div>
-
-            {/* Vault Literature */}
-            <div className="pt-20">
-              <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
-                {t("common.vaultInfo")}
-              </h2>
-              <VaultLiteratureSection
-                literature={vault.documents}
-                rebalanceData={indexData?.rawData ? indexData?.rawData : []}
-                indexId={index.indexId}
-                indexName={index.name}
-              />
-            </div>
-
-            {/* Documents Section */}
-            {/* <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Documents</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-foreground border-zinc-700 hover:bg-zinc-800 text-primary"
-              onClick={() => setShowUploader(!showUploader)}
-            >
-              {showUploader ? "Cancel" : "Upload Document"}
-            </Button>
-          </div>
-
-          {showUploader && (
-            <div className="mb-6">
-              <DocumentUploader
-                vaultId={vault.id}
-                onComplete={() => setShowUploader(false)}
-              />
-            </div>
-          )}
-
-          {vault.documents.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 gap-4">
-              {vault.documents.map((doc) => (
-                <Link
-                  key={doc.id}
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block group"
-                >
-                  <Card className="bg-foreground border-zinc-800 hover:bg-zinc-800 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="bg-zinc-700 rounded-md p-2 mt-1">
-                          <FileText className="h-5 w-5 text-zinc-300" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium group-hover:text-blue-400 transition-colors">
-                            {doc.name}
-                          </h3>
-                          {doc.description && (
-                            <p className="text-sm text-zinc-400 mt-1">
-                              {doc.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="bg-foreground rounded-lg p-6 border border-zinc-800 text-center">
-              <p className="text-zinc-400">
-                No documents available for this vault.
-              </p>
-            </div>
-          )}
-        </div> */}
-
-            {/* <div className="pt-16">
-            <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-              <div className="flex items-center gap-3">
-                <div>{t("common.vaultAllocationBreakdown")}</div>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
-                      >
-                        <HelpCircle className="h-3 w-3 text-[#fffff80]" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs">
-                        {t("common.vaultAllocationBreakdownNote")}
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <CustomButton
-                    variant="secondary"
-                    onClick={() => setSearchQuery("")}
-                    className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                  >
-                    {t("common.editProperties")}
-                  </CustomButton>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                  align="end"
-                  sideOffset={5}
-                >
-                  <div className="p-0 border-b border-zinc-700">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="search"
-                        placeholder={t("common.searchProperties")}
-                        className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                {/* Price Chart */}
+                <AccordionItem value="Chart">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.indexPerformance")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <div
+                      className={cn(
+                        `flex gap-6  `,
+                        isSmallWindow ? "flex-col" : "flex-wrap flex-responsive"
+                      )}
+                    >
+                      <TimePeriodSelector
+                        selectedPeriod={selectedPeriod}
+                        onPeriodChange={setSelectedPeriod}
+                        showComparison={showComparison}
+                        showETHComparison={showETHComparison}
+                        setShowComparison={setShowComparison}
+                        setShowETHComparison={setShowETHComparison}
                       />
-                    </div>
-                  </div>
-                  <div className="max-h-[400px] overflow-y-auto">
-                    {filteredColumns.map((column) => (
+
                       <div
-                        key={column.id}
-                        className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                        className={cn(
+                          "bg-background rounded-lg shadow",
+                          isSmallWindow ? "" : "p-4"
+                        )}
                       >
-                        <span className="text-[12px]">
-                          {t("table." + column.id)}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() =>
-                            toggleColumnVisibility(column.id, !column.visible)
+                        <PerformanceChart
+                          isLoading={historicalLoading}
+                          data={filteredChartData()}
+                          indexId={index.indexId}
+                          btcData={filteredBtcData()}
+                          ticker={index.ticker || ""}
+                          ethData={filteredEthData()}
+                          showComparison={showComparison}
+                          showETHComparison={showETHComparison}
+                        />
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Vault Literature */}
+                <AccordionItem value="Literature">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.vaultInfo")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <VaultLiteratureSection
+                      literature={vault.documents}
+                      rebalanceData={indexData?.rawData ?? []}
+                      indexId={index.indexId}
+                      indexName={index.name}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Vault Assets */}
+                <AccordionItem value="Assets">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.vaultAssets")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <VaultAssets
+                      isLoading={indexAssetLoading}
+                      assets={indexAssets}
+                      visibleColumns={visibleColumns}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Vault Reallocation */}
+                <AccordionItem value="Reallocation">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.vaultReallocations")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <VaultReAllocation
+                      reallocations={indexData?.formattedTransactions || []}
+                      visibleColumns={visibleReAllocationColumns}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* Vault Supply */}
+                <AccordionItem value="Supply">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.supplyPositions")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <VaultSupply supplyPositions={supplyPositions} />
+                  </AccordionContent>
+                </AccordionItem>
+
+                {/* User Activities */}
+                <AccordionItem value="Activities">
+                  <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
+                    {t("common.userActivity")}
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4">
+                    <VaultActivity
+                      activities={userActivities}
+                      visibleColumns={visibleTransactionColumns}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            ) : (
+              <>
+                {/* Index Balance */}
+                <div className="pt-20">
+                  <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                    {t("common.AssetsToSupply")}
+                  </h2>
+                  <IndexBalance
+                    indexBalance={wallet ? "0" : "-"}
+                    onSupplyClick={handleSupplyClick}
+                    index={index}
+                    className={""}
+                  />
+                </div>
+
+                {/* Index Info */}
+                <div className="pt-10">
+                  <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                    {t("common.indexInfo")}
+                  </h2>
+                  {isMobile ? (
+                    <div className="grid grid-cols-1 md:gird md:grid-cols-2 rounded-[8px] bg-foreground px-[10px] md:px-5 md:[&>:nth-child(2n+1)]:pr-10 md:[&>:nth-child(2n)]:pl-10">
+                      <InfoMobileCard title={t("table.curator")}>
+                        <div className="flex items-center flex-row">
+                          <CuratorInfo curator={index.curator} />
+                        </div>
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.token")}>
+                        <TokenInfo token={vault.token} />
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.totalSupply")}>
+                        <TokenValue
+                          token={vault.token}
+                          value={index.totalSupply}
+                        />
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.oneYearPerformance")}>
+                        <div className="text-sm text-secondary">
+                          {index.performance?.oneYearReturn.toFixed(2) || "0"} %
+                        </div>
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.managementFee")}>
+                        <div className="text-sm text-secondary">
+                          {index.managementFee || ""}%
+                        </div>
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.vaultAddress")}>
+                        <AddressInfo
+                          address={getERC20AddressForIndex(index.indexId) || ""}
+                        />
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.liquidity")}>
+                        <TokenValue
+                          token={vault.token}
+                          value={index.totalSupply}
+                        />
+                      </InfoMobileCard>
+
+                      <InfoMobileCard title={t("table.guardianAddress")}>
+                        <AddressInfo address={vault.guardianAddress || ""} />
+                      </InfoMobileCard>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-5">
+                      {/* Curator */}
+                      <InfoCard title={t("table.curator")}>
+                        <div className="flex items-center gap-2">
+                          <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                            <IndexMaker className="h-5 w-5 text-muted" />
+                          </div>
+                          <span className="text-secondary text-[14px] font-normal">
+                            {"SYMMIO"}
+                          </span>
+                          {
+                            <Link
+                              href={`https://basescan.org/address/${index.curator}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <ArrowUpRight className="h-4 w-4 text-secondary" />
+                            </Link>
                           }
-                          className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
-                        >
-                          {visibleColumns.filter(
-                            (_column) => column.id === _column.id
-                          )[0].visible ? (
-                            <Eye className="h-4 w-4 text-card" />
-                          ) : (
-                            <EyeOff className="h-4 w-4 text-card" />
-                          )}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </h1>
-            <VaultAllocationBreakdown
-              allocations={vaultAllocations}
-              visibleColumns={visibleColumns}
-            />
-          </div> */}
+                        </div>
+                      </InfoCard>
 
-            <div className="pt-16">
-              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-                <div className="flex items-center gap-3">
-                  <div>{t("common.vaultAssets")}</div>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
-                        >
-                          <HelpCircle className="h-3 w-3 text-[#fffff80]" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="max-w-xs">
-                          {t("common.vaultAllocationBreakdownNote")}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <CustomButton
-                      variant="secondary"
-                      onClick={() => setSearchQuery("")}
-                      className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                    >
-                      {t("common.editProperties")}
-                    </CustomButton>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                    align="end"
-                    sideOffset={5}
-                  >
-                    <div className="p-0 border-b border-zinc-700">
-                      <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="search"
-                          placeholder={t("common.searchProperties")}
-                          className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {filteredColumns.map((column) => (
-                        <div
-                          key={column.id}
-                          className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                        >
-                          <span className="text-[12px]">
-                            {t("table." + column.id)}
+                      {/* Token */}
+                      <InfoCard title={t("table.token")}>
+                        <div className="flex items-center gap-2">
+                          <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+                            <Image
+                              src={USDC}
+                              alt={"USDC"}
+                              className="object-cover w-full h-full"
+                              width={17}
+                              height={17}
+                            />
+                          </div>
+                          <span className="text-secondary text-[14px] font-normal">
+                            {"USDC"}
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              toggleColumnVisibility(column.id, !column.visible)
-                            }
-                            className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
-                          >
-                            {visibleColumns.filter(
-                              (_column) => column.id === _column.id
-                            )[0].visible ? (
-                              <Eye className="h-4 w-4 text-card" />
-                            ) : (
-                              <EyeOff className="h-4 w-4 text-card" />
-                            )}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </h1>
-              <VaultAssets
-                isLoading={indexAssetLoading}
-                assets={indexAssets}
-                visibleColumns={visibleColumns}
-              />
-            </div>
-
-            <div className="pt-16">
-              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-                <div className="flex items-center gap-3">
-                  <div>{t("common.vaultReallocations")}</div>
-                </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <CustomButton
-                      variant="secondary"
-                      onClick={() => setSearchQuery("")}
-                      className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                    >
-                      {t("common.editProperties")}
-                    </CustomButton>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
-                    align="end"
-                    sideOffset={5}
-                  >
-                    <div className="p-0 border-b border-zinc-700">
-                      <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          type="search"
-                          placeholder={t("common.searchProperties")}
-                          className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div className="max-h-[400px] overflow-y-auto">
-                      {filteredReallocationColumns.map((column) => (
-                        <div
-                          key={column.id}
-                          className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                        >
-                          <span className="text-[12px]">
-                            {t("table." + column.id)}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              toggleReAllocationColumnVisibility(
-                                column.id,
-                                !column.visible
-                              )
-                            }
-                            className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
-                          >
-                            {visibleReAllocationColumns.filter(
-                              (_column) => column.id === _column.id
-                            )[0].visible ? (
-                              <Eye className="h-4 w-4 text-card" />
-                            ) : (
-                              <EyeOff className="h-4 w-4 text-card" />
-                            )}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </h1>
-              <VaultReAllocation
-                reallocations={indexData?.formattedTransactions || []}
-                visibleColumns={visibleReAllocationColumns}
-              />
-            </div>
-
-            <div className="pt-16">
-              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-                <div className="flex items-center gap-3">
-                  <div>{t("common.supplyPositions")}</div>
-                </div>
-              </h1>
-              <VaultSupply supplyPositions={supplyPositions} />
-            </div>
-
-            <div className="pt-16">
-              <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
-                <div className="flex items-center gap-3">
-                  <div>{t("common.userActivity")}</div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <TransactionTypeSelector />
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <CustomButton
-                        variant="secondary"
-                        onClick={() => setSearchQuery("")}
-                        className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
-                      >
-                        {t("common.editProperties")}
-                      </CustomButton>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
-                      align="end"
-                      sideOffset={5}
-                    >
-                      <div className="p-0 border-b border-zinc-700">
-                        <div className="relative">
-                          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="search"
-                            placeholder={t("common.searchProperties")}
-                            className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="max-h-[400px] overflow-y-auto">
-                        {filteredActivityColumns.map((column) => (
-                          <div
-                            key={column.id}
-                            className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
-                          >
-                            <span className="text-[12px]">
-                              {t("table." + column.id)}
-                            </span>
+                          {USDC_ADDRESS_IN_BASE && (
                             <Button
                               variant="ghost"
                               size="icon"
+                              className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
                               onClick={() =>
-                                toggleActivityColumnVisibility(
-                                  column.id,
-                                  !column.visible
+                                copyToClipboard(
+                                  USDC_ADDRESS_IN_BASE || "",
+                                  "Token address"
                                 )
                               }
-                              className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
                             >
-                              {visibleTransactionColumns.filter(
-                                (_column) => column.id === _column.id
-                              )[0].visible ? (
-                                <Eye className="h-4 w-4 text-card" />
-                              ) : (
-                                <EyeOff className="h-4 w-4 text-card" />
-                              )}
+                              <Copy className="h-3 w-3 text-secondary hover:text-primary" />
                             </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </h1>
-              <VaultActivity
-                activities={userActivities}
-                visibleColumns={visibleTransactionColumns}
-              />
-            </div>
+                          )}
+                        </div>
+                      </InfoCard>
 
+                      {/* Total Supply */}
+                      <InfoCard title={t("table.totalSupply")}>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
+                              <Image
+                                src={USDC}
+                                alt={"USDC"}
+                                className="object-cover w-full h-full"
+                                width={17}
+                                height={17}
+                              />
+                            </div>
+                            <span className="text-secondary text-[14px] font-normal">
+                              {index.totalSupply} USDC
+                            </span>
+                          </div>
+                          <div className="text-[13px] text-secondary px-[2px] bg-accent">
+                            {index.totalSupply}
+                          </div>
+                        </div>
+                      </InfoCard>
+
+                      {/* Instant APY */}
+                      <InfoCard title={t("table.oneYearPerformance")}>
+                        <div className="text-[14px] text-secondary font-normal">
+                          {index.performance?.oneYearReturn.toFixed(2) || "0"} %
+                        </div>
+                      </InfoCard>
+
+                      {/* Performance Fee */}
+                      <InfoCard
+                        title={t("table.managementFee")}
+                        tooltip="The fee charged on earnings by the vault curator"
+                      >
+                        <div className="text-[14px] text-secondary font-normal">
+                          {index.managementFee} %
+                        </div>
+                      </InfoCard>
+
+                      {/* Vault Address */}
+                      <InfoCard title={t("table.vaultAddress")}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-secondary text-[14px] font-normal">
+                            {shortenAddress(
+                              getERC20AddressForIndex(index.indexId)
+                            )}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                            onClick={() =>
+                              copyToClipboard(
+                                getERC20AddressForIndex(index.indexId),
+                                "Index address"
+                              )
+                            }
+                          >
+                            <Copy className="h-3 w-3 text-secondary" />
+                          </Button>
+                        </div>
+                      </InfoCard>
+
+                      {/* liquidity */}
+                      <InfoCard
+                        title={t("table.liquidity")}
+                        tooltip="The amount of tokens available for borrowing"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-foreground flex items-center justify-center">
+                              <Image
+                                src={USDC}
+                                alt={"USDC"}
+                                className="object-cover w-full h-full"
+                                width={17}
+                                height={17}
+                              />
+                            </div>
+                            <span className="text-secondary text-[14px] font-normal">
+                              {index.totalSupply} USDC
+                            </span>
+                          </div>
+                          <div className="text-[13px] text-secondary px-[2px] bg-[#fafafa1a]">
+                            {index.totalSupply}
+                          </div>
+                        </div>
+                      </InfoCard>
+
+                      {/* Guardian Address */}
+                      <InfoCard
+                        title={t("table.guardianAddress")}
+                        tooltip="The blockchain address of the vault guardian"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-secondary text-[14px] font-normal">
+                            {vault.guardianAddress}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 hover:bg-transparent hover:text-primary cursor-pointer"
+                            onClick={() =>
+                              copyToClipboard(
+                                vault.guardianAddress,
+                                "Guardian address"
+                              )
+                            }
+                          >
+                            <Copy className="h-3 w-3 text-secondary" />
+                          </Button>
+                        </div>
+                      </InfoCard>
+                    </div>
+                  )}
+                </div>
+
+                {/* Index Overview */}
+                <div className="pt-20">
+                  <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                    {t("common.indexOverview")}
+                  </h2>
+                  <div
+                    className={cn(
+                      `flex gap-6  `,
+                      isSmallWindow ? "flex-col" : "flex-wrap flex-responsive"
+                    )}
+                  >
+                    <FundDetail indexId={index.ticker} />
+                    {!isSmallWindow && <FundManager indexId={index.ticker} />}
+                    <FundOverview indexId={index.ticker} />
+                    {!isSmallWindow && <PortfolioManagerInsights indexId={index.ticker} />}
+                    <FundRiskReturn indexId={index.ticker} />
+                    {!isSmallWindow && <Risk indexId={index.ticker} />}
+                  </div>
+                </div>
+
+                {/* Price Chart */}
+                <div className="pt-20">
+                  <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                    {t("common.indexPerformance")}
+                  </h2>
+
+                  <TimePeriodSelector
+                    selectedPeriod={selectedPeriod}
+                    onPeriodChange={setSelectedPeriod}
+                    showComparison={showComparison}
+                    showETHComparison={showETHComparison}
+                    setShowComparison={setShowComparison}
+                    setShowETHComparison={setShowETHComparison}
+                  />
+
+                  <div
+                    className={cn(
+                      "bg-background rounded-lg shadow",
+                      isSmallWindow ? "" : "p-4"
+                    )}
+                  >
+                    <PerformanceChart
+                      isLoading={historicalLoading}
+                      data={filteredChartData()}
+                      indexId={index.indexId}
+                      btcData={filteredBtcData()}
+                      ticker={index.ticker || ""}
+                      ethData={filteredEthData()}
+                      showComparison={showComparison}
+                      showETHComparison={showETHComparison}
+                    />
+                  </div>
+                </div>
+
+                {/* Vault Literature */}
+                <div className="pt-20">
+                  <h2 className="lg:text-[20px] text-[16px] mb-4 text-primary font-custom">
+                    {t("common.vaultInfo")}
+                  </h2>
+                  <VaultLiteratureSection
+                    literature={vault.documents}
+                    rebalanceData={indexData?.rawData ?? []}
+                    indexId={index.indexId}
+                    indexName={index.name}
+                  />
+                </div>
+
+                <div className="pt-16">
+                  <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div>{t("common.vaultAssets")}</div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 p-0 hover:bg-transparent hover:text-primary text-[#ffffff80]"
+                            >
+                              <HelpCircle className="h-3 w-3 text-[#fffff80]" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">
+                              {t("common.vaultAllocationBreakdownNote")}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <CustomButton
+                          variant="secondary"
+                          onClick={() => setSearchQuery("")}
+                          className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                        >
+                          {t("common.editProperties")}
+                        </CustomButton>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
+                        align="end"
+                        sideOffset={5}
+                      >
+                        <div className="p-0 border-b border-zinc-700">
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="search"
+                              placeholder={t("common.searchProperties")}
+                              className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-card"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div className="max-h-[400px] overflow-y-auto">
+                          {filteredColumns.map((column) => (
+                            <div
+                              key={column.id}
+                              className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                            >
+                              <span className="text-[12px]">
+                                {t("table." + column.id)}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  toggleColumnVisibility(
+                                    column.id,
+                                    !column.visible
+                                  )
+                                }
+                                className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                              >
+                                {visibleColumns.filter(
+                                  (_column) => column.id === _column.id
+                                )[0].visible ? (
+                                  <Eye className="h-4 w-4 text-card" />
+                                ) : (
+                                  <EyeOff className="h-4 w-4 text-card" />
+                                )}
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </h1>
+                  <VaultAssets
+                    isLoading={indexAssetLoading}
+                    assets={indexAssets}
+                    visibleColumns={visibleColumns}
+                  />
+                </div>
+
+                <div className="pt-16">
+                  <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div>{t("common.vaultReallocations")}</div>
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <CustomButton
+                          variant="secondary"
+                          onClick={() => setSearchQuery("")}
+                          className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                        >
+                          {t("common.editProperties")}
+                        </CustomButton>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-[300px] z-50 p-0 bg-foreground text-card border-zinc-700"
+                        align="end"
+                        sideOffset={5}
+                      >
+                        <div className="p-0 border-b border-zinc-700">
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              type="search"
+                              placeholder={t("common.searchProperties")}
+                              className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                          </div>
+                        </div>
+                        <div className="max-h-[400px] overflow-y-auto">
+                          {filteredReallocationColumns.map((column) => (
+                            <div
+                              key={column.id}
+                              className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                            >
+                              <span className="text-[12px]">
+                                {t("table." + column.id)}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  toggleReAllocationColumnVisibility(
+                                    column.id,
+                                    !column.visible
+                                  )
+                                }
+                                className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                              >
+                                {visibleReAllocationColumns.filter(
+                                  (_column) => column.id === _column.id
+                                )[0].visible ? (
+                                  <Eye className="h-4 w-4 text-card" />
+                                ) : (
+                                  <EyeOff className="h-4 w-4 text-card" />
+                                )}
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </h1>
+                  <VaultReAllocation
+                    reallocations={indexData?.formattedTransactions || []}
+                    visibleColumns={visibleReAllocationColumns}
+                  />
+                </div>
+
+                <div className="pt-16">
+                  <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div>{t("common.supplyPositions")}</div>
+                    </div>
+                  </h1>
+                  <VaultSupply supplyPositions={supplyPositions} />
+                </div>
+
+                <div className="pt-16">
+                  <h1 className="lg:text-[20px] text-primary flex justify-between lg:items-center flex-row flex-wrap lg:flex-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div>{t("common.userActivity")}</div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <TransactionTypeSelector />
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <CustomButton
+                            variant="secondary"
+                            onClick={() => setSearchQuery("")}
+                            className="border-none text-[11px] rounded-[4px] h-[26px] flex items-center"
+                          >
+                            {t("common.editProperties")}
+                          </CustomButton>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-[300px] z-50 p-0 bg-foreground border-zinc-700 text-primary"
+                          align="end"
+                          sideOffset={5}
+                        >
+                          <div className="p-0 border-b border-zinc-700">
+                            <div className="relative">
+                              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                type="search"
+                                placeholder={t("common.searchProperties")}
+                                className="pl-8 py-[10px] !shadow-none bg-foreground border-zinc-700 text-primary"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                              />
+                            </div>
+                          </div>
+                          <div className="max-h-[400px] overflow-y-auto">
+                            {filteredActivityColumns.map((column) => (
+                              <div
+                                key={column.id}
+                                className="flex items-center justify-between py-2 px-3 h-[36px] hover:bg-accent rounded-sm"
+                              >
+                                <span className="text-[12px]">
+                                  {t("table." + column.id)}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    toggleActivityColumnVisibility(
+                                      column.id,
+                                      !column.visible
+                                    )
+                                  }
+                                  className="hover:bg-transparent hover:text-primary text-card h-8 w-8"
+                                >
+                                  {visibleTransactionColumns.filter(
+                                    (_column) => column.id === _column.id
+                                  )[0].visible ? (
+                                    <Eye className="h-4 w-4 text-card" />
+                                  ) : (
+                                    <EyeOff className="h-4 w-4 text-card" />
+                                  )}
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </h1>
+                  <VaultActivity
+                    activities={userActivities}
+                    visibleColumns={visibleTransactionColumns}
+                  />
+                </div>
+              </>
+            )}
             {/* TOS */}
             <div className="pt-16">
               <div className="grid grid-cols-1">
                 <div className="col-span-1">
                   <h4 className="text-[13px] pb-2 pt-3 font-bold text-primary">
-                    Note on the Fund management company and the fund
+                  Before investing, consider the index' investment objectives, risks, charges and expenses. Contact your investment professional or visit indexmaker.global for a prospectus containing this information. Read it carefully.
                   </h4>
+                  
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    Multi Units Luxembourg, RCS B115129 and Lyxor Index Fund,
-                    RCS B117500, both Luxembourg SICAV located 9, rue de
-                    Bitbourg, L-1273 Luxembourg, and managed by Amundi Asset
-                    Management. Lyxor SICAV, Luxembourg SICAV, RCS B140772,
-                    located 5, Allée Scheffer, L-2520 Luxembourg, managed by
-                    Amundi Luxembourg S.A..
-                  </p>
-                  <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The Fund is described in a Key Information Document (KID),
-                    or Key Investor Information Document (KIID) for UK
-                    investors, and prospectus. The Funds KID, or KIID for UK
-                    investors, must be made available to potential subscribers
+                    The index is described in a Key Information Document (KID),
+                    or Key Investor Information Document (KIID) for
+                    investors, and prospectus. The Funds KID, or KIID, must be made available to potential subscribers
                     prior to subscription.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
                     The Funds reference material (KIID, prospectus, annual and
-                    semi-annual reports) can be obtained from Amundi on request,
-                    or obtained via the amundietf.com website. <br></br>
-                    For Professional Clients only. In the United Kingdom (the
-                    "UK"), this website is being issued by Amundi (UK) Limited,
-                    77 Coleman Street, London EC2R 5BJ, UK. Amundi (UK) Limited
-                    is authorised and regulated by the Financial Conduct
-                    Authority ("FCA") and entered on the FCA's Financial
-                    Services Register under number 114503. This may be checked
-                    at https://register.fca.org.uk/ and further information of
-                    its authorisation is available on request. Each fund and its
-                    relevant sub-fund(s) under its respective fund range that is
-                    referred to in this website (each, a "Fund") is a recognised
-                    collective investment scheme for the purposes of Section 264
-                    of the Financial Services and Markets Act 2000 (the "FSMA")
-                    or an unregulated collective investment scheme under the
-                    Financial Services and Markets Act 2000 (the "FSMA"). This
+                    semi-annual reports) can be obtained from IndexMaker on request,
+                    or obtained via the indexmaker.global website. <br></br>
+                    For Professional Clients only. This
                     website is addressed only to those persons in the UK falling
                     within one or more of the following exemptions from the
                     restrictions in Section 238 FSMA:<br></br>- Authorised firms
@@ -1127,7 +1182,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     Professional Clients or Eligible Counterparties.<br></br>
                     The distribution of this website's information to any person
                     in the UK not falling within one of the above categories is
-                    not permitted by Amundi (UK) Limited and may contravene
+                    not permitted by IndexMkaer Limited and may contravene
                     FSMA. No person in the UK falling outside those categories
                     should rely or act on it for any purposes whatsoever.{" "}
                     <br></br>
@@ -1138,25 +1193,24 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     persons for any purposes whatsoever. <br></br>
                     Potential investors in the UK should be aware that none of
                     the protections afforded by the UK regulatory system will
-                    apply to an investment in a Fund and that compensation will
+                    apply to an investment in an Index and that compensation will
                     not be available under the UK Financial Services
                     Compensation Scheme. <br></br>
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    Regarding Funds admitted on a regulated market, the listing
+                    Regarding Index admitted on a regulated market, the listing
                     is subject to a volatility control mechanisms to ensure that
-                    the ETF price does not deviate significantly from a
+                    the Index price does not deviate significantly from a
                     reference price set by the listing rules of the relevant
                     regulated market, notably through the implementation of a
                     trading halt mechanism in case of significant deviation from
                     this reference price.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The Fund offers no capital guarantee. Investors may not get
+                    The Index offers no capital guarantee. Investors may not get
                     back the full amount of their initial investment,
                     particularly in the event that the benchmark index falls.
-                    Subscribing to a UCITS may involve risks. Potential
-                    investors are advised to read the Funds risk profile, which
+                    Potential investors are advised to read the Funds risk profile, which
                     is described in detail in the prospectus. The amount that is
                     reasonable to invest in the Fund will depend on the personal
                     circumstances of each investor. To determine this amount,
@@ -1172,8 +1226,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     purchasing any units of the Fund.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The source of the data contained in this document is Amundi
-                    Asset Management unless otherwise stated.
+                    The source of the data contained in this document is IndexMaker
+                    unless otherwise stated.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 font-bold text-secondary">
                     Policy regarding portfolio transparency and warning on
@@ -1181,12 +1235,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
                     The policy regarding portfolio transparency and information
-                    on the funds assets are available on amundietf.com.
+                    on the funds assets are available on indexmaker.global.
                     Indicative net asset value is published by stock exchanges.
                     Shares purchased on the secondary market cannot usually be
                     sold directly back to the fund. Investors must buy and sell
                     shares on a secondary market with the assistance of an
-                    intermediary (e.g. a stockbroker) and may incur fees for
+                    intermediary (e.g. a broker) and may incur fees for
                     doing so. Investors may pay more than the current net asset
                     value when buying shares and may receive less than the
                     current net asset value when selling them.
@@ -1309,7 +1363,7 @@ function InfoMobileCard({ title, tooltip, children }: InfoCardProps) {
 const CuratorInfo = ({ curator }: { curator: string }) => (
   <div className="flex items-center gap-2">
     <div className="relative h-5 w-5 rounded-full overflow-hidden bg-forground flex items-center justify-center">
-      <FundMaker className="h-5 w-5 text-muted" />
+      <IndexMaker className="h-5 w-5 text-muted" />
     </div>
     <span className="text-secondary text-[13px] font-normal">{"SYMMIO"}</span>
     {
@@ -1333,7 +1387,7 @@ const TokenInfo = ({
     <div className="relative h-5 w-5 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
       {token.icon ? (
         <Image
-          src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+          src={USDC}
           alt={"USDC"}
           className="w-full h-full"
           width={20}
@@ -1363,7 +1417,7 @@ const TokenValue = ({
       <div className="relative h-5 w-5 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center">
         {token.icon ? (
           <Image
-            src={"https://cdn.morpho.org/assets/logos/usdc.svg"}
+            src={USDC}
             alt={token.symbol}
             className="w-full h-full"
             width={20}

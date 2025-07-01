@@ -20,6 +20,11 @@ import { useWallet } from "../../../contexts/wallet-context";
 import { IndexListEntry } from "@/types";
 import { setIndices } from "@/redux/indexSlice";
 import { fetchAllIndices } from "@/api/indices";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ColumnType = {
   id: string;
@@ -34,39 +39,35 @@ const initialColumns: ColumnType[] = [
   { id: "ytdReturn", title: "YTD return", visible: true },
   { id: "performance", title: "Average Annual Returns", visible: false },
   { id: "curator", title: "Curator", visible: true },
+  { id: "collateral", title: "Collateral", visible: true },
   { id: "assetClass", title: "Asset Class", visible: true },
   { id: "category", title: "Category", visible: true },
   { id: "inceptionDate", title: "Inception Date", visible: true },
-  { id: "collateral", title: "Collateral", visible: true },
   { id: "managementFee", title: "Management Fee", visible: false },
   { id: "actions", title: "", visible: true },
 ];
 
 interface EarnContentProps {
   onSupplyClick?: (vaultId: string, token: string) => void;
+  showHowEarnWorks: boolean;
+  setShowHowEarnWorks: (showHowEarnWorks: boolean) => void;
 }
 
-export function EarnContent({ onSupplyClick }: EarnContentProps) {
+export function EarnContent({ onSupplyClick, showHowEarnWorks, setShowHowEarnWorks }: EarnContentProps) {
   const {
     wallet,
-    isConnected,
-    connecting,
-    connectWallet,
-    disconnectWallet,
-    switchNetwork,
-    switchWallet,
   } = useWallet();
   const { t } = useLanguage();
   const [columns, setColumns] = useState(initialColumns);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
+  
   const [totalManaged, setTotalManaged] = useState<number>(0);
   const [totalVolumn, setTotalVolumn] = useState<number>(0);
-  const [activeMyearnTab, setActiveMyearnTab] = useState<"position" | "reward">(
-    "position"
-  );
+  const [activeMyearnTab, setActiveMyearnTab] = useState<
+    "position" | "historic"
+  >("position");
   // const storedWallet = useSelector((state: RootState) => state.wallet?.wallet);
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network
@@ -188,23 +189,23 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
 
   const [visibleColumns, setVisibleColumns] = useState<ColumnType[]>([]);
   useEffect(() => {
-    if (wallet && currentChainId === selectedNetwork) {
-      setVisibleColumns(
-        columns
-          .filter((column) => column.visible)
-          .map((column) => ({
-            ...column,
-          }))
-      );
-    } else {
-      setVisibleColumns(
-        columns
-          .filter((column) => column.visible && column.id !== "actions")
-          .map((column) => ({
-            ...column,
-          }))
-      );
-    }
+    setVisibleColumns(
+      columns
+        .filter((column) => column.visible)
+        .map((column) => ({
+          ...column,
+        }))
+    );
+    // if (wallet && currentChainId === selectedNetwork) {
+    // } else {
+    //   setVisibleColumns(
+    //     columns
+    //       .filter((column) => column.visible && column.id !== "actions")
+    //       .map((column) => ({
+    //         ...column,
+    //       }))
+    //   );
+    // }
   }, [wallet, columns, currentChainId, selectedNetwork]);
 
   if (showHowEarnWorks) {
@@ -290,21 +291,31 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
                       size="sm"
                       className={cn(
                         "text-secondary px-[8px] py-[5px] h-[26px] text-[11px] rounded-[4px] cursor-pointer  hover:text-primary",
-                        activeMyearnTab === "reward" ? "bg-accent " : " bg-none"
+                        activeMyearnTab === "historic"
+                          ? "bg-accent "
+                          : " bg-none"
                       )}
-                      onClick={() => setActiveMyearnTab("reward")}
+                      onClick={() => setActiveMyearnTab("historic")}
                     >
-                      <span>{t("common.rewards")}</span>
+                      <span>{t("common.historics")}</span>
                     </Button>
                   </div>
                 </div>
                 <div className="gap-4 hidden sm:flex">
-                  <CustomButton
-                    disabled={true}
-                    className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30"
-                  >
-                    {t("common.claim")}
-                  </CustomButton>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <CustomButton
+                        disabled={true}
+                        className="bg-[#2470ff] disabled hover:bg-blue-700 text-[11px] rounded-[3px] cursor-pointer disabled:cursor-default disabled:opacity-30"
+                      >
+                        {t("common.closePosition")}
+                      </CustomButton>
+                    </TooltipTrigger>
+                    <TooltipContent className="">
+                      <span className="text-foreground text-[12px]">Coming in Beta</span>
+                    </TooltipContent>
+                  </Tooltip>
+
                   {activeMyearnTab === "position" ? (
                     <ColumnVisibilityPopover
                       columns={columns}
@@ -318,8 +329,8 @@ export function EarnContent({ onSupplyClick }: EarnContentProps) {
               <div className="p-4 border-none bg-foreground mb-10">
                 <p className="text-secondary text-center text-[12px]">
                   {activeMyearnTab === "position"
-                    ? t("common.noClaimableRewards")
-                    : t("common.noEarnPosition")}
+                    ? t("common.noEarnPosition")
+                    : t("common.noClaimableRewards")}
                 </p>
               </div>
             </>

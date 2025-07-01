@@ -11,8 +11,8 @@ import { usePathname } from "next/navigation";
 import RightArrow from "../icons/right-arrow";
 import EcosystemSvg from "../icons/ecosystem";
 import AnalyticsSvg from "../icons/analytics";
-import FundMakerSvg from "../icons/fundmakerSvg";
-import FundMakerDoc from "../icons/fundmakerDoc";
+import IndexMakerSvg from "../icons/indexmakerSvg";
+import IndexMakerDoc from "../icons/indexmakerDoc";
 import Feedback from "../icons/feedback";
 import TOS from "../icons/tos";
 import Image from "next/image";
@@ -138,7 +138,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             {isConnected && wallet && isAdmin ? (
               <NavItem
                 href="/private-dashboard"
-                active={isRouteActive("/ecosystem")}
+                active={isRouteActive("/private-dashboard")}
                 className="text-[13px] text-secondary py-[6px] px-[10px] h-[32px]"
                 icon={LayoutDashboard}
                 collapsed={collapsed}
@@ -189,7 +189,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://www.symm.io/"
-                icon={FundMakerSvg}
+                icon={IndexMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -199,7 +199,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://www.symm.io/"
-                icon={FundMakerSvg}
+                icon={IndexMakerSvg}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -209,19 +209,19 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
 
               <NavItem
-                href="https://www.symm.io/"
-                icon={FundMakerDoc}
+                href="https://psymm.gitbook.io/indexmaker"
+                icon={IndexMakerDoc}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
               >
-                {t("common.fundmakerDocs")}
+                {t("common.indexmakerDocs")}
               </NavItem>
               <NavItem
-                href="https://docs.google.com/forms/d/e/1FAIpQLSc3ZpfvlcBmMgCDfg6ahM6cKNm003bbns5Ao6QfXJNfcfpATw/viewform?embedded=true"
+                active={isRouteActive('/contact-us')}
+                href="/contact-us"
                 icon={Feedback}
-                external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px]"
@@ -229,7 +229,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 {t("common.support")}
               </NavItem>
               <NavItem
-                href="https://cdn.morpho.org/documents/FundMaker_Terms_of_Use.pdf"
+                href="https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use"
                 icon={TOS}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
