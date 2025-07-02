@@ -7,12 +7,12 @@ import '@nomicfoundation/hardhat-chai-matchers';
 
 const config: HardhatUserConfig = {
   networks: {
-    // hardhat: {
-    //   chainId: 31337,
-    //   forking: {
-    //     url: 'https://arb1.lava.build',
-    //   },
-    // },
+    hardhat: {
+      chainId: 31337,
+      forking: {
+        url: 'https://arb1.lava.build',
+      },
+    },
     arbitrum: {
       url: 'https://arb1.lava.build',
       accounts: [process.env.PRIVATE_KEY!],
