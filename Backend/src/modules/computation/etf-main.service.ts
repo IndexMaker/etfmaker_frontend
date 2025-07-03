@@ -19,6 +19,7 @@ import {
   hexlify,
   randomBytes,
   SigningKey,
+  zeroPadValue,
 } from 'ethers';
 import { DbService } from 'src/db/db.service';
 import * as path from 'path';
@@ -991,28 +992,9 @@ export class EtfMainService {
   ): Promise<string> {
     const chainId = 8453;
 
-    const wallet = this.signer as ethers.Wallet;
-
-    // 1) create a SigningKey from your private key
-    const signingKey = new SigningKey(wallet.privateKey);
-
-    // 2) get the uncompressed public key (0x04||X||Y)
-    const fullPub = signingKey.publicKey;
-    // e.g. '0x04a1b2c3...<128 hex chars total after 0x>'
-
-    // 3) strip the 0x04 prefix and split X vs Y
-    const pubHex = fullPub.slice(2); // drop '0x'
-    const xHex = pubHex.slice(0, 64); // first 32 bytes = X
-    const yHex = pubHex.slice(64, 128); // next 32 bytes = Y
-
-    // 4) parity is last bit of Y: even=0, odd=1
-    const yLastByte = parseInt(yHex.slice(-2), 16);
-    const parity = yLastByte & 1;
-
-    // 5) build your publicKey object
     const publicKey = {
-      parity,
-      x: hexlify('0x' + xHex) as `0x${string}`, // exactly 32 bytes
+      parity: 0,
+      x: hexlify(zeroPadValue(this.signer.address, 32)) as `0x${string}`,
     };
 
     const caHelper = new CAHelper(
@@ -1039,7 +1021,7 @@ export class EtfMainService {
       ),
     );
     const usdcContract = new ethers.Contract(
-      process.env.USDC_ADDRESS!,
+      process.env.USDC_ADDRESS_IN_BASE!,
       erc20Json.abi,
       this.signer,
     );
@@ -1065,7 +1047,7 @@ export class EtfMainService {
       name, // string _name
       symbol, // string _symbol
       ethers.ZeroHash,
-      collateralToken, // address _collateralToken
+      process.env.USDC_ADDRESS_IN_BASE!, // address _collateralToken
       ethers.parseUnits('1', 6), // uint256 _collateralTokenPrecision
       ethers.parseUnits('2', 18), // uint256 _managementFee
       ethers.parseUnits('1', 18), // uint256 _performanceFee
@@ -1101,29 +1083,31 @@ export class EtfMainService {
     const proofIndex = caHelper.deployConnector(
       'IndexFactory',
       indexFactoryAddress as `0x${string}`,
-      deployCallData as `0x${string}`,
+      deployCallData,
       /*custodyState=*/ 0,
       publicKey,
     );
 
-    const depositAmount = ethers.parseUnits('1', 6);
+    const _custodyId = caHelper.getCustodyID();
+    console.log('Factory deployment custody ID:', _custodyId);
+
+    const depositAmount = ethers.parseUnits('0.01', 6);
     await (usdcContract.connect(this.signer) as MockERC20).approve(
       process.env.OTC_CUSTODY_ADDRESS!,
       depositAmount,
     );
-
-    const _custodyId = caHelper.getCustodyID();
-
     await (otcCustody.connect(this.signer) as OTCCustody).addressToCustody(
       _custodyId,
-      process.env.USDC_ADDRESS!,
+      process.env.USDC_ADDRESS_IN_BASE!,
       depositAmount,
     );
-
+    console.log('Custody setup with tokens');
+    
+    const deployTimestamp = Math.floor(Date.now() / 1000);
     const verificationData = {
       id: _custodyId,
       state: 0,
-      timestamp: Math.floor(Date.now() / 1000) + 3600,
+      timestamp: deployTimestamp,
       pubKey: publicKey,
       sig: {
         e: hexlify(randomBytes(32)) as `0x${string}`,
@@ -1131,6 +1115,8 @@ export class EtfMainService {
       },
       merkleProof: caHelper.getMerkleProof(proofIndex),
     };
+
+    console.log('Deploying index via factory...');
 
     const tx = await otcCustody.deployConnector(
       'IndexFactory',
@@ -1765,17 +1751,30 @@ export class EtfMainService {
     weightsBytes: string,
     priceScaled: ethers.BigNumberish,
   ) {
-    const chainId = 8453;
     const custodyState = 0;
+    const chainId = 8453;
+
     const publicKey = {
       parity: 0,
-      x: hexlify(this.signer.address) as `0x${string}`,
+      x: hexlify(zeroPadValue(this.signer.address, 32)) as `0x${string}`,
     };
     const caHelper = new CAHelper(
       Number(chainId),
       process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
     );
-    // 1) load the OTCCustody ABI
+    
+    const erc20Json = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/mocks/MockERC20.sol/MockERC20.json',
+      ),
+    );
+    const usdcContract = new ethers.Contract(
+      process.env.USDC_ADDRESS_IN_BASE!,
+      erc20Json.abi,
+      this.signer,
+    );
+
     const custodyArtifact = require(
       path.resolve(
         __dirname,
@@ -1788,15 +1787,6 @@ export class EtfMainService {
       this.signer,
     );
 
-    // 2) build the raw calldata for curatorUpdate on the index
-    const indexIface = new ethers.Interface(
-      require(
-        path.resolve(
-          __dirname,
-          '../../../../artifacts/contracts/Connectors/OTCIndex/OTCIndex.sol/OTCIndex.json',
-        ),
-      ).abi,
-    );
     const callData = buildCallData('curatorUpdate(uint256,bytes,uint256)', [
       timestamp,
       weightsBytes,
@@ -1809,11 +1799,22 @@ export class EtfMainService {
       custodyState,
       publicKey,
     );
-
+    const custodyId = caHelper.getCustodyID()
+    // const depositAmount = ethers.parseUnits('0.01', 6);
+    // await (usdcContract.connect(this.signer) as MockERC20).approve(
+    //   process.env.OTC_CUSTODY_ADDRESS!,
+    //   depositAmount,
+    // );
+    // await (otcCustody.connect(this.signer) as OTCCustody).addressToCustody(
+    //   custodyId,
+    //   process.env.USDC_ADDRESS_IN_BASE!,
+    //   depositAmount,
+    // );
+    // console.log('Custody setup with tokens');
     const verificationData = {
-      id: caHelper.getCustodyID(),
+      id: custodyId,
       state: 0,
-      timestamp: new Date().getTime(),
+      timestamp: Math.floor(Date.now() / 1000),
       pubKey: publicKey,
       sig: {
         e: hexlify(randomBytes(32)) as `0x${string}`,
@@ -1824,15 +1825,16 @@ export class EtfMainService {
 
     // 3) call through the custody contract’s connector entrypoint
     const tx = await otcCustody.callConnector(
-      'OTCIndexConnector', // name of your connector module
+      'OTCIndexConnector',
       indexAddress,
       callData,
-      '0x', // empty “execution” bytes
+      '0x', 
       verificationData,
     );
     this.logger.log(`📝 callConnector(curatorUpdate) sent: ${tx.hash}`);
     await tx.wait();
     this.logger.log(`✅ curatorUpdate relayed via custody`);
+    sleep(1000)
   }
 
   // purpose for initial deploying
@@ -1981,7 +1983,6 @@ export class EtfMainService {
 
       // scale NAV to 6 decimals:
       const scaledPrice = BigInt(Math.floor(nav * 1e6)) as ethers.BigNumberish;
-      console.log(nav);
       // push on-chain
       await this.updateWeights(
         indexAddress,

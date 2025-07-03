@@ -1,3 +1,32 @@
 [
- 
+  {
+    "name": "SY100",
+    "symbol": "SY100",
+    "address": "0x01055d9E2b6A4d5E07cC4585B40567da41238f04"
+  },
+  {
+    "name": "Decentralized Finance Tokens",
+    "symbol": "SYDF",
+    "address": "0xe1B8Ed9D15B347E030Bff217cFc76E5B80b363f1"
+  },
+  {
+    "name": "Meme Tokens",
+    "symbol": "SYME",
+    "address": "0xB5655975ffE710aabcCCD70A3D820c2FCe745F81"
+  },
+  {
+    "name": "Artificial Intelligence Tokens",
+    "symbol": "SYAI",
+    "address": "0x93e63ef7267a5132411AF4286b679637455B4822"
+  },
+  {
+    "name": "A16Z Crypto Portfolio",
+    "symbol": "SYAZ",
+    "address": "0x6895122281B1c7CD778bdF640A67483e9431d4D6"
+  },
+  {
+    "name": "Layer 2 Tokens",
+    "symbol": "SYL2",
+    "address": "0x4Dcf03111D47269D70FEaF8cA8B6bd5D7A65187b"
+  }
 ]
