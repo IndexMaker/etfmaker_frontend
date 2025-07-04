@@ -14,11 +14,15 @@ interface DashboardProps {
   children?: React.ReactNode;
   _sidebarOpen?: boolean;
 }
-export default function Dashboard({ children, _sidebarOpen = false}: DashboardProps) {
+export default function Dashboard({
+  children,
+  _sidebarOpen = false,
+}: DashboardProps) {
   const [sidebarOpen, setSidebarOpen] = useState(_sidebarOpen);
+  const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
   useEffect(() => {
-    setSidebarOpen(_sidebarOpen)
-  }, [_sidebarOpen])
+    setSidebarOpen(_sidebarOpen);
+  }, [_sidebarOpen]);
   const [rightbarOpen, setRightbarOpen] = useState(false);
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
@@ -76,10 +80,18 @@ export default function Dashboard({ children, _sidebarOpen = false}: DashboardPr
           setSidebarOpen={setSidebarOpen}
           rightbarOpen={rightbarOpen}
           setRightbarOpen={setRightbarOpen}
+          showHowEarnWorks={showHowEarnWorks}
+          setShowHowEarnWorks={setShowHowEarnWorks}
         />
         <div className="flex flex-row h-full">
           <main className="flex-1 overflow-y-auto px-[10px] py-20 md:px-10 md:py-20 custom-3xl-padding bg-background">
-            {children || <EarnContent onSupplyClick={handleSupplyClick} />}
+            {children || (
+              <EarnContent
+                onSupplyClick={handleSupplyClick}
+                showHowEarnWorks={showHowEarnWorks}
+                setShowHowEarnWorks={setShowHowEarnWorks}
+              />
+            )}
           </main>
           {selectedVault.length > 0 && (
             <SupplyPanel
