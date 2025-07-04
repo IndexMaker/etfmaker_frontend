@@ -13,6 +13,10 @@ import { Sparkles, CheckCircle2, Circle, Copy } from "lucide-react";
 import CustomTooltip from "./custom-tooltip";
 import USDC from "../../public/logos/usd-coin.png";
 import IndexMaker from "../icons/indexmaker";
+import { useWallet } from "@/contexts/wallet-context";
+import { buildNewQuoteRequest } from "@/lib/fix";
+import { BrowserProvider, Contract, ethers } from "ethers";
+import { deposit } from "@/api/indices";
 interface TransactionItem {
   token: string;
   amount: number;
@@ -39,19 +43,39 @@ export function TransactionConfirmModal({
 
   const [approvalComplete, setApprovalComplete] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  //   const { wallet, connect } = useWeb3()
+  const {
+    wallet,
+    isConnected,
+    connecting,
+    connectWallet,
+    disconnectWallet,
+    switchNetwork,
+    switchWallet,
+  } = useWallet();
 
   const handleConfirm = async () => {
-    // if (!wallet) {
-    //   await connect()
-    //   return
-    // }
+    if (!wallet) {
+      await connectWallet();
+      return;
+    }
 
     if (step === "review") {
       setStep("confirm");
     } else {
       setIsProcessing(true);
       // Simulate approval process
+      // Simulate FIX quote request message and ACK
+      const userAddress = wallet.accounts[0].address;
+      const mockQuoteId = `Q-${Math.floor(Math.random() * 10000)}`;
+
+      console.log("Sending FIX NewQuoteRequest:", {
+        msg_type: "NewQuoteRequest",
+        address: userAddress,
+        symbol: "USDC",
+        amount: transactions?.[0].amount.toString(),
+        client_quote_id: mockQuoteId,
+      });
+
       setTimeout(() => {
         setApprovalComplete(true);
         setIsProcessing(false);
@@ -60,12 +84,32 @@ export function TransactionConfirmModal({
   };
 
   const handleApproval = async () => {
-    setIsProcessing(true);
-    // Simulate approval transaction
-    setTimeout(() => {
+    if (!wallet) {
+      await connectWallet();
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+
+      const provider = new BrowserProvider(wallet.provider?.provider as any);
+      const signer = await provider.getSigner();
+      const depositAmount = transactions
+        ?.reduce((total, t) => total + Number(t.amount), 0)
+        .toString() || '0';
+      
+      const result = await deposit(signer.address, depositAmount);
+      console.log(result)
+      alert("✅ Deposit triggered on backend!");
+      handleClose();
+
+
       setApprovalComplete(true);
+    } catch (err) {
+      console.error("Approval failed", err);
+    } finally {
       setIsProcessing(false);
-    }, 2000);
+    }
   };
 
   const resetModal = () => {
@@ -108,7 +152,9 @@ export function TransactionConfirmModal({
                       <IndexMaker className="w-[24px] h-[24px] text-muted" />
                     </span>
                   </div>
-                  <span className="font-bold text-[18px]">{transaction.token}</span>
+                  <span className="font-bold text-[18px]">
+                    {transaction.token}
+                  </span>
                 </div>
 
                 {/* Transaction Details */}
@@ -307,16 +353,36 @@ export function TransactionConfirmModal({
                         className="p-3 bg-foreground rounded-lg"
                       >
                         <p className="text-[12px] text-secondary">
-                          Supply {transaction.amount} to {transaction.token}
+                          Supply {transaction.amount} USDC to {transaction.token}
                         </p>
                       </div>
                     ))}
                 </div>
                 {approvalComplete && (
                   <Button
-                    onClick={() => {
-                      // Handle final transaction
-                      handleClose();
+                    onClick={async () => {
+                      const userAddress = wallet?.accounts[0]?.address;
+
+                      const quoteReq = buildNewQuoteRequest({
+                        chainId: 1,
+                        address: userAddress || "",
+                        symbol: "USDC",
+                        side: "1",
+                        amount: transactions
+                          ?.reduce((total, t) => total + Number(t.amount), 0)
+                          .toString() || '0',
+                        seqNum: Math.floor(Math.random() * 100000),
+                      });
+
+                      console.log("🚀 Final FIX message:", quoteReq);
+
+                      // TODO: Replace with actual message sending (e.g. WebSocket or API)
+                      setTimeout(() => {
+                        alert(
+                          `Deposit Quote Request sent for ${quoteReq.amount} USDC`
+                        );
+                        handleClose();
+                      }, 1000);
                     }}
                     size="sm"
                     className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
