@@ -16,6 +16,17 @@ export const fetchAllIndices = async (): Promise<IndexListEntry[]> => {
   return response.json();
 };
 
+export const deposit = async (address: string, amount: string): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/indices/deposit/${address}/${amount}`);
+
+  if (!response.ok) {
+    console.log("Failed to fetch indices");
+    return []
+  }
+
+  return response.json();
+};
+
 export const fetchRebalancesById = async (indexId: number): Promise<any[]> => {
   const response = await fetch(`${API_BASE_URL}/indices/getCalculatedRebalances/${indexId}`);
 

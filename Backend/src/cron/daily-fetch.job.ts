@@ -164,7 +164,7 @@ export class DailyFetchJob {
           new DbService(),
         );
         const timestamp = Math.floor(today.getTime() / 1000);
-        await etfMainService.rebalanceSY100(21, timestamp);
+        await etfMainService.rebalanceSY100(timestamp);
       });
     }
   }

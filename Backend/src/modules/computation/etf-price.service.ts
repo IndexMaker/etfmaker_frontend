@@ -51,25 +51,6 @@ export class EtfPriceService {
     private coinGeckoService: CoinGeckoService,
     private dbService: DbService,
   ) {
-    const rpcUrl = process.env.BASE_RPCURL || 'https://mainnet.base.org'; // Use testnet URL for Sepolia if needed
-    this.provider = new ethers.JsonRpcProvider(rpcUrl);
-
-    // Configure signer with private key
-    const privateKey = process.env.PRIVATE_KEY;
-    if (!privateKey) {
-      throw new Error('PRIVATE_KEY is not set in .env');
-    }
-    this.signer = new ethers.Wallet(privateKey, this.provider);
-    const artifactPath = path.resolve(
-      __dirname,
-      '../../../../artifacts/contracts/src/ETFMaker/IndexRegistry.sol/IndexRegistry.json',
-    );
-    const IndexRegistryArtifact = require(artifactPath);
-    this.indexRegistry = new ethers.Contract(
-      process.env.INDEX_REGISTRY_ADDRESS || '',
-      IndexRegistryArtifact.abi,
-      this.provider,
-    );
   }
 
   async computeLivePrice(indexId: string, chainId: number): Promise<number> {
@@ -104,55 +85,55 @@ export class EtfPriceService {
     return totalPrice;
   }
 
-  async getIndexTransactions(indexId: number) {
-    const filter = this.indexRegistry.filters.CuratorWeightsSet(indexId);
-    const latestBlock = await this.provider.getBlockNumber();
-    const fromBlock = Math.max(0, latestBlock - 50000);
-    const events = await this.indexRegistry.queryFilter(
-      filter,
-      fromBlock,
-      'latest',
-    );
-    const indexData = await this.indexRegistry.getIndexDatas(
-      indexId.toString(),
-    );
-    const formattedTransactions = events
-      .map((event: any, i) => {
-        // Calculate timestamp (assuming block timestamp is available)
-        const eventTimestamp = Number(
-          event.args?.[1] || Math.floor(Date.now() / 1000) - i * 86400,
-        ); // Fallback: space out by days
+  // async getIndexTransactions(indexId: number) {
+  //   const filter = this.indexRegistry.filters.CuratorWeightsSet(indexId);
+  //   const latestBlock = await this.provider.getBlockNumber();
+  //   const fromBlock = Math.max(0, latestBlock - 50000);
+  //   const events = await this.indexRegistry.queryFilter(
+  //     filter,
+  //     fromBlock,
+  //     'latest',
+  //   );
+  //   const indexData = await this.indexRegistry.getIndexDatas(
+  //     indexId.toString(),
+  //   );
+  //   const formattedTransactions = events
+  //     .map((event: any, i) => {
+  //       // Calculate timestamp (assuming block timestamp is available)
+  //       const eventTimestamp = Number(
+  //         event.args?.[1] || Math.floor(Date.now() / 1000) - i * 86400,
+  //       ); // Fallback: space out by days
 
-        // Format user address
-        const userAddress = event.address || event.args?.[0] || '0x000...000';
+  //       // Format user address
+  //       const userAddress = event.address || event.args?.[0] || '0x000...000';
 
-        // Format transaction hash
-        const txHash = event.transactionHash;
+  //       // Format transaction hash
+  //       const txHash = event.transactionHash;
 
-        // Get amount (adjust based on your event structure)
-        const amount = event.args?.[3]
-          ? parseFloat(ethers.formatUnits(event.args?.[3], 18))
-          : 0;
+  //       // Get amount (adjust based on your event structure)
+  //       const amount = event.args?.[3]
+  //         ? parseFloat(ethers.formatUnits(event.args?.[3], 18))
+  //         : 0;
 
-        // Get market name from indexData (adjust based on your data structure)
-        const marketName = indexData?.name || `Index ${indexId}`;
-        return {
-          id: `tx-${i + 1}`,
-          timestamp: formatTimestamp(eventTimestamp),
-          formattedTimestamp: eventTimestamp,
-          user: userAddress,
-          hash: txHash,
-          amount: amount,
-          currency: 'DM',
-          type: 'Rebalance', // or determine from event type
-          market: `🌬️ ${marketName} / DM`,
-          letv: calculateLETV(amount), // Your LETV calculation
-        };
-      })
-      .sort((a, b) => b.formattedTimestamp - a.formattedTimestamp);
+  //       // Get market name from indexData (adjust based on your data structure)
+  //       const marketName = indexData?.name || `Index ${indexId}`;
+  //       return {
+  //         id: `tx-${i + 1}`,
+  //         timestamp: formatTimestamp(eventTimestamp),
+  //         formattedTimestamp: eventTimestamp,
+  //         user: userAddress,
+  //         hash: txHash,
+  //         amount: amount,
+  //         currency: 'DM',
+  //         type: 'Rebalance', // or determine from event type
+  //         market: `🌬️ ${marketName} / DM`,
+  //         letv: calculateLETV(amount), // Your LETV calculation
+  //       };
+  //     })
+  //     .sort((a, b) => b.formattedTimestamp - a.formattedTimestamp);
 
-    return formattedTransactions;
-  }
+  //   return formattedTransactions;
+  // }
 
   // async getHistoricalData(indexId: number): Promise<HistoricalEntry[]> {
   //   // 1. Fetch all rebalances from database (sorted oldest to newest)
@@ -258,6 +239,40 @@ export class EtfPriceService {
 
   //   return [];
   // }
+
+  async getIndexTransactions(indexId: number) {
+  // Fetch transactions from database instead of blockchain
+  const transactions = await this.dbService.getDb()
+    .select()
+    .from(tempRebalances)
+    .where(eq(tempRebalances.indexId, indexId.toString()))
+    .orderBy(desc(tempRebalances.timestamp));
+
+  const indexData = await this.indexRegistry.getIndexDatas(
+    indexId.toString(),
+  );
+  const marketName = indexData?.name || `Index ${indexId}`;
+
+  const formattedTransactions = transactions.map((tx, i) => {
+    return {
+      id: `tx-${tx.id}`,
+      timestamp: formatTimestamp(tx.timestamp),
+      formattedTimestamp: tx.timestamp,
+      user: 'System', // Since these are system-generated rebalances
+      hash: `db-${tx.id}`, // No transaction hash from blockchain
+      amount: 0, // No amount in rebalance records
+      currency: 'USDC',
+      type: 'Rebalance',
+      market: `🌬️ ${marketName} / USDC`,
+      letv: 0, // No LETV calculation for db records
+      weights: tx.weights, // Include weights from DB
+      prices: tx.prices, // Include prices from DB
+      coins: tx.coins // Include coins from DB
+    };
+  });
+
+  return formattedTransactions;
+}
 
   async getHistoricalData(indexId: number): Promise<HistoricalEntry[]> {
     const indexData = await this.indexRegistry.getIndexDatas(
@@ -1918,7 +1933,16 @@ export class EtfPriceService {
 
     if (!rebalance) {
       console.log(`No rebalance found for index ${indexId}`);
+      return []; // Return empty array if no rebalance found
     }
+
+    // 2. Get latest daily prices with quantities
+    const latestDailyPrice = await this.dbService
+      .getDb()
+      .query.dailyPrices.findFirst({
+        where: eq(dailyPrices.indexId, indexId.toString()),
+        orderBy: desc(dailyPrices.date),
+      });
 
     const weights = JSON.parse(rebalance.weights) as [string, number][];
 
@@ -1943,6 +1967,14 @@ export class EtfPriceService {
 
     // Fetch market data
     const { marketData } = await this.fetchMarketData(uniqueIds);
+    
+    // Parse quantities if they exist
+    const quantities = latestDailyPrice?.quantities 
+      ? (typeof latestDailyPrice.quantities === 'string' 
+          ? JSON.parse(latestDailyPrice.quantities) 
+          : latestDailyPrice.quantities)
+      : {};
+
     // 3. Get or create categories
     const assets = await Promise.all(
       coins.map(async ([coinId, weight], idx) => {
@@ -1954,6 +1986,7 @@ export class EtfPriceService {
           pair.toLowerCase().includes(symbol),
         );
         const listing = listingEntry?.[0].split('.')[0] || symbol;
+        
         return {
           id: idx + 1, // or generate proper IDs
           ticker: coinData.symbol
@@ -1965,9 +1998,11 @@ export class EtfPriceService {
           sector,
           market_cap: coinData?.market_cap || 0,
           weights: (weight / 100).toFixed(2),
+          quantity: quantities[coinId] || 0, // Add quantity from daily_prices
         };
       }),
     );
+    
     const sortAssets = assets.sort((a, b) => b.market_cap - a.market_cap);
     return sortAssets;
   }

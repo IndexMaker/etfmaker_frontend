@@ -10,40 +10,7 @@ export class IndexRegistryService {
   private wallet: ethers.Wallet | null = null;
 
   constructor() {
-    // Initialize providers for supported chains
-    this.providers = new Map([
-      [1, new ethers.JsonRpcProvider(process.env.ETH_RPC_URL || 'https://mainnet.infura.io/v3/your_infura_key')],
-      [137, new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL || 'https://polygon-rpc.com')],
-      [8453, new ethers.JsonRpcProvider(process.env.BASE_RPCURL || 'https://mainnet.base.org')], // Base
-    ]);
-
-    // Initialize contracts
-    this.contracts = new Map();
-    const indexRegistryAddress = process.env.INDEX_REGISTRY_ADDRESS || '0x77599dFBf5Fd70c5BA8D678Ca5dE3adc2fCa4150';
-    const artifactPath = path.resolve(
-      __dirname,
-      '../../../../artifacts/contracts/src/ETFMaker/IndexRegistry.sol/IndexRegistry.json',
-    );
-    const IndexRegistryArtifact = require(artifactPath);
-
-    for (const [chainId, provider] of this.providers) {
-      this.contracts.set(
-        chainId,
-        new ethers.Contract(indexRegistryAddress, IndexRegistryArtifact.abi, provider),
-      );
-    }
-
-    // Initialize wallet for write operations
-    const privateKey = process.env.PRIVATE_KEY;
-    if (privateKey && this.providers.get(8453)) {
-      this.wallet = new ethers.Wallet(privateKey, this.providers.get(8453));
-      this.contracts.set(
-        8453,
-        new ethers.Contract(indexRegistryAddress, IndexRegistryArtifact.abi, this.wallet),
-      );
-    } else {
-      this.logger.warn('Private key or Base provider not set; write operations disabled');
-    }
+    
   }
 
   async getIndexData(indexId: number, chainId: number = 8453, timestamp?: number): Promise<{
@@ -137,7 +104,7 @@ export class IndexRegistryService {
     }
   }
 
-  private encodeWeights(symbolWeights: [string, number][]): string {
+  public encodeWeights(symbolWeights: [string, number][]): string {
     const bytesArray: Uint8Array[] = [];
   
     for (const [symbol, weight] of symbolWeights) {
@@ -158,7 +125,7 @@ export class IndexRegistryService {
     return ethers.hexlify(finalBytes);
   }
 
-  decodeWeights(hexData: string): [string, number][] {
+  public decodeWeights(hexData: string): [string, number][] {
     const bytes = ethers.getBytes(hexData);
     const result: [string, number][] = [];
   

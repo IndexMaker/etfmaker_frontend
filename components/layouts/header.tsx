@@ -63,7 +63,7 @@ export function Header({
   const searchParams = useSearchParams();
   const currentNetwork = searchParams.get("network");
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
   // const [selectedNetwork, setSelectedNetwork] = useState<string>("0x1");
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network

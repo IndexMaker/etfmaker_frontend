@@ -6,16 +6,42 @@ import {
   binanceListings,
   bitgetListings,
   compositions,
+  dailyPrices,
   listingsTable,
   rebalances,
   tempCompositions,
   tempRebalances,
 } from '../../db/schema';
-import { ethers } from 'ethers';
+import {
+  ethers,
+  BigNumberish,
+  toBigInt,
+  hexlify,
+  randomBytes,
+  SigningKey,
+  zeroPadValue,
+} from 'ethers';
 import { DbService } from 'src/db/db.service';
 import * as path from 'path';
-import { and, desc, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { BitgetService } from '../data-fetcher/bitget.service';
+import { promises as fs } from 'fs';
+import { CAHelper } from 'src/common/utils/CAHelper';
+import { buildCallData } from 'src/common/utils/utils';
+import {
+  OTCCustody,
+  MockERC20,
+  OTCIndex,
+  IndexFactory,
+} from '../../../typechain-types';
+interface VerificationData {
+  id: string;
+  state: number;
+  timestamp: number;
+  pubKey: { parity: number; x: string };
+  sig: { e: string; s: string };
+  merkleProof: string[];
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 @Injectable()
@@ -29,11 +55,17 @@ export class EtfMainService {
     'Bridged-Tokens',
     'Bridged',
     'Cross-Chain',
+    'USD Strablecoin',
+    'Fiat-backed Steblecoin',
   ];
   private readonly blacklistedToken = ['BNSOL'];
 
   private readonly provider: ethers.JsonRpcProvider;
   private readonly signer: ethers.Wallet;
+  private readonly INDEX_LIST_PATH = path.resolve(
+    process.cwd(),
+    'deployedIndexes.json',
+  );
 
   constructor(
     private coinGeckoService: CoinGeckoService,
@@ -53,94 +85,72 @@ export class EtfMainService {
     this.signer = new ethers.Wallet(privateKey, this.provider);
   }
 
-  async rebalanceSY100(
-    indexId: number,
-    rebalanceTimestamp: number,
-  ): Promise<void> {
+  async rebalanceSY100(rebalanceTimestamp: number): Promise<void> {
+    const name = 'SY100';
+    const symbol = 'SY100';
+    const custodyId = name; // will be turned into bytes32 by deployIndex
+
     this.logger.log(
-      `Starting SY100 rebalance at ${new Date(rebalanceTimestamp * 1000).toISOString()}...`,
+      `Starting ${symbol} rebalance at ${new Date(rebalanceTimestamp * 1000).toISOString()}…`,
     );
+
+    // 1) load (or init) your JSON index list
+    let list: Array<{ name: string; symbol: string; address: string }> = [];
     try {
-      // Load IndexRegistry contract
-      const artifactPath = path.resolve(
-        __dirname,
-        '../../../../artifacts/contracts/src/ETFMaker/IndexRegistry.sol/IndexRegistry.json',
-      );
-      const IndexRegistryArtifact = require(artifactPath);
-      const indexRegistry = new ethers.Contract(
-        process.env.INDEX_REGISTRY_ADDRESS || ethers.ZeroAddress,
-        IndexRegistryArtifact.abi,
-        this.signer,
-      );
-
-      // Check if SY100 index exists
-      const name = 'SY100';
-      const symbol = 'SY100';
-      const custodyId = ethers.keccak256(ethers.toUtf8Bytes(name));
-
-      let weightsForContract: [string, number][];
-      let etfPrice: number;
-
-      const indexCount = await indexRegistry.indexDatasCount();
-      const indexes: any[] = [];
-
-      for (let i = 0; i < Number(indexCount); i++) {
-        const indexData = await indexRegistry.getIndexDatas(i.toString());
-        if (indexData[2] !== ethers.ZeroAddress) {
-          // Only if valid
-          indexes.push({
-            id: i,
-            data: indexData,
-          });
-        }
-      }
-
-      if (!(await this.indexExists(indexId, indexRegistry))) {
-        this.logger.log('SY100 does not exist, deploying...');
-        // Fetch market cap and weights
-        const { weights, price } = await this.computeSY100Weights(
-          indexId,
-          rebalanceTimestamp,
-        );
-        weightsForContract = weights;
-        etfPrice = price;
-
-        // Deploy new SY100 index
-        const deployedAddress = await this.deployIndex(
-          name,
-          symbol,
-          custodyId,
-          indexId,
-          weightsForContract,
-        );
-        this.logger.log(`SY100 deployed to: ${deployedAddress}`);
-      } else {
-        this.logger.log('SY100 exists, updating weights...');
-        // Fetch market cap and weights
-        const { weights, price } = await this.computeSY100Weights(
-          indexId,
-          rebalanceTimestamp,
-        );
-        weightsForContract = weights;
-        etfPrice = price;
-      }
-      return;
-      // Update smart contract
-      await this.indexRegistryService.setCuratorWeights(
-        indexId,
-        weightsForContract,
-        Math.floor(etfPrice * 1e6),
-        rebalanceTimestamp,
-        8453,
-      );
-
-      this.logger.log(
-        `Rebalanced SY100 index with ${weightsForContract.length} tokens`,
-      );
-    } catch (error) {
-      this.logger.error(`Error rebalancing SY100 index: ${error.message}`);
-      throw error;
+      const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) list = parsed;
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err; // ignore "file not found"
     }
+
+    // 2) find SY100 in that list
+    let entry = list.find((r) => r.name === name && r.symbol === symbol);
+    let indexAddress: string;
+
+    if (!entry) {
+      this.logger.log(`${symbol} not found locally, deploying…`);
+      indexAddress = await this.deployIndex(name, symbol, custodyId);
+      this.logger.log(`🆕 Deployed ${symbol} → ${indexAddress}`);
+      entry = { name, symbol, address: indexAddress };
+      list.push(entry);
+      await fs.writeFile(
+        this.INDEX_LIST_PATH,
+        JSON.stringify(list, null, 2),
+        'utf8',
+      );
+      this.logger.log(`💾 Recorded ${symbol} in ${this.INDEX_LIST_PATH}`);
+    } else {
+      indexAddress = entry.address;
+      this.logger.log(
+        `✅ ${symbol} already at ${indexAddress}, skipping deploy`,
+      );
+    }
+
+    // 3) compute new weights & price
+    const { weights, price } = await this.computeSY100Weights(
+      /* indexId */ 0, // you can still pass indexId if your compute uses it
+      rebalanceTimestamp,
+    );
+    // weights: Array<[tokenAddress: string, amount: number]>
+    // price: number (e.g. NAV in USD)
+
+    // 4) ABI-encode the weights array into a single `bytes` blob
+    const encodedWeights = this.indexRegistryService.encodeWeights(weights);
+
+    // 5) scale price the same way you used to for registry (e.g. USDC 6 decimals)
+    const priceScaled = BigInt(Math.floor(price * 1e6));
+
+    // 6) push on-chain via your helper
+    await this.updateWeights(
+      indexAddress,
+      rebalanceTimestamp,
+      encodedWeights,
+      priceScaled,
+    );
+    this.logger.log(
+      `🔄 Rebalanced ${symbol}: pushed ${weights.length} tokens at price ${priceScaled.toString()}`,
+    );
   }
 
   // private async computeSY100Weights(
@@ -397,7 +407,7 @@ export class EtfMainService {
           delistingAnnouncementDate: listingsTable.delistingAnnouncementDate,
           delistingDate: listingsTable.delistingDate,
         })
-        .from(listingsTable)
+        .from(listingsTable),
     ]);
 
     // Create lookup maps for listings
@@ -410,7 +420,7 @@ export class EtfMainService {
     const isListed = (token: string, exchange: 'binance' | 'bitget') => {
       const listingData = listingsMap.get(token.toUpperCase());
       if (!listingData) return false;
-    
+
       // Check delisting first (for the given exchange)
       if (listingData.delistingDate?.[exchange]) {
         const delistingDate = new Date(listingData.delistingDate[exchange]);
@@ -421,7 +431,7 @@ export class EtfMainService {
         );
         if (delistingAnnouncementDate <= rebalanceDate) return false;
       }
-    
+
       // Check listing (for the given exchange)
       if (listingData.listingDate?.[exchange]) {
         const listingDate = new Date(listingData.listingDate[exchange]);
@@ -432,7 +442,7 @@ export class EtfMainService {
         );
         return listingAnnouncementDate <= rebalanceDate;
       }
-    
+
       return false;
     };
 
@@ -466,17 +476,17 @@ export class EtfMainService {
         if (isListed(`${symbolUpper}USDC`, 'binance')) {
           selectedPair = `bi.${symbolUpper}USDC`; // Assume Binance has USDC pair
         }
-        
+
         // Check Binance USDT (fallback if USDC not available)
         if (!selectedPair && isListed(`${symbolUpper}USDT`, 'binance')) {
           selectedPair = `bi.${symbolUpper}USDT`;
         }
-        
+
         // Check Bitget USDC (if Binance not available)
         if (!selectedPair && isListed(`${symbolUpper}USDC`, 'bitget')) {
           selectedPair = `bg.${symbolUpper}USDC`;
         }
-        
+
         // Check Bitget USDT (fallback if USDC not available)
         if (!selectedPair && isListed(`${symbolUpper}USDT`, 'bitget')) {
           selectedPair = `bg.${symbolUpper}USDT`;
@@ -585,7 +595,7 @@ export class EtfMainService {
           },
         });
     });
-    console.log(weightsForContract)
+    console.log(weightsForContract);
     return { weights: weightsForContract, price: etfPrice };
   }
 
@@ -599,60 +609,166 @@ export class EtfMainService {
     indexId: number,
     rebalanceTimestamp: number,
   ): Promise<void> {
-    console.log(`Starting ${etfType} rebalance...`);
-    const artifactPath = path.resolve(
-      __dirname,
-      '../../../../artifacts/contracts/src/ETFMaker/IndexRegistry.sol/IndexRegistry.json',
-    );
-    const IndexRegistryArtifact = require(artifactPath);
-    const indexRegistry = new ethers.Contract(
-      process.env.INDEX_REGISTRY_ADDRESS || ethers.ZeroAddress,
-      IndexRegistryArtifact.abi,
-      this.signer,
-    );
-
     const name = this.getETFName(etfType);
     const symbol = this.getETFSymbol(etfType);
-    const custodyId = ethers.keccak256(ethers.toUtf8Bytes(name));
+    const custodyId = name; // deployIndex will do formatBytes32String for us
 
-    // if (!(await this.indexExists(indexId, indexRegistry))) {
-    //   this.logger.log(`${symbol} does not exist, deploying...`);
-    //   const { weights, etfPrice } = await this.fetchETFWeights(
-    //     etfType,
-    //     indexId,
-    //     rebalanceTimestamp,
-    //   );
+    this.logger.log(
+      `🔄 Starting ${symbol} rebalance @ ${new Date(rebalanceTimestamp * 1000).toISOString()}`,
+    );
 
-    //   if (weights && etfPrice) {
-    //     await this.deployIndex(name, symbol, custodyId, indexId, weights);
-    //     console.log(weights, etfPrice);
-    //     await this.indexRegistryService.setCuratorWeights(
-    //       indexId,
-    //       weights,
-    //       Math.floor(etfPrice * 1e6),
-    //       rebalanceTimestamp,
-    //       8453,
-    //     );
-    //   }
-    // } else {
-    this.logger.log(`${symbol} exists, updating weights...`);
+    // 1) load or init deployedIndexes.json
+    const INDEX_LIST_PATH = path.resolve(process.cwd(), 'deployedIndexes.json');
+    let list: Array<{ name: string; symbol: string; address: string }> = [];
+    try {
+      const raw = await fs.readFile(INDEX_LIST_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) list = parsed;
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err;
+    }
+
+    // 2) see if we already have an entry for this symbol
+    let entry = list.find((r) => r.name === name && r.symbol === symbol);
+    let indexAddress: string;
+
+    if (!entry) {
+      this.logger.log(`🆕 ${symbol} not deployed yet — deploying now`);
+      indexAddress = await this.deployIndex(name, symbol, custodyId);
+      this.logger.log(`✅ ${symbol} deployed @ ${indexAddress}`);
+      entry = { name, symbol, address: indexAddress };
+      list.push(entry);
+      await fs.writeFile(
+        INDEX_LIST_PATH,
+        JSON.stringify(list, null, 2),
+        'utf8',
+      );
+      this.logger.log(`💾 Recorded ${symbol} in ${INDEX_LIST_PATH}`);
+    } else {
+      indexAddress = entry.address;
+      this.logger.log(`✅ ${symbol} already deployed @ ${indexAddress}`);
+    }
+
+    // 3) fetch fresh weights & price
     const { weights, etfPrice } = await this.fetchETFWeights(
       etfType,
       indexId,
       rebalanceTimestamp,
     );
-    console.log(weights, etfPrice);
-    if (weights && etfPrice) {
-      // await this.indexRegistryService.setCuratorWeights(
-      //   indexId,
-      //   weights,
-      //   Math.floor(etfPrice * 1e6),
-      //   rebalanceTimestamp,
-      //   8453,
-      // );
+    if (!weights?.length) {
+      this.logger.warn(`⚠️ No weights returned for ${symbol}; skipping`);
+      return;
     }
-    // }
+
+    const encodedWeights = this.indexRegistryService.encodeWeights(weights);
+
+    // 5) scale price to 6 decimals (USDC style)
+    const priceScaled = BigInt(Math.floor(etfPrice * 1e6));
+
+    // 6) push on‐chain
+    await this.updateWeights(
+      indexAddress,
+      rebalanceTimestamp,
+      encodedWeights,
+      priceScaled,
+    );
+    this.logger.log(
+      `🔄 ${symbol} rebalanced: ${weights.length} tokens @ index price ${priceScaled}`,
+    );
   }
+
+  // async simulateRebalances(
+  //   startDate: Date,
+  //   now: Date,
+  //   etfType:
+  //     | 'andreessen-horowitz-a16z-portfolio'
+  //     | 'layer-2'
+  //     | 'artificial-intelligence'
+  //     | 'meme-token'
+  //     | 'decentralized-finance-defi',
+  //   indexId: number,
+  // ) {
+  //   // Get all binance listings upfront
+  //   const [_binanceListings, allTokens, activePairs] = await Promise.all([
+  //     this.dbService
+  //       .getDb()
+  //       .select({
+  //         pair: binanceListings.pair,
+  //         timestamp: binanceListings.timestamp,
+  //       })
+  //       .from(binanceListings),
+  //     this.coinGeckoService.getPortfolioTokens(etfType),
+  //     this.binanceService.fetchTradingPairs(),
+  //   ]);
+
+  //   // Create lookup maps
+  //   const binanceListingMap = new Map<string, number>();
+  //   for (const listing of _binanceListings) {
+  //     binanceListingMap.set(listing.pair, listing.timestamp);
+  //   }
+
+  //   // Create a map of token symbols to their listing dates
+  //   const tokenListingDates = new Map<string, Date>();
+
+  //   for (const token of allTokens) {
+  //     const symbolUpper = token.symbol.toUpperCase();
+  //     const pair = activePairs.find(
+  //       (p) =>
+  //         p.symbol.startsWith(symbolUpper) &&
+  //         (p.symbol.endsWith('USDC') || p.symbol.endsWith('USDT')),
+  //     );
+
+  //     if (pair) {
+  //       const listingTimestamp = binanceListingMap.get(pair.symbol);
+  //       if (listingTimestamp) {
+  //         tokenListingDates.set(token.symbol, new Date(listingTimestamp));
+  //       }
+  //     }
+  //   }
+
+  //   // Normalize to UTC midnight
+  //   const normalizeToUTCMidnight = (date: Date): Date => {
+  //     const isMidnight =
+  //       date.getUTCHours() === 0 &&
+  //       date.getUTCMinutes() === 0 &&
+  //       date.getUTCSeconds() === 0 &&
+  //       date.getUTCMilliseconds() === 0;
+
+  //     if (isMidnight) return date;
+
+  //     // Move to next day at 00:00:00 UTC
+  //     return new Date(
+  //       Date.UTC(
+  //         date.getUTCFullYear(),
+  //         date.getUTCMonth(),
+  //         date.getUTCDate() + 1,
+  //       ),
+  //     );
+  //   };
+
+  //   // Now find all unique listing dates after our start date
+  //   const listingDates = Array.from(tokenListingDates.values())
+  //     .filter((date) => date >= startDate && date <= now)
+  //     .map(normalizeToUTCMidnight) // <- normalize here
+  //     .sort((a, b) => a.getTime() - b.getTime());
+
+  //   const rebalanceDates = [
+  //     normalizeToUTCMidnight(startDate), // <- also normalize startDate
+  //     ...listingDates,
+  //   ];
+
+  //   // Process each rebalance date in sequence
+  //   for (const rebalanceDate of rebalanceDates) {
+  //     console.log(
+  //       `Simulating ${etfType} rebalance at ${rebalanceDate.toISOString()}`,
+  //     );
+  //     await this.rebalanceETF(
+  //       etfType,
+  //       indexId,
+  //       Math.floor(rebalanceDate.getTime() / 1000),
+  //     );
+  //   }
+  // }
 
   async simulateRebalances(
     startDate: Date,
@@ -665,41 +781,86 @@ export class EtfMainService {
       | 'decentralized-finance-defi',
     indexId: number,
   ) {
-    // Get all binance listings upfront
-    const [_binanceListings, allTokens, activePairs] = await Promise.all([
+    // Get all relevant data
+    const [allListings, allTokens] = await Promise.all([
       this.dbService
         .getDb()
         .select({
-          pair: binanceListings.pair,
-          timestamp: binanceListings.timestamp,
+          token: listingsTable.token, // This is the trading pair (e.g., BTCUSDC)
+          tokenName: listingsTable.tokenName,
+          listingAnnouncementDate: listingsTable.listingAnnouncementDate,
+          listingDate: listingsTable.listingDate,
+          delistingAnnouncementDate: listingsTable.delistingAnnouncementDate,
+          delistingDate: listingsTable.delistingDate,
         })
-        .from(binanceListings),
+        .from(listingsTable),
       this.coinGeckoService.getPortfolioTokens(etfType),
-      this.binanceService.fetchTradingPairs(),
     ]);
 
-    // Create lookup maps
-    const binanceListingMap = new Map<string, number>();
-    for (const listing of _binanceListings) {
-      binanceListingMap.set(listing.pair, listing.timestamp);
-    }
-
-    // Create a map of token symbols to their listing dates
-    const tokenListingDates = new Map<string, Date>();
+    // Create a map of token symbols to their events
+    const tokenEvents = new Map<
+      string,
+      { listingDate?: Date; delistingDate?: Date }
+    >();
 
     for (const token of allTokens) {
       const symbolUpper = token.symbol.toUpperCase();
-      const pair = activePairs.find(
-        (p) =>
-          p.symbol.startsWith(symbolUpper) &&
-          (p.symbol.endsWith('USDC') || p.symbol.endsWith('USDT')),
-      );
 
-      if (pair) {
-        const listingTimestamp = binanceListingMap.get(pair.symbol);
-        if (listingTimestamp) {
-          tokenListingDates.set(token.symbol, new Date(listingTimestamp));
-        }
+      // First try to find USDC pair, then USDT
+      const listingInfo =
+        allListings.find((l) => l.token === `${symbolUpper}USDC`) ||
+        allListings.find((l) => l.token === `${symbolUpper}USDT`);
+
+      if (!listingInfo) continue;
+
+      const events: { listingDate?: Date; delistingDate?: Date } = {};
+
+      // Determine listing date (Binance listing date first, then announcement)
+      if (
+        listingInfo.listingDate &&
+        (listingInfo.listingDate as Record<string, string>).binance
+      ) {
+        events.listingDate = new Date(
+          (listingInfo.listingDate as Record<string, string>).binance,
+        );
+      } else if (
+        listingInfo.listingAnnouncementDate &&
+        (listingInfo.listingAnnouncementDate as Record<string, string>).binance
+      ) {
+        events.listingDate = new Date(
+          (
+            listingInfo.listingAnnouncementDate as Record<string, string>
+          ).binance,
+        );
+      }
+
+      // Determine delisting date (Binance delisting date first, then announcement)
+      if (
+        listingInfo.delistingDate &&
+        (listingInfo.delistingDate as Record<string, string>).binance
+      ) {
+        events.delistingDate = new Date(
+          (listingInfo.delistingDate as Record<string, string>).binance,
+        );
+      } else if (
+        listingInfo.delistingAnnouncementDate &&
+        (listingInfo.delistingAnnouncementDate as Record<string, string>)
+          .binance
+      ) {
+        events.delistingDate = new Date(
+          (
+            listingInfo.delistingAnnouncementDate as Record<string, string>
+          ).binance,
+        );
+      }
+
+      // If no delisting date exists, the token is still active
+      if (!events.delistingDate) {
+        events.delistingDate = undefined; // Explicitly mark as undefined (still active)
+      }
+
+      if (events.listingDate || events.delistingDate) {
+        tokenEvents.set(token.symbol, events);
       }
     }
 
@@ -723,17 +884,35 @@ export class EtfMainService {
       );
     };
 
-    // Now find all unique listing dates after our start date
-    const listingDates = Array.from(tokenListingDates.values())
-      .filter((date) => date >= startDate && date <= now)
-      .map(normalizeToUTCMidnight) // <- normalize here
-      .sort((a, b) => a.getTime() - b.getTime());
+    // Collect all relevant event dates
+    const eventDates: Date[] = [];
+
+    for (const [_, events] of tokenEvents) {
+      if (
+        events.listingDate &&
+        events.listingDate >= startDate &&
+        events.listingDate <= now
+      ) {
+        eventDates.push(normalizeToUTCMidnight(events.listingDate));
+      }
+      if (
+        events.delistingDate &&
+        events.delistingDate >= startDate &&
+        events.delistingDate <= now
+      ) {
+        eventDates.push(normalizeToUTCMidnight(events.delistingDate));
+      }
+    }
+
+    // Sort and deduplicate dates
+    const uniqueSortedDates = Array.from(
+      new Set(eventDates.map((date) => date.getTime()).sort((a, b) => a - b)),
+    ).map((time) => new Date(time));
 
     const rebalanceDates = [
-      normalizeToUTCMidnight(startDate), // <- also normalize startDate
-      ...listingDates,
+      normalizeToUTCMidnight(startDate), // initial rebalance
+      ...uniqueSortedDates,
     ];
-
     // Process each rebalance date in sequence
     for (const rebalanceDate of rebalanceDates) {
       console.log(
@@ -748,67 +927,469 @@ export class EtfMainService {
   }
 
   // Helper: Deploy pSymmIndex contract
-  async deployIndex(name, symbol, custodyId, indexId, weights) {
-    const pSymmAddress = process.env.PSYMM_ADDRESS;
-    const indexRegistryAddress = process.env.INDEX_REGISTRY_ADDRESS;
-    const collateralToken = process.env.USDC_ADDRESS_IN_BASE;
+  // async deployIndex(
+  //   name: string,
+  //   symbol: string,
+  //   custodyId: string,
+  // ): Promise<string> {
+  //   const otcCustodyAddress = process.env.OTC_CUSTODY_ADDRESS!;
+  //   const collateralToken = process.env.USDC_ADDRESS_IN_BASE!;
+  //   if (!otcCustodyAddress || !collateralToken) {
+  //     throw new Error(
+  //       'Missing OTC_CUSTODY_ADDRESS or USDC_ADDRESS_IN_BASE in env',
+  //     );
+  //   }
 
-    if (!pSymmAddress || !indexRegistryAddress || !collateralToken) {
+  //   // constructor params
+  //   const collateralTokenPrecision = ethers.parseUnits('1', 6);
+  //   const managementFee = ethers.parseUnits('2', 18);
+  //   const performanceFee = ethers.parseUnits('1', 18);
+  //   const maxMintPerBlock = ethers.parseUnits('10000', 18);
+  //   const maxRedeemPerBlock = ethers.parseUnits('10000', 18);
+  //   const voteThreshold = 50;
+  //   const votePeriod = 1440 * 7;
+  //   const initialPrice = ethers.parseUnits('10000', 18);
+
+  //   // load artifact
+  //   const artifactPath = path.resolve(
+  //     __dirname,
+  //     '../../../../artifacts/contracts/Connectors/OTCIndex/OTCIndex.sol/OTCIndex.json',
+  //   );
+  //   const { abi, bytecode } = require(artifactPath);
+  //   const factory = new ethers.ContractFactory(abi, bytecode, this.signer);
+
+  //   // deploy
+  //   const index = await factory.deploy(
+  //     otcCustodyAddress,
+  //     name,
+  //     symbol,
+  //     ethers.keccak256(ethers.toUtf8Bytes(custodyId)),
+  //     collateralToken,
+  //     collateralTokenPrecision,
+  //     managementFee,
+  //     performanceFee,
+  //     maxMintPerBlock,
+  //     maxRedeemPerBlock,
+  //     voteThreshold,
+  //     votePeriod,
+  //     initialPrice,
+  //   );
+  //   await index.waitForDeployment();
+  //   const deployedAddress = await index.getAddress();
+  //   this.logger.log(`✅ Deployed ${symbol} at ${deployedAddress}`);
+
+  //   // record
+  //   await this.recordDeployedIndex({ name, symbol, address: deployedAddress });
+  //   this.logger.log(`💾 Recorded ${symbol}`);
+
+  //   return deployedAddress;
+  // }
+
+  async deployIndex(
+    name: string,
+    symbol: string,
+    custodyId: string,
+  ): Promise<string> {
+    const chainId = 8453;
+
+    const publicKey = {
+      parity: 0,
+      x: hexlify(zeroPadValue(this.signer.address, 32)) as `0x${string}`,
+    };
+
+    const caHelper = new CAHelper(
+      Number(chainId),
+      process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
+    );
+
+    const custodyArtifact = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
+      ),
+    );
+    const otcCustody = new ethers.Contract(
+      process.env.OTC_CUSTODY_ADDRESS!,
+      custodyArtifact.abi,
+      this.signer,
+    );
+
+    const erc20Json = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/mocks/MockERC20.sol/MockERC20.json',
+      ),
+    );
+    const usdcContract = new ethers.Contract(
+      process.env.USDC_ADDRESS_IN_BASE!,
+      erc20Json.abi,
+      this.signer,
+    );
+
+    const otcCustodyAddress = process.env.OTC_CUSTODY_ADDRESS!;
+    const indexFactoryAddress = process.env.INDEX_FACTORY_ADDRESS!;
+    const collateralToken = process.env.USDC_ADDRESS_IN_BASE!;
+    if (!otcCustodyAddress || !indexFactoryAddress || !collateralToken) {
       throw new Error(
-        'Missing required environment variables (PSYMM_ADDRESS, INDEX_REGISTRY_ADDRESS, USDC_ADDRESS_IN_BASE)',
+        'Missing OTC_CUSTODY_ADDRESS or INDEX_FACTORY_ADDRESS or USDC_ADDRESS_IN_BASE',
       );
     }
 
-    const collateralTokenPrecision = ethers.parseUnits('1', 6); // 1e6 for USDC
-    const mintFee = ethers.parseUnits('1', 17);
-    const burnFee = ethers.parseUnits('1', 17);
-    const managementFee = ethers.parseUnits('2', 18);
-    const maxMintPerBlock = ethers.parseUnits('10000', 18);
-    const maxRedeemPerBlock = ethers.parseUnits('10000', 18);
+    const factoryAbi = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/Connectors/OTCIndex/OTCIndexFactory.sol/IndexFactory.json',
+      ),
+    ).abi;
+    const factoryIface = new ethers.Interface(factoryAbi);
 
-    const artifactPath = path.resolve(
-      __dirname,
-      '../../../../artifacts/contracts/src/ETFMaker/Index.sol/pSymmIndex.json',
-    );
-    const pSymmIndexArtifact = require(artifactPath);
-    const pSymmIndexFactory = new ethers.ContractFactory(
-      pSymmIndexArtifact.abi,
-      pSymmIndexArtifact.bytecode,
-      this.signer,
-    );
-    const index = await pSymmIndexFactory.deploy(
-      pSymmAddress,
-      indexRegistryAddress,
-      name,
-      symbol,
-      custodyId,
-      collateralToken,
-      collateralTokenPrecision,
-      mintFee,
-      burnFee,
-      managementFee,
-      maxMintPerBlock,
-      maxRedeemPerBlock,
+    const indexParams = [
+      name, // string _name
+      symbol, // string _symbol
+      ethers.ZeroHash,
+      process.env.USDC_ADDRESS_IN_BASE!, // address _collateralToken
+      ethers.parseUnits('1', 6), // uint256 _collateralTokenPrecision
+      ethers.parseUnits('2', 18), // uint256 _managementFee
+      ethers.parseUnits('1', 18), // uint256 _performanceFee
+      ethers.parseUnits('10000', 18), // uint256 _maxMintPerBlock
+      ethers.parseUnits('10000', 18), // uint256 _maxRedeemPerBlock
+      50, // uint256 _voteThreshold
+      1440 * 7, // uint256 _votePeriod
+      ethers.parseUnits('10000', 18), // uint256 _initialPrice
+    ] as const;
+
+    // 2) the matching ABI‐types tuple:
+    const types = [
+      'string',
+      'string',
+      'bytes32',
+      'address',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+      'uint256',
+    ] as const;
+
+    // 3) raw encode the parameters (this is the `data` for your factory)
+    const deployCallData = ethers.AbiCoder.defaultAbiCoder().encode(
+      types,
+      indexParams,
+    ) as `0x${string}`;
+
+    const proofIndex = caHelper.deployConnector(
+      'IndexFactory',
+      indexFactoryAddress as `0x${string}`,
+      deployCallData,
+      /*custodyState=*/ 0,
+      publicKey,
     );
 
-    // Wait for deployment
-    await index.waitForDeployment();
-    const deployedAddress = await index.getAddress();
-    console.log(`${name} deployed to:`, deployedAddress);
+    const _custodyId = caHelper.getCustodyID();
+    console.log('Factory deployment custody ID:', _custodyId);
 
-    this.logger.log(`${name} deployed to: ${deployedAddress}`);
-
-    // Register the index
-    await this.indexRegistryService.registerIndex(
-      name,
-      symbol,
-      managementFee,
-      8453,
+    const depositAmount = ethers.parseUnits('0.01', 6);
+    await (usdcContract.connect(this.signer) as MockERC20).approve(
+      process.env.OTC_CUSTODY_ADDRESS!,
+      depositAmount,
     );
-    this.logger.log(`${name} registered with ID ${indexId}`);
+    await (otcCustody.connect(this.signer) as OTCCustody).addressToCustody(
+      _custodyId,
+      process.env.USDC_ADDRESS_IN_BASE!,
+      depositAmount,
+    );
+    console.log('Custody setup with tokens');
+    
+    const deployTimestamp = Math.floor(Date.now() / 1000);
+    const verificationData = {
+      id: _custodyId,
+      state: 0,
+      timestamp: deployTimestamp,
+      pubKey: publicKey,
+      sig: {
+        e: hexlify(randomBytes(32)) as `0x${string}`,
+        s: hexlify(randomBytes(32)) as `0x${string}`,
+      },
+      merkleProof: caHelper.getMerkleProof(proofIndex),
+    };
+
+    console.log('Deploying index via factory...');
+
+    const tx = await otcCustody.deployConnector(
+      'IndexFactory',
+      indexFactoryAddress,
+      deployCallData,
+      verificationData,
+    );
+    this.logger.log(`📝 deployConnector(IndexFactory) sent: ${tx.hash}`);
+    const receipt = await tx.wait();
+
+    const event = receipt.logs
+      .map((log) => {
+        try {
+          return factoryIface.parseLog(log);
+        } catch {
+          return null;
+        }
+      })
+      .find((parsed) => parsed && parsed.name === 'IndexDeployed');
+
+    if (!event) {
+      throw new Error(
+        'IndexDeployed event not found in deployConnector receipt',
+      );
+    }
+    const deployedAddress = event.args[0] as string;
+    this.logger.log(`✅ ${symbol} deployed via factory to ${deployedAddress}`);
+
+    await this.recordDeployedIndex({ name, symbol, address: deployedAddress });
+    this.logger.log(`💾 Recorded ${symbol} at ${deployedAddress}`);
 
     return deployedAddress;
   }
+
+  // async fetchETFWeights(
+  //   etfType: string,
+  //   indexId: number,
+  //   rebalanceTimestamp: number,
+  // ) {
+  //   try {
+  //     // Get all binance listings upfront
+  //     const _binanceListings = await this.dbService
+  //       .getDb()
+  //       .transaction(async (tx) => {
+  //         return tx
+  //           .select({
+  //             pair: binanceListings.pair,
+  //             timestamp: binanceListings.timestamp,
+  //           })
+  //           .from(binanceListings);
+  //       });
+
+  //     const binanceListingMap = new Map<string, number>();
+  //     for (const listing of _binanceListings) {
+  //       binanceListingMap.set(listing.pair, listing.timestamp);
+  //     }
+
+  //     // Get tokens based on ETF type
+  //     const tokens = await this.coinGeckoService.getPortfolioTokens(etfType);
+  //     const activePairs = await this.binanceService.fetchTradingPairs();
+
+  //     // Create a map of tokens to their preferred pairs (USDC > USDT)
+  //     const tokenToPairMap = new Map<string, string>();
+  //     activePairs.forEach((pair) => {
+  //       const quote = pair.quoteAsset;
+  //       const base = pair.symbol.replace(quote, '');
+
+  //       // Only consider USDC/USDT pairs
+  //       if (quote === 'USDC' || quote === 'USDT') {
+  //         // Prefer USDC if available, otherwise keep USDT if no USDC exists
+  //         if (!tokenToPairMap.has(base) || quote === 'USDC') {
+  //           tokenToPairMap.set(base, `bi.${pair.symbol}`);
+  //         }
+  //       }
+  //     });
+
+  //     const eligibleTokens: {
+  //       symbol: string;
+  //       coin: string;
+  //       binancePair: string;
+  //       historical_price: number;
+  //     }[] = [];
+
+  //     // Filter for tokens listed on Binance and validate coin_id
+  //     for (const coin of tokens) {
+  //       if (!coin.id || coin.id.trim() === '') {
+  //         this.logger.warn(`Skipping token ${coin.symbol} with empty coin_id`);
+  //         continue;
+  //       }
+
+  //       const symbolUpper = coin.symbol.toUpperCase();
+  //       const pair = tokenToPairMap.get(symbolUpper);
+
+  //       // Ensure the pair exists AND ends with USDC or USDT
+  //       if (!pair || !(pair.endsWith('USDC') || pair.endsWith('USDT'))) {
+  //         continue;
+  //       }
+
+  //       // Get the Binance pair symbol without the 'bi.' prefix
+  //       const binancePairSymbol = pair.split('.')[1];
+  //       const listingTimestamp = binanceListingMap.get(binancePairSymbol);
+
+  //       if (!listingTimestamp || listingTimestamp / 1000 > rebalanceTimestamp) {
+  //         this.logger.warn(
+  //           `${coin.id} skipped: listed after rebalancing date.`,
+  //         );
+  //         continue;
+  //       }
+
+  //       await this.coinGeckoService.storeDailyPricesForToken(
+  //         coin.id,
+  //         coin.symbol,
+  //         rebalanceTimestamp,
+  //       );
+
+  //       const h_price =
+  //         await this.coinGeckoService.getOrFetchTokenPriceAtTimestamp(
+  //           coin.id,
+  //           coin.symbol,
+  //           rebalanceTimestamp,
+  //         );
+
+  //       if (h_price) {
+  //         // Check if we already have this symbol in eligibleTokens
+  //         const existingIndex = eligibleTokens.findIndex(
+  //           (t) => t.symbol === coin.symbol,
+  //         );
+  //         if (existingIndex === -1) {
+  //           eligibleTokens.push({
+  //             symbol: coin.symbol,
+  //             coin: coin.id,
+  //             binancePair: pair,
+  //             historical_price: h_price,
+  //           });
+  //         } else {
+  //           // Replace if the new pair is USDC and existing is USDT
+  //           const existingPair = eligibleTokens[existingIndex].binancePair;
+  //           if (pair.endsWith('USDC') && existingPair.endsWith('USDT')) {
+  //             eligibleTokens[existingIndex] = {
+  //               symbol: coin.symbol,
+  //               coin: coin.id,
+  //               binancePair: pair,
+  //               historical_price: h_price,
+  //             };
+  //           }
+  //         }
+  //       }
+  //     }
+  //     // ... rest of the function remains the same ...
+  //     if (eligibleTokens.length === 0) {
+  //       this.logger.log(
+  //         `No eligible tokens in ${etfType} portfolio - skipping rebalance`,
+  //       );
+  //       return { weights: null, etfPrice: null };
+  //     }
+
+  //     // Get current active composition
+  //     const currentComposition = await this.dbService
+  //       .getDb()
+  //       .select()
+  //       .from(tempCompositions)
+  //       .where(
+  //         and(
+  //           eq(tempCompositions.indexId, indexId.toString()),
+  //           isNull(tempCompositions.validUntil),
+  //         ),
+  //       );
+
+  //     // Check for composition changes
+  //     const currentTokenSet = new Set(eligibleTokens.map((t) => t.binancePair));
+  //     const previousTokenSet = new Set(
+  //       currentComposition.map((c) => c.tokenAddress),
+  //     );
+
+  //     const hasChanges =
+  //       [...currentTokenSet].some((t) => !previousTokenSet.has(t)) ||
+  //       [...previousTokenSet].some((t: string) => !currentTokenSet.has(t));
+
+  //     if (!hasChanges && currentComposition.length > 0) {
+  //       this.logger.log(
+  //         `No changes in ${etfType} portfolio - skipping rebalance`,
+  //       );
+  //       return { weights: null, etfPrice: null };
+  //     }
+
+  //     // Calculate equal weights
+  //     const weightPerToken = Math.floor(10000 / eligibleTokens.length);
+  //     const remainder = 10000 - weightPerToken * eligibleTokens.length;
+  //     const weights: [string, number][] = eligibleTokens.map((token, index) => [
+  //       token.binancePair,
+  //       index < remainder ? weightPerToken + 1 : weightPerToken,
+  //     ]);
+
+  //     // Compute ETF price
+  //     const etfPrice = weights.reduce(
+  //       (sum, [pair, weight], i) =>
+  //         sum + eligibleTokens[i].historical_price * (weight / 10000),
+  //       0,
+  //     );
+
+  //     // Begin transaction
+  //     await this.dbService.getDb().transaction(async (tx) => {
+  //       // Mark previous compositions as invalid
+  //       if (currentComposition.length > 0) {
+  //         await tx
+  //           .update(tempCompositions)
+  //           .set({ validUntil: new Date() })
+  //           .where(
+  //             and(
+  //               eq(tempCompositions.indexId, indexId.toString()),
+  //               isNull(tempCompositions.validUntil),
+  //             ),
+  //           );
+  //       }
+
+  //       // Insert new compositions
+  //       await tx.insert(tempCompositions).values(
+  //         eligibleTokens.map((token, index) => ({
+  //           indexId: indexId.toString(),
+  //           tokenAddress: token.binancePair,
+  //           coin_id: token.coin,
+  //           weight: (weights[index][1] / 100).toString(),
+  //           validUntil: null,
+  //           rebalanceTimestamp,
+  //         })),
+  //       );
+
+  //       // Record rebalance event using drizzle's native syntax
+  //       await tx
+  //         .insert(tempRebalances)
+  //         .values({
+  //           indexId: indexId.toString(),
+  //           weights: JSON.stringify(weights),
+  //           prices: Object.fromEntries(
+  //             eligibleTokens.map((token) => [
+  //               token.binancePair,
+  //               token.historical_price,
+  //             ]),
+  //           ),
+  //           timestamp: rebalanceTimestamp,
+  //           coins: Object.fromEntries(
+  //             eligibleTokens.map((token, index) => [
+  //               token.coin,
+  //               weights[index][1],
+  //             ]),
+  //           ),
+  //         })
+  //         .onConflictDoUpdate({
+  //           target: [tempRebalances.indexId, tempRebalances.timestamp],
+  //           set: {
+  //             weights: JSON.stringify(weights),
+  //             prices: Object.fromEntries(
+  //               eligibleTokens.map((token) => [
+  //                 token.binancePair,
+  //                 token.historical_price,
+  //               ]),
+  //             ),
+  //             coins: Object.fromEntries(
+  //               eligibleTokens.map((token, index) => [
+  //                 token.coin,
+  //                 weights[index][1],
+  //               ]),
+  //             ),
+  //           },
+  //         });
+  //     });
+
+  //     return { weights, etfPrice };
+  //   } catch (error) {
+  //     this.logger.error(`Error fetching ${etfType} weights:`, error);
+  //     throw error;
+  //   }
+  // }
 
   async fetchETFWeights(
     etfType: string,
@@ -816,41 +1397,20 @@ export class EtfMainService {
     rebalanceTimestamp: number,
   ) {
     try {
-      // Get all binance listings upfront
-      const _binanceListings = await this.dbService
-        .getDb()
-        .transaction(async (tx) => {
-          return tx
-            .select({
-              pair: binanceListings.pair,
-              timestamp: binanceListings.timestamp,
-            })
-            .from(binanceListings);
-        });
-
-      const binanceListingMap = new Map<string, number>();
-      for (const listing of _binanceListings) {
-        binanceListingMap.set(listing.pair, listing.timestamp);
-      }
-
-      // Get tokens based on ETF type
-      const tokens = await this.coinGeckoService.getPortfolioTokens(etfType);
-      const activePairs = await this.binanceService.fetchTradingPairs();
-
-      // Create a map of tokens to their preferred pairs (USDC > USDT)
-      const tokenToPairMap = new Map<string, string>();
-      activePairs.forEach((pair) => {
-        const quote = pair.quoteAsset;
-        const base = pair.symbol.replace(quote, '');
-
-        // Only consider USDC/USDT pairs
-        if (quote === 'USDC' || quote === 'USDT') {
-          // Prefer USDC if available, otherwise keep USDT if no USDC exists
-          if (!tokenToPairMap.has(base) || quote === 'USDC') {
-            tokenToPairMap.set(base, `bi.${pair.symbol}`);
-          }
-        }
-      });
+      // Get all listings data upfront
+      const [allListings, tokens] = await Promise.all([
+        this.dbService
+          .getDb()
+          .select({
+            token: listingsTable.token,
+            listingAnnouncementDate: listingsTable.listingAnnouncementDate,
+            listingDate: listingsTable.listingDate,
+            delistingAnnouncementDate: listingsTable.delistingAnnouncementDate,
+            delistingDate: listingsTable.delistingDate,
+          })
+          .from(listingsTable),
+        this.coinGeckoService.getPortfolioTokens(etfType),
+      ]);
 
       const eligibleTokens: {
         symbol: string;
@@ -858,8 +1418,9 @@ export class EtfMainService {
         binancePair: string;
         historical_price: number;
       }[] = [];
+      const processedSymbols = new Set<string>();
 
-      // Filter for tokens listed on Binance and validate coin_id
+      // Process each token in the ETF
       for (const coin of tokens) {
         if (!coin.id || coin.id.trim() === '') {
           this.logger.warn(`Skipping token ${coin.symbol} with empty coin_id`);
@@ -867,64 +1428,103 @@ export class EtfMainService {
         }
 
         const symbolUpper = coin.symbol.toUpperCase();
-        const pair = tokenToPairMap.get(symbolUpper);
 
-        // Ensure the pair exists AND ends with USDC or USDT
-        if (!pair || !(pair.endsWith('USDC') || pair.endsWith('USDT'))) {
-          continue;
+        // Skip if we've already processed this symbol
+        if (processedSymbols.has(symbolUpper)) continue;
+
+        const rebalanceDate = new Date(rebalanceTimestamp * 1000);
+
+        // Check USDC pair first, then USDT
+        const possiblePairs = [`${symbolUpper}USDC`, `${symbolUpper}USDT`];
+        let selectedPair: string | null = null;
+        let selectedCoinId = coin.id;
+
+        for (const pair of possiblePairs) {
+          const listingInfo = allListings.find((l) => l.token === pair);
+          if (!listingInfo) continue;
+
+          // Determine listing date (Binance listing date first, then announcement)
+          let listingDate: Date | null = null;
+          if (
+            listingInfo.listingDate &&
+            (listingInfo.listingDate as Record<string, string>).binance
+          ) {
+            listingDate = new Date(
+              (listingInfo.listingDate as Record<string, string>).binance,
+            );
+          } else if (
+            listingInfo.listingAnnouncementDate &&
+            (listingInfo.listingAnnouncementDate as Record<string, string>)
+              .binance
+          ) {
+            listingDate = new Date(
+              (
+                listingInfo.listingAnnouncementDate as Record<string, string>
+              ).binance,
+            );
+          }
+
+          // Determine delisting date (Binance delisting date first, then announcement)
+          let delistingDate: Date | null = null;
+          if (
+            listingInfo.delistingDate &&
+            (listingInfo.delistingDate as Record<string, string>).binance
+          ) {
+            delistingDate = new Date(
+              (listingInfo.delistingDate as Record<string, string>).binance,
+            );
+          } else if (
+            listingInfo.delistingAnnouncementDate &&
+            (listingInfo.delistingAnnouncementDate as Record<string, string>)
+              .binance
+          ) {
+            delistingDate = new Date(
+              (
+                listingInfo.delistingAnnouncementDate as Record<string, string>
+              ).binance,
+            );
+          }
+
+          // Check if token is eligible
+          const isListed = listingDate && listingDate <= rebalanceDate;
+          const isNotDelisted = !delistingDate || delistingDate > rebalanceDate;
+
+          if (isListed && isNotDelisted) {
+            selectedPair = pair;
+            break; // Found a valid pair, no need to check USDT if we found USDC
+          }
         }
 
-        // Get the Binance pair symbol without the 'bi.' prefix
-        const binancePairSymbol = pair.split('.')[1];
-        const listingTimestamp = binanceListingMap.get(binancePairSymbol);
+        if (!selectedPair) continue; // No valid pair found for this symbol
 
-        if (!listingTimestamp || listingTimestamp / 1000 > rebalanceTimestamp) {
-          this.logger.warn(
-            `${coin.id} skipped: listed after rebalancing date.`,
-          );
-          continue;
-        }
+        // Mark this symbol as processed
 
         await this.coinGeckoService.storeDailyPricesForToken(
-          coin.id,
+          selectedCoinId,
           coin.symbol,
           rebalanceTimestamp,
         );
 
         const h_price =
           await this.coinGeckoService.getOrFetchTokenPriceAtTimestamp(
-            coin.id,
+            selectedCoinId,
             coin.symbol,
             rebalanceTimestamp,
           );
 
         if (h_price) {
-          // Check if we already have this symbol in eligibleTokens
-          const existingIndex = eligibleTokens.findIndex(
-            (t) => t.symbol === coin.symbol,
-          );
-          if (existingIndex === -1) {
-            eligibleTokens.push({
-              symbol: coin.symbol,
-              coin: coin.id,
-              binancePair: pair,
-              historical_price: h_price,
-            });
-          } else {
-            // Replace if the new pair is USDC and existing is USDT
-            const existingPair = eligibleTokens[existingIndex].binancePair;
-            if (pair.endsWith('USDC') && existingPair.endsWith('USDT')) {
-              eligibleTokens[existingIndex] = {
-                symbol: coin.symbol,
-                coin: coin.id,
-                binancePair: pair,
-                historical_price: h_price,
-              };
-            }
-          }
+          processedSymbols.add(symbolUpper);
+
+          eligibleTokens.push({
+            symbol: coin.symbol,
+            coin: selectedCoinId,
+            binancePair: `bi.${selectedPair}`,
+            historical_price: h_price,
+          });
         }
       }
-      // ... rest of the function remains the same ...
+
+      // Rest of the function remains the same...
       if (eligibleTokens.length === 0) {
         this.logger.log(
           `No eligible tokens in ${etfType} portfolio - skipping rebalance`,
@@ -1003,7 +1603,7 @@ export class EtfMainService {
           })),
         );
 
-        // Record rebalance event using drizzle's native syntax
+        // Record rebalance event
         await tx
           .insert(tempRebalances)
           .values({
@@ -1055,7 +1655,10 @@ export class EtfMainService {
       .getDb()
       .select()
       .from(tempRebalances)
-      .where(eq(tempRebalances.indexId, indexId.toString()), eq(tempRebalances.deployed, false))
+      .where(
+        eq(tempRebalances.indexId, indexId.toString()),
+        eq(tempRebalances.deployed, false),
+      )
       .orderBy(desc(tempRebalances.timestamp));
 
     return rebalance;
@@ -1099,5 +1702,308 @@ export class EtfMainService {
       'decentralized-finance-defi': 'SYDF',
     };
     return symbols[etfType] || '';
+  }
+
+  private async recordDeployedIndex(record: {
+    name: string;
+    symbol: string;
+    address: string;
+  }) {
+    let list: Array<{ name: string; symbol: string; address: string }> = [];
+    try {
+      const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) list = parsed;
+    } catch (err: any) {
+      if (err.code !== 'ENOENT') throw err;
+    }
+    list.push(record);
+    await fs.writeFile(
+      this.INDEX_LIST_PATH,
+      JSON.stringify(list, null, 2),
+      'utf8',
+    );
+  }
+
+  // async updateWeights(
+  //   indexAddress: string,
+  //   timestamp: number,
+  //   weightsBytes: string,
+  //   priceScaled: ethers.BigNumberish,
+  // ) {
+  //   const custodySigner = await this.provider.getSigner(process.env.OTC_CUSTODY_ADDRESS);
+  //   const artifactPath = path.resolve(
+  //     __dirname,
+  //     '../../../../artifacts/contracts/Connectors/OTCIndex/OTCIndex.sol/OTCIndex.json',
+  //   );
+  //   const { abi } = require(artifactPath);
+  //   const index = new ethers.Contract(indexAddress, abi, custodySigner);
+
+  //   const tx = await index.curatorUpdate(timestamp, weightsBytes, priceScaled);
+  //   this.logger.log(`📝 curatorUpdate sent: ${tx.hash}`);
+  //   await tx.wait();
+  //   this.logger.log(`✅ curatorUpdate confirmed`);
+  // }
+
+  async updateWeights(
+    indexAddress: string,
+    timestamp: number,
+    weightsBytes: string,
+    priceScaled: ethers.BigNumberish,
+  ) {
+    const custodyState = 0;
+    const chainId = 8453;
+
+    const publicKey = {
+      parity: 0,
+      x: hexlify(zeroPadValue(this.signer.address, 32)) as `0x${string}`,
+    };
+    const caHelper = new CAHelper(
+      Number(chainId),
+      process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
+    );
+    
+    const erc20Json = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/mocks/MockERC20.sol/MockERC20.json',
+      ),
+    );
+    const usdcContract = new ethers.Contract(
+      process.env.USDC_ADDRESS_IN_BASE!,
+      erc20Json.abi,
+      this.signer,
+    );
+
+    const custodyArtifact = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
+      ),
+    );
+    const otcCustody = new ethers.Contract(
+      process.env.OTC_CUSTODY_ADDRESS!,
+      custodyArtifact.abi,
+      this.signer,
+    );
+
+    const callData = buildCallData('curatorUpdate(uint256,bytes,uint256)', [
+      timestamp,
+      weightsBytes,
+      priceScaled,
+    ]);
+    const callConnectorActionIndex = caHelper.callConnector(
+      'OTCIndexConnector',
+      process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
+      callData,
+      custodyState,
+      publicKey,
+    );
+    const custodyId = caHelper.getCustodyID()
+    // const depositAmount = ethers.parseUnits('0.01', 6);
+    // await (usdcContract.connect(this.signer) as MockERC20).approve(
+    //   process.env.OTC_CUSTODY_ADDRESS!,
+    //   depositAmount,
+    // );
+    // await (otcCustody.connect(this.signer) as OTCCustody).addressToCustody(
+    //   custodyId,
+    //   process.env.USDC_ADDRESS_IN_BASE!,
+    //   depositAmount,
+    // );
+    // console.log('Custody setup with tokens');
+    const verificationData = {
+      id: custodyId,
+      state: 0,
+      timestamp: Math.floor(Date.now() / 1000),
+      pubKey: publicKey,
+      sig: {
+        e: hexlify(randomBytes(32)) as `0x${string}`,
+        s: hexlify(randomBytes(32)) as `0x${string}`,
+      },
+      merkleProof: caHelper.getMerkleProof(callConnectorActionIndex),
+    };
+
+    // 3) call through the custody contract’s connector entrypoint
+    const tx = await otcCustody.callConnector(
+      'OTCIndexConnector',
+      indexAddress,
+      callData,
+      '0x', 
+      verificationData,
+    );
+    this.logger.log(`📝 callConnector(curatorUpdate) sent: ${tx.hash}`);
+    await tx.wait();
+    this.logger.log(`✅ curatorUpdate relayed via custody`);
+    sleep(1000)
+  }
+
+  // purpose for initial deploying
+
+  async processAllPendingRebalances(): Promise<void> {
+    this.logger.log(`🚀 Scanning for all pending rebalances…`);
+
+    // 1) fetch all pending rows with indexId & timestamp
+    const rows = await this.dbService
+      .getDb()
+      .select({
+        indexId: tempRebalances.indexId,
+        timestamp: tempRebalances.timestamp,
+      })
+      .from(tempRebalances)
+      .where(eq(tempRebalances.deployed, false))
+      .orderBy(asc(tempRebalances.timestamp));
+
+    if (rows.length === 0) {
+      this.logger.log(`✅ No pending rebalances found.`);
+      return;
+    }
+
+    // 2) for each indexId, keep only the first (smallest) timestamp
+    const firstByIndex = new Map<number, number>();
+    for (const r of rows) {
+      const idx = Number(r.indexId);
+      const ts = Number(r.timestamp);
+      if (!firstByIndex.has(idx)) {
+        firstByIndex.set(idx, ts);
+      }
+    }
+
+    this.logger.log(
+      `🔢 Found ${firstByIndex.size} index(es) with pending rebalances.`,
+    );
+
+    // 3) process each (indexId, earliestTimestamp)
+    for (const [indexId, timestamp] of firstByIndex.entries()) {
+      try {
+        await this.processPendingRebalances(indexId, timestamp);
+      } catch (err: any) {
+        this.logger.error(
+          `⚠️  Failed processing indexId=${indexId}, timestamp=${timestamp}: ${err}`,
+        );
+      }
+    }
+
+    this.logger.log(
+      `🎯 Done processing first pending rebalance for each index.`,
+    );
+  }
+
+  async processPendingRebalances(
+    indexNumericId: number,
+    rebalanceTimestamp: number,
+  ): Promise<void> {
+    // 1) figure out symbol & name
+    const idToEtfType: Record<number, string> = {
+      22: 'andreessen-horowitz-a16z-portfolio',
+      23: 'layer-2',
+      24: 'artificial-intelligence',
+      25: 'meme-token',
+      27: 'decentralized-finance-defi',
+    };
+    let name: string, symbol: string;
+    if (indexNumericId === 21) {
+      name = symbol = 'SY100';
+    } else {
+      const etfType = idToEtfType[indexNumericId];
+      if (!etfType) throw new Error(`Unknown indexId ${indexNumericId}`);
+      name = this.getETFName(etfType);
+      symbol = this.getETFSymbol(etfType);
+    }
+
+    this.logger.log(
+      `🔄 Processing ${symbol} @ ${new Date(rebalanceTimestamp * 1000).toISOString()}`,
+    );
+
+    // 2) load any pending temp_rebalances rows
+    const pending = await this.dbService
+      .getDb()
+      .select()
+      .from(tempRebalances)
+      .where(
+        and(
+          eq(tempRebalances.indexId, indexNumericId.toString()),
+          eq(tempRebalances.deployed, false),
+        ),
+      )
+      .orderBy(asc(tempRebalances.timestamp));
+
+    if (pending.length === 0) {
+      this.logger.log(
+        `✅ No pending rows for ${symbol} at ${rebalanceTimestamp}`,
+      );
+      return;
+    }
+
+    // 3) find or deploy the on-chain index
+    const listRaw = await fs
+      .readFile(this.INDEX_LIST_PATH, 'utf8')
+      .catch(() => '[]');
+    const indexList: Array<{ name: string; symbol: string; address: string }> =
+      JSON.parse(listRaw);
+    let entry = indexList.find((e) => e.symbol === symbol);
+
+    let indexAddress: string;
+    if (!entry) {
+      this.logger.log(`🆕 Deploying ${symbol}`);
+      indexAddress = await this.deployIndex(name, symbol, symbol /*custodyId*/);
+      entry = { name, symbol, address: indexAddress };
+      indexList.push(entry);
+      await fs.writeFile(
+        this.INDEX_LIST_PATH,
+        JSON.stringify(indexList, null, 2),
+        'utf8',
+      );
+      this.logger.log(`💾 Recorded ${symbol} → ${indexAddress}`);
+    } else {
+      indexAddress = entry.address;
+      this.logger.log(`✅ Found deployed ${symbol} @ ${indexAddress}`);
+    }
+
+    // 4) fetch the NAV price for that day
+    const date = new Date(rebalanceTimestamp * 1000).toISOString().slice(0, 10);
+    const dp = await this.dbService
+      .getDb()
+      .select({ price: dailyPrices.price })
+      .from(dailyPrices)
+      .where(
+        and(
+          eq(dailyPrices.indexId, indexNumericId.toString()),
+          eq(dailyPrices.date, date),
+        ),
+      )
+      .limit(1);
+    if (!dp.length) throw new Error(`No daily_prices for ${symbol} at ${date}`);
+    const nav = parseFloat(dp[0].price.toString());
+
+    // 5) for each pending row: parse weights, encode & on-chain update
+    for (const row of pending) {
+      const weights: [string, number][] = JSON.parse(row.weights);
+
+      const encoded = this.indexRegistryService.encodeWeights(weights);
+
+      // scale NAV to 6 decimals:
+      const scaledPrice = BigInt(Math.floor(nav * 1e6)) as ethers.BigNumberish;
+      // push on-chain
+      await this.updateWeights(
+        indexAddress,
+        rebalanceTimestamp,
+        encoded,
+        scaledPrice,
+      );
+      this.logger.log(`📝 curatorUpdate sent for row ${row.id}`);
+
+      // mark deployed
+      await this.dbService
+        .getDb()
+        .update(tempRebalances)
+        .set({ deployed: true })
+        .where(eq(tempRebalances.id, row.id));
+      this.logger.log(`✅ Marked row ${row.id} deployed`);
+    }
+
+    this.logger.log(
+      `🎉 Completed processing ${pending.length} rows for ${symbol}`,
+    );
+    await sleep(1000);
   }
 }
