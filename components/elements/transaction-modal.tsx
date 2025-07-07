@@ -1,22 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { Sparkles, CheckCircle2, Circle, Copy } from "lucide-react";
-import CustomTooltip from "./custom-tooltip";
-import USDC from "../../public/logos/usd-coin.png";
-import IndexMaker from "../icons/indexmaker";
+import { CheckCircle2, XCircle, Circle, Sparkles, Copy } from "lucide-react";
 import { useWallet } from "@/contexts/wallet-context";
 import { buildNewQuoteRequest } from "@/lib/fix";
-import { BrowserProvider, Contract, ethers } from "ethers";
-import { deposit } from "@/api/indices";
+import { BrowserProvider, Contract, ethers, parseUnits } from "ethers";
+import otcIndexAbi from "@/lib/abi/otcIndex.json";
+import erc20Abi from "@/lib/abi/ERC20.json";
+import Image from "next/image";
+import IndexMaker from "../icons/indexmaker";
+import USDC from "../../public/logos/usd-coin.png";
+import CustomTooltip from "./custom-tooltip";
+
 interface TransactionItem {
   token: string;
   amount: number;
@@ -27,6 +24,10 @@ interface TransactionItem {
     logo: string;
   }[];
 }
+
+const USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const OTC_INDEX_ADDRESS = "0x01055d9E2b6A4d5E07cC4585B40567da41238f04";
+const USDC_DECIMALS = 6;
 
 interface TransactionConfirmModalProps {
   isOpen: boolean;
@@ -40,47 +41,35 @@ export function TransactionConfirmModal({
   transactions,
 }: TransactionConfirmModalProps) {
   const [step, setStep] = useState<"review" | "confirm">("review");
+  const [approvalStatus, setApprovalStatus] = useState<
+    "idle" | "done" | "error"
+  >("idle");
+  const [depositStatus, setDepositStatus] = useState<"idle" | "done" | "error">(
+    "idle"
+  );
+  const [fixStatus, setFixStatus] = useState<"idle" | "done" | "error">("idle");
 
-  const [approvalComplete, setApprovalComplete] = useState(false);
+  const [bundleApproved, setBundleApproved] = useState<
+    "idle" | "success" | "failed"
+  >("idle");
+  const [txConfirmed, setTxConfirmed] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const {
-    wallet,
-    isConnected,
-    connecting,
-    connectWallet,
-    disconnectWallet,
-    switchNetwork,
-    switchWallet,
-  } = useWallet();
+
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [finalizing, setFinalizing] = useState(false);
+
+  const { wallet, isConnected, connectWallet } = useWallet();
 
   const handleConfirm = async () => {
     if (!wallet) {
       await connectWallet();
       return;
     }
+    setStep("confirm");
+  };
 
-    if (step === "review") {
-      setStep("confirm");
-    } else {
-      setIsProcessing(true);
-      // Simulate approval process
-      // Simulate FIX quote request message and ACK
-      const userAddress = wallet.accounts[0].address;
-      const mockQuoteId = `Q-${Math.floor(Math.random() * 10000)}`;
-
-      console.log("Sending FIX NewQuoteRequest:", {
-        msg_type: "NewQuoteRequest",
-        address: userAddress,
-        symbol: "USDC",
-        amount: transactions?.[0].amount.toString(),
-        client_quote_id: mockQuoteId,
-      });
-
-      setTimeout(() => {
-        setApprovalComplete(true);
-        setIsProcessing(false);
-      }, 2000);
-    }
+  const handleRetryBundle = () => {
+    setBundleApproved("idle");
   };
 
   const handleApproval = async () => {
@@ -91,53 +80,121 @@ export function TransactionConfirmModal({
 
     try {
       setIsProcessing(true);
+      setApprovalStatus("idle");
 
-      const provider = new BrowserProvider(wallet.provider?.provider as any);
+      const provider = new BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
-      const depositAmount = transactions
-        ?.reduce((total, t) => total + Number(t.amount), 0)
-        .toString() || '0';
-      
-      const result = await deposit(signer.address, depositAmount);
-      console.log(result)
-      alert("✅ Deposit triggered on backend!");
-      handleClose();
+      const usdc = new Contract(USDC_ADDRESS, erc20Abi.abi, signer);
 
+      const amount = parseUnits(
+        transactions
+          ?.reduce((sum, t) => sum + Number(t.amount), 0)
+          .toString() || "0",
+        USDC_DECIMALS
+      );
 
-      setApprovalComplete(true);
-    } catch (err) {
-      console.error("Approval failed", err);
+      const allowance = await usdc.allowance(
+        wallet.accounts[0].address,
+        OTC_INDEX_ADDRESS
+      );
+
+      if (allowance < amount) {
+        const tx = await usdc.approve(OTC_INDEX_ADDRESS, amount);
+        await tx.wait();
+      }
+
+      setApprovalStatus("done");
+    } catch (e) {
+      console.error("Approval error:", e);
+      setApprovalStatus("error");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const resetModal = () => {
-    setStep("review");
-    setApprovalComplete(false);
-    setIsProcessing(false);
+  const handleDeposit = async () => {
+    try {
+      setIsProcessing(true);
+      setDepositStatus("idle");
+
+      const provider = new BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+      const otcIndex = new Contract(OTC_INDEX_ADDRESS, otcIndexAbi.abi, signer);
+
+      const amount = parseUnits(
+        transactions
+          ?.reduce((sum, t) => sum + Number(t.amount), 0)
+          .toString() || "0",
+        USDC_DECIMALS
+      );
+
+      const tx = await otcIndex.deposit(
+        amount,
+        Math.floor(Math.random() * 100000),
+        ethers.ZeroAddress,
+        ethers.ZeroAddress
+      );
+
+      await tx.wait();
+      setTxHash(tx.hash);
+      setFinalizing(true);
+      setDepositStatus("done");
+      // handleClose();
+    } catch (e) {
+      console.error("Deposit error:", e);
+      setDepositStatus("error");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleClose = () => {
-    resetModal();
+    setStep("review");
+    setBundleApproved("idle");
+    setTxConfirmed(false);
+    setIsProcessing(false);
     onClose();
+  };
+
+  const handleSendFixQuote = async () => {
+    try {
+      setFixStatus("idle");
+
+      const userAddress = wallet?.accounts[0]?.address;
+      const totalAmount =
+        transactions
+          ?.reduce((sum, t) => sum + Number(t.amount), 0)
+          .toString() || "0";
+
+      const quoteReq = buildNewQuoteRequest({
+        chainId: 1,
+        address: userAddress || "",
+        symbol: "USDC",
+        side: "1",
+        amount: totalAmount,
+        seqNum: Math.floor(Math.random() * 100000),
+      });
+
+      console.log("🚀 Sending FIX message:", quoteReq);
+
+      // Simulate network
+      await new Promise((r) => setTimeout(r, 1000));
+
+      setFixStatus("done");
+      handleClose();
+    } catch (err) {
+      console.error("FIX quote failed", err);
+      setFixStatus("error");
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl bg-background border-accent text-primary">
-        <div className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="flex justify-between items-center pb-4">
           <DialogTitle className="text-lg font-bold">
             {step === "review" ? "Review transaction" : "Confirm transaction"}
           </DialogTitle>
-          {/* <Button
-            variant="ghost"
-            size="[12px]"
-            onClick={handleClose}
-            className="text-secondary hover:text-primary h-auto p-1"
-          >
-            Cancel
-          </Button> */}
         </div>
 
         {step === "review" && transactions ? (
@@ -298,100 +355,167 @@ export function TransactionConfirmModal({
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Step 1: Approval */}
+            {/* STEP 1: Token Approval */}
             <div className="flex items-start gap-3">
               <div className="mt-1">
-                {approvalComplete ? (
-                  <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                {approvalStatus === "done" ? (
+                  <CheckCircle2 className="text-blue-500 w-5 h-5" />
+                ) : approvalStatus === "error" ? (
+                  <XCircle className="text-red-500 w-5 h-5" />
                 ) : (
-                  <Circle className="w-5 h-5 text-blue-500" />
+                  <Circle className="text-blue-500 w-5 h-5 animate-pulse" />
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-[15px] font-medium">
-                  Approve the bundler to spend tokens (via permit)
+                <p className="text-[15px] font-medium text-primary">
+                  Approve bundler to spend your{" "}
+                  {transactions
+                    ?.reduce((sum, t) => sum + Number(t.amount), 0)
+                    .toString() || "0"}{" "}
+                  USDC (via permit)
                 </p>
-                {!approvalComplete && (
+                {approvalStatus === "idle" && (
                   <Button
                     onClick={handleApproval}
                     size="sm"
                     className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Approving..." : "Approve"}
+                    {isProcessing ? "Waiting for Wallet..." : "Approve USDC"}
+                  </Button>
+                )}
+                {approvalStatus === "error" && (
+                  <Button
+                    onClick={handleApproval}
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 text-red-500 border-red-500"
+                  >
+                    Retry Approval
                   </Button>
                 )}
               </div>
             </div>
 
-            {/* Step 2: Bundle Actions */}
+            {/* STEP 2: Execute Deposit */}
             <div className="flex items-start gap-3">
-              <div className="mt-0">
-                <Circle
-                  className={`w-5 h-5 ${
-                    approvalComplete ? "text-blue-500" : "text-secondary"
-                  }`}
-                />
+              <div className="mt-1">
+                {depositStatus === "done" ? (
+                  <CheckCircle2 className="text-blue-500 w-5 h-5" />
+                ) : depositStatus === "error" ? (
+                  <XCircle className="text-red-500 w-5 h-5" />
+                ) : (
+                  <Circle
+                    className={`w-5 h-5 ${
+                      approvalStatus === "done"
+                        ? "text-blue-500"
+                        : "text-secondary"
+                    }`}
+                  />
+                )}
               </div>
               <div className="flex-1">
-                <p
-                  className={`text-[15px] font-medium ${
-                    approvalComplete ? "text-primary" : "text-secondary"
-                  }`}
-                >
-                  Bundle the following actions
+                <p className="text-[15px] font-medium text-primary">
+                  Execute deposit transaction
                 </p>
                 <div
                   className={`mt-4 space-y-2 ${
-                    approvalComplete ? "" : "opacity-50"
+                    approvalStatus !== "done" ? "opacity-50" : ""
                   }`}
                 >
-                  {transactions &&
-                    transactions.map((transaction) => (
-                      <div
-                        key={transaction.token + "-2nd"}
-                        className="p-3 bg-foreground rounded-lg"
-                      >
-                        <p className="text-[12px] text-secondary">
-                          Supply {transaction.amount} USDC to {transaction.token}
-                        </p>
-                      </div>
-                    ))}
+                  {transactions?.map((t) => (
+                    <div
+                      key={t.token + "-deposit"}
+                      className="p-3 bg-foreground rounded-lg text-[12px] text-secondary"
+                    >
+                      Supply {t.amount} USDC to {t.token}
+                    </div>
+                  ))}
                 </div>
-                {approvalComplete && (
+
+                {approvalStatus === "done" && depositStatus !== "done" && (
                   <Button
-                    onClick={async () => {
-                      const userAddress = wallet?.accounts[0]?.address;
-
-                      const quoteReq = buildNewQuoteRequest({
-                        chainId: 1,
-                        address: userAddress || "",
-                        symbol: "USDC",
-                        side: "1",
-                        amount: transactions
-                          ?.reduce((total, t) => total + Number(t.amount), 0)
-                          .toString() || '0',
-                        seqNum: Math.floor(Math.random() * 100000),
-                      });
-
-                      console.log("🚀 Final FIX message:", quoteReq);
-
-                      // TODO: Replace with actual message sending (e.g. WebSocket or API)
-                      setTimeout(() => {
-                        alert(
-                          `Deposit Quote Request sent for ${quoteReq.amount} USDC`
-                        );
-                        handleClose();
-                      }, 1000);
-                    }}
+                    onClick={handleDeposit}
                     size="sm"
                     className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={isProcessing}
                   >
-                    Execute Transaction
+                    {isProcessing ? "Processing..." : "Execute Transaction"}
                   </Button>
+                )}
+                {depositStatus === "error" && (
+                  <p className="text-sm text-red-500 mt-2">
+                    Deposit failed. Please try again.
+                  </p>
                 )}
               </div>
             </div>
+
+            {/* STEP 3: Send FIX Message */}
+            {/* <div className="flex items-start gap-3">
+              <div className="mt-1">
+                {fixStatus === "done" ? (
+                  <CheckCircle2 className="text-blue-500 w-5 h-5" />
+                ) : fixStatus === "error" ? (
+                  <XCircle className="text-red-500 w-5 h-5" />
+                ) : (
+                  <Circle
+                    className={`w-5 h-5 ${
+                      depositStatus === "done"
+                        ? "text-blue-500"
+                        : "text-secondary"
+                    }`}
+                  />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-[15px] font-medium text-primary">
+                  Send quote request to IndexMaker
+                </p>
+
+                {depositStatus === "done" && fixStatus !== "done" && (
+                  <Button
+                    onClick={handleSendFixQuote}
+                    size="sm"
+                    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Send FIX Quote
+                  </Button>
+                )}
+
+                {fixStatus === "error" && (
+                  <p className="text-sm text-red-500 mt-2">
+                    Sending FIX message failed. Please retry.
+                  </p>
+                )}
+              </div>
+            </div> */}
+
+            {/* Final Step: Transaction Finalizing */}
+            {finalizing && txHash && (
+              <div className="flex items-start gap-3 mt-4">
+                <div className="mt-1">
+                  <Circle className="w-5 h-5 text-blue-500 animate-spin" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[15px] font-medium text-primary">
+                    Transaction{" "}
+                    <a
+                      href={`https://basescan.org/tx/${txHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline text-blue-500"
+                    >
+                      {txHash.slice(0, 6)}...{txHash.slice(-4)}
+                    </a>{" "}
+                    is finalizing
+                  </p>
+                  <p className="text-sm text-secondary">
+                    Feel free to browse as the transaction finalizes
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </DialogContent>

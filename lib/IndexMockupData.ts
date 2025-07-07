@@ -112,7 +112,21 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "SY Crypto 100 is a market-weighted index of the top 100 cryptocurrencies by market cap."
+    description: "SY Crypto 100 is a market-weighted index of the top 100 cryptocurrencies by market cap.",
+    documents: [
+      {
+        id: "Index Overview",
+        name: "Index Overview",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
   },
   'SYAZ': {
     fundDetails: [
@@ -224,7 +238,21 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
   },
   'SYAI': {
     fundDetails: [
@@ -336,7 +364,21 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
   },
   'SYME': {
     fundDetails: [
@@ -448,7 +490,21 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
   },
   'SYL2': {
     fundDetails: [
@@ -560,7 +616,21 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
   },
   'SYDF': {
     fundDetails: [
@@ -672,7 +742,21 @@ export const indexData: any = {
         isLink: true
       }
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets."
+    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    documents: [
+      {
+        id: "whitepaper",
+        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
+        url: "#",
+        description: "Technical details about the Spark DAI vault",
+      },
+      {
+        id: "audit",
+        name: "Security Audit",
+        url: "#",
+        description: "Security audit report by ChainSecurity",
+      },
+    ],
   }
 };
 

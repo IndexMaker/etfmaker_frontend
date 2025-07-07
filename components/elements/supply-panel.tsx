@@ -40,7 +40,7 @@ interface SupplyPanelProps {
 interface VaultInfo {
   name: string;
   ticker: string;
-  amount: number;
+  amount: string;
 }
 
 interface TransactionData {
@@ -99,9 +99,9 @@ export function SupplyPanel({
       return {
         token: vault.name,
         amount:
-          vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount || 0,
+          Number(vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount) || 0,
         value:
-          vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount || 0,
+          Number(vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount) || 0,
         apy: vault.performance?.oneYearReturn || 0,
         collateral: vault.collateral,
       };
@@ -202,7 +202,9 @@ export function SupplyPanel({
       setMaxPopoverOpen(false);
       return;
     }
-    dispatch(updateVaultAmount({ name: vaultId, amount: maxBalance }));
+    dispatch(
+      updateVaultAmount({ name: vaultId, amount: maxBalance.toString() })
+    );
     setInsufficientValue(false);
     setMaxPopoverOpen(false);
   };
@@ -212,13 +214,13 @@ export function SupplyPanel({
   };
 
   const handleAmountChange = (vaultId: string, value: string) => {
-    const amount = parseFloat(value);
+    // Store value as-is
+    dispatch(updateVaultAmount({ name: vaultId, amount: value }));
 
+    // Optional: parse number for validation purposes
+    const amount = parseFloat(value);
     if (!isNaN(amount) && amount >= 0) {
-      dispatch(updateVaultAmount({ name: vaultId, amount }));
       setInsufficientValue(false);
-    } else {
-      dispatch(updateVaultAmount({ name: vaultId, amount: 0 }));
     }
   };
 
@@ -317,29 +319,25 @@ export function SupplyPanel({
                                 )?.amount || ""
                               }
                               className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-gray-400"
-                              onInput={(e) => {
-                                e.currentTarget.value =
-                                  e.currentTarget.value.replace(/[^0-9.]/g, "");
+                              onChange={(e) => {
+                                let value = e.target.value;
 
-                                handleAmountChange(
-                                  vault.name,
-                                  e.currentTarget.value
-                                );
-                              }}
-                              onKeyDown={(e) => {
-                                if (
-                                  !/[0-9.]/.test(e.key) && // Allow numbers and decimal point
-                                  e.key !== "Backspace" &&
-                                  e.key !== "Delete" &&
-                                  e.key !== "ArrowLeft" &&
-                                  e.key !== "ArrowRight"
-                                ) {
-                                  e.preventDefault();
+                                // Allow empty input
+                                if (value === "") {
+                                  handleAmountChange(vault.name, "");
+                                  return;
                                 }
+
+                                // Only allow numbers and a single dot
+                                const isValid = /^(\d+)?(\.\d*)?$/.test(value);
+                                if (!isValid) return;
+
+                                handleAmountChange(vault.name, value);
                               }}
                             />
+
                             <div className="font-mono text-[11px] text-muted">
-                              {0.00}
+                              {0.0}
                             </div>
                           </div>
 
@@ -476,7 +474,9 @@ export function SupplyPanel({
                                         width={14}
                                         height={14}
                                       />
-                                      <span className="text-xs">IndexMaker</span>
+                                      <span className="text-xs">
+                                        IndexMaker
+                                      </span>
                                       <Copy className="w-[15px] h-[15px] cursor-pointer" />
                                     </div>
                                     <span className="font-bold">+1.16%</span>
@@ -580,7 +580,7 @@ export function SupplyPanel({
                               }
                             >
                               <span className="text-[12px] pl-2 text-secondary">
-                                + {vault.collateral.length - 5}
+                                + {vault.collateral?.length - 5}
                               </span>
                             </CustomTooltip>
                           )}
@@ -640,7 +640,9 @@ export function SupplyPanel({
                 className="flex-1 h-[40px] bg-blue-600 hover:bg-blue-700 text-white text-[14px] cursor-pointer"
                 disabled={
                   selectedVault.filter(
-                    (_vault) => isNaN(_vault.amount) || _vault.amount === 0
+                    (_vault) =>
+                      isNaN(Number(_vault.amount)) ||
+                      Number(_vault.amount) === 0
                   ).length > 0
                 }
                 onClick={handleSupply}

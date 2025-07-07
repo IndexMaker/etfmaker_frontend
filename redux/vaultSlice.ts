@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface Vault {
   name: string;
   ticker: string;
-  amount: number;
+  amount: string;
 }
 
 interface VaultState {
@@ -25,14 +25,14 @@ const vaultSlice = createSlice({
       // Remove any vault with same vaultId AND amount === 0 or null
       state.selectedVault = state.selectedVault.filter(
         (v) =>
-          (v.amount && v.amount > 0)
+          (v.amount && Number(v.amount) > 0)
       );
 
       // Add the new one
       state.selectedVault.push({
         name: action.payload.name,
         ticker: action.payload.ticker,
-        amount: 0,
+        amount: '',
       });
     },
     removeSelectedVault(state, action: PayloadAction<string>) {
@@ -42,7 +42,7 @@ const vaultSlice = createSlice({
     },
     updateVaultAmount(
       state,
-      action: PayloadAction<{ name: string; amount: number }>
+      action: PayloadAction<{ name: string; amount: string }>
     ) {
       const vault = state.selectedVault.find(
         (v) => v.name === action.payload.name

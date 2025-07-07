@@ -106,6 +106,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   } = useWallet();
   const { t } = useLanguage();
   const vault = mockup_vaults[0];
+  const documents = getIndexData(index?.name || 'SY100').documents || [];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
   const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
@@ -530,7 +531,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                   </AccordionTrigger>
                   <AccordionContent className="pt-4">
                     <VaultLiteratureSection
-                      literature={vault.documents}
+                      literature={documents}
                       rebalanceData={indexData?.rawData ?? []}
                       indexId={index.indexId}
                       indexName={index.name}
@@ -890,7 +891,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     {t("common.vaultInfo")}
                   </h2>
                   <VaultLiteratureSection
-                    literature={vault.documents}
+                    literature={documents}
                     rebalanceData={indexData?.rawData ?? []}
                     indexId={index.indexId}
                     indexName={index.name}

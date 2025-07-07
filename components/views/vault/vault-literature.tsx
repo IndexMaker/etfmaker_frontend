@@ -58,13 +58,16 @@ export function VaultLiteratureSection({
             rel="noopener noreferrer"
             className="group flex gap-3 items-center opacity-80 hover:opacity-100 transition-opacity"
           >
-            <div className="flex-shrink-0 w-12 h-14 border border-zinc-700 rounded-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-4 h-4 border-b border-r border-zinc-700 rounded-br-sm"></div>
-              <FileText className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-zinc-400" />
+            <div className="flex-shrink-0 w-12 h-14 border border-muted rounded-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-4 h-4 border-b border-r border-muted rounded-br-sm"></div>
+              <FileText className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-secondary" />
             </div>
-            <div className="pt-0">
-              <h3 className="text-secondary text-[12px] font-normal group-hover:text-primary transition-colors leading-[16px] overflow-hidden text-ellipsis whitespace-normal line-clamp-3">
-                {doc.name}
+            <div className="pt-0 h-full">
+              <h3 className="h-full text-secondary text-[12px] font-normal group-hover:text-primary transition-colors leading-[16px] overflow-hidden text-ellipsis whitespace-normal line-clamp-3 flex flex-col gap-2 justify-between">
+                <span className="text-[13px] text-primary">{doc.name}</span>
+                <span className="text-[11px] overflow-ellipsis w-full whitespace-nowrap">
+                  {doc.description}
+                </span>
               </h3>
             </div>
           </Link>
@@ -85,17 +88,20 @@ export function VaultLiteratureSection({
                 _downloadRebalanceData(); // Call your function
               }}
             >
-              <div className="flex-shrink-0 w-12 h-14 border border-zinc-700 rounded-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-4 h-4 border-b border-r border-zinc-700 rounded-br-sm"></div>
+              <div className="flex-shrink-0 w-12 h-14 border border-muted rounded-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-4 h-4 border-b border-r border-muted rounded-br-sm"></div>
                 {isLoading ? (
-                  <Spinner className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-zinc-400" />
+                  <Spinner className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-secondary" />
                 ) : (
-                  <FileText className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-zinc-400" />
+                  <FileText className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-secondary" />
                 )}
               </div>
               <div className="pt-0">
-                <h3 className="text-secondary text-[12px] font-normal group-hover:text-primary transition-colors leading-[16px] overflow-hidden text-ellipsis whitespace-normal line-clamp-3">
-                  {isLoading ? "Downloading..." : "Download Rebalance Data"}
+                <h3 className="h-full text-secondary text-[12px] font-normal group-hover:text-primary transition-colors leading-[16px] overflow-hidden text-ellipsis whitespace-normal line-clamp-3 flex flex-col gap-2 justify-between">
+                  <span className="text-[13px] text-primary">
+                    {isLoading ? "Downloading..." : "Download Rebalance Data"}
+                  </span>
+                  <span className="text-[11px]"></span>
                 </h3>
               </div>
             </Link>
@@ -112,17 +118,22 @@ export function VaultLiteratureSection({
                 _downloadDailyPriceData(); // Call your function
               }}
             >
-              <div className="flex-shrink-0 w-12 h-14 border border-zinc-700 rounded-sm relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-4 h-4 border-b border-r border-zinc-700 rounded-br-sm"></div>
+              <div className="flex-shrink-0 w-12 h-14 border border-muted rounded-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-4 h-4 border-b border-r border-muted rounded-br-sm"></div>
                 {isPriceDownloading ? (
-                  <Spinner className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-zinc-400" />
+                  <Spinner className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-secondary" />
                 ) : (
-                  <FileText className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-zinc-400" />
+                  <FileText className="absolute bottom-2 left-1/2 transform -translate-x-1/2 h-6 w-6 text-secondary" />
                 )}
               </div>
               <div className="pt-0">
-                <h3 className="text-secondary text-[12px] font-normal group-hover:text-primary transition-colors leading-[16px] overflow-hidden text-ellipsis whitespace-normal line-clamp-3">
-                  {isPriceDownloading ? "Downloading..." : "Download Daily Prices"}
+                <h3 className="h-full text-secondary text-[12px] font-normal group-hover:text-primary transition-colors leading-[16px] overflow-hidden text-ellipsis whitespace-normal line-clamp-3 flex flex-col gap-2 justify-between">
+                  <span className="text-[13px] text-primary">
+                    {isPriceDownloading
+                      ? "Downloading..."
+                      : "Download Daily Prices"}
+                  </span>
+                  <span className="text-[11px]"></span>
                 </h3>
               </div>
             </Link>
