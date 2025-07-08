@@ -26,7 +26,6 @@ contract IndexFactory is IConnectorFactory {
         (
             string memory _name,
             string memory _symbol,
-            bytes32 _custodyIdFromData,
             address _collateralToken,
             uint256 _collateralTokenPrecision,
             uint256 _managementFee,
@@ -38,7 +37,7 @@ contract IndexFactory is IConnectorFactory {
             uint256 _initialPrice
         ) = abi.decode(
             data,
-            (string, string, bytes32, address, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256)
+            (string, string, address, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256)
         );
 
         OTCIndex index = new OTCIndex(

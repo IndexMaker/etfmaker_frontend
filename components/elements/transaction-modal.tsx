@@ -127,10 +127,10 @@ export function TransactionConfirmModal({
           .toString() || "0",
         USDC_DECIMALS
       );
-
+      const seqNum = Math.floor(Math.random() * 100000)
       const tx = await otcIndex.deposit(
         amount,
-        Math.floor(Math.random() * 100000),
+        seqNum,
         ethers.ZeroAddress,
         ethers.ZeroAddress
       );
@@ -138,6 +138,10 @@ export function TransactionConfirmModal({
       await tx.wait();
       setTxHash(tx.hash);
       setFinalizing(true);
+
+      // const _tx = await otcIndex.mint(wallet?.accounts[0]?.address || '0', amount, seqNum);
+
+      // await _tx.wait();
       setDepositStatus("done");
       // handleClose();
     } catch (e) {

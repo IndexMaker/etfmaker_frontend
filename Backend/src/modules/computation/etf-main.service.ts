@@ -1041,12 +1041,16 @@ export class EtfMainService {
         '../../../../artifacts/contracts/Connectors/OTCIndex/OTCIndexFactory.sol/IndexFactory.json',
       ),
     ).abi;
+    const factoryContract = new ethers.Contract(
+      otcCustodyAddress,
+      factoryAbi,
+      this.signer,
+    );
     const factoryIface = new ethers.Interface(factoryAbi);
 
     const indexParams = [
       name, // string _name
       symbol, // string _symbol
-      ethers.ZeroHash,
       process.env.USDC_ADDRESS_IN_BASE!, // address _collateralToken
       ethers.parseUnits('1', 6), // uint256 _collateralTokenPrecision
       ethers.parseUnits('2', 18), // uint256 _managementFee
@@ -1062,7 +1066,6 @@ export class EtfMainService {
     const types = [
       'string',
       'string',
-      'bytes32',
       'address',
       'uint256',
       'uint256',
@@ -1091,18 +1094,18 @@ export class EtfMainService {
     const _custodyId = caHelper.getCustodyID();
     console.log('Factory deployment custody ID:', _custodyId);
 
-    const depositAmount = ethers.parseUnits('0.01', 6);
-    await (usdcContract.connect(this.signer) as MockERC20).approve(
-      process.env.OTC_CUSTODY_ADDRESS!,
-      depositAmount,
-    );
-    await (otcCustody.connect(this.signer) as OTCCustody).addressToCustody(
-      _custodyId,
-      process.env.USDC_ADDRESS_IN_BASE!,
-      depositAmount,
-    );
-    console.log('Custody setup with tokens');
-    
+    // const depositAmount = ethers.parseUnits('0.01', 6);
+    // await (usdcContract.connect(this.signer) as MockERC20).approve(
+    //   process.env.OTC_CUSTODY_ADDRESS!,
+    //   depositAmount,
+    // );
+    // await (otcCustody.connect(this.signer) as OTCCustody).addressToCustody(
+    //   _custodyId,
+    //   process.env.USDC_ADDRESS_IN_BASE!,
+    //   depositAmount,
+    // );
+    // console.log('Custody setup with tokens');
+
     const deployTimestamp = Math.floor(Date.now() / 1000);
     const verificationData = {
       id: _custodyId,
@@ -1117,7 +1120,6 @@ export class EtfMainService {
     };
 
     console.log('Deploying index via factory...');
-
     const tx = await otcCustody.deployConnector(
       'IndexFactory',
       indexFactoryAddress,
@@ -1126,29 +1128,27 @@ export class EtfMainService {
     );
     this.logger.log(`📝 deployConnector(IndexFactory) sent: ${tx.hash}`);
     const receipt = await tx.wait();
+    console.log(receipt?.logs)
+    const indexDeployedEvent = receipt?.logs.find((log) => {
+      try {
+        const decoded = factoryContract.interface.parseLog(log);
+        return decoded?.name === 'IndexDeployed';
+      } catch {
+        return false;
+      }
+    });
 
-    const event = receipt.logs
-      .map((log) => {
-        try {
-          return factoryIface.parseLog(log);
-        } catch {
-          return null;
-        }
-      })
-      .find((parsed) => parsed && parsed.name === 'IndexDeployed');
-
-    if (!event) {
-      throw new Error(
-        'IndexDeployed event not found in deployConnector receipt',
-      );
+    if (!indexDeployedEvent) {
+      throw new Error('IndexDeployed event not found');
     }
-    const deployedAddress = event.args[0] as string;
-    this.logger.log(`✅ ${symbol} deployed via factory to ${deployedAddress}`);
+    const decoded = factoryContract.interface.parseLog(indexDeployedEvent);
+    const deployedIndexAddress = decoded?.args[0] as string;
+    this.logger.log(`✅ ${symbol} deployed via factory to ${deployedIndexAddress}`);
 
-    await this.recordDeployedIndex({ name, symbol, address: deployedAddress });
-    this.logger.log(`💾 Recorded ${symbol} at ${deployedAddress}`);
+    await this.recordDeployedIndex({ name, symbol, address: deployedIndexAddress });
+    this.logger.log(`💾 Recorded ${symbol} at ${deployedIndexAddress}`);
 
-    return deployedAddress;
+    return deployedIndexAddress;
   }
 
   // async fetchETFWeights(
@@ -1762,7 +1762,7 @@ export class EtfMainService {
       Number(chainId),
       process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
     );
-    
+
     const erc20Json = require(
       path.resolve(
         __dirname,
@@ -1799,7 +1799,7 @@ export class EtfMainService {
       custodyState,
       publicKey,
     );
-    const custodyId = caHelper.getCustodyID()
+    const custodyId = caHelper.getCustodyID();
     // const depositAmount = ethers.parseUnits('0.01', 6);
     // await (usdcContract.connect(this.signer) as MockERC20).approve(
     //   process.env.OTC_CUSTODY_ADDRESS!,
@@ -1828,13 +1828,13 @@ export class EtfMainService {
       'OTCIndexConnector',
       indexAddress,
       callData,
-      '0x', 
+      '0x',
       verificationData,
     );
     this.logger.log(`📝 callConnector(curatorUpdate) sent: ${tx.hash}`);
     await tx.wait();
     this.logger.log(`✅ curatorUpdate relayed via custody`);
-    sleep(1000)
+    sleep(1000);
   }
 
   // purpose for initial deploying

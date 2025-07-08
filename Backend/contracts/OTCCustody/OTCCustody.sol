@@ -78,8 +78,8 @@ contract OTCCustody {
 
     mapping(bytes32 => bytes32) private custodys;
     mapping(bytes32 => mapping(address => uint256)) public custodyBalances; // custodyId => token address => balance
-    mapping(bytes32 => mapping(address => bool)) public whitelistedConnectors; // custodyId => deployed Connector address => isAllowed
-    mapping(address => address) public connectorDeployers; // deployed Connector address => deployer address
+    mapping(address => bytes32) public connectorToCustody; // deployed Connector address => custodyId
+    mapping(bytes32 => address) public custodyOwners; // custodyId => owner address
     mapping(bytes32 => bool) private nullifier;
     mapping(bytes32 => uint256) public lastConnectorUpdateTimestamp; // custodyId => timestamp
     mapping(bytes32 => bytes32) private CAs;
@@ -88,15 +88,6 @@ contract OTCCustody {
     mapping(bytes32 => uint256) private custodyMsgLength;
 
     mapping(bytes32 => mapping(address => address)) private withdrawReRoutings; // custodyId => address => address // used for instant withdraw
-
-    mapping(uint256 => mapping(address => uint256)) public slashableCustody; // msgSeqNum => tokenId => amount
-    mapping(bytes32 => mapping(address => mapping(address => uint256)))
-        public freezeOrder; // custodyId => partyId => tokenId => amount
-
-    modifier checkCustodyInitialized(bytes32 id) {
-        require(CAs[id] != bytes32(0), "Custody ID not initialized");
-        _;
-    }
 
     modifier checkCustodyState(bytes32 id, uint8 state) {
         require(custodyState[id] == state, "State isn't 0");
@@ -123,22 +114,6 @@ contract OTCCustody {
         _;
     }
 
-    modifier onlyConnectorDeployer(address connectorAddress) {
-        require(
-            connectorDeployers[connectorAddress] == msg.sender,
-            "Only connector deployer can call"
-        );
-        _;
-    }
-
-    modifier onlyWhitelistedConnector(bytes32 id, address connectorAddress) {
-        require(
-            whitelistedConnectors[id][connectorAddress],
-            "Connector not whitelisted"
-        );
-        _;
-    }
-
     function addressToCustody(
         bytes32 id,
         address token,
@@ -147,7 +122,7 @@ contract OTCCustody {
         require(id != bytes32(0), "Invalid custody ID");
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         custodyBalances[id][token] += amount;
-        CAs[id] = id;
+        initCA(id);
         emit addressToCustodyEvent(id, token, amount);
     }
 
@@ -158,12 +133,12 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkCustodyBalance(v.id, token, amount)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
     {
+        initCA(v.id);
         VerificationUtils.verifyLeaf(
             CAs[v.id],
             v.merkleProof,
@@ -207,12 +182,12 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkCustodyBalance(v.id, token, amount)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
     {
+        initCA(v.id);
         VerificationUtils.verifyLeaf(
             CAs[v.id],
             v.merkleProof,
@@ -253,18 +228,19 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkCustodyBalance(v.id, token, amount)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
     {
-        if (whitelistedConnectors[v.id][connectorAddress]) {
+        bytes32 custodyId = connectorToCustody[connectorAddress]; // custodyId bound to connector if the connector is deployed via deployConnector
+        if (custodyId != bytes32(0)) {
             require(
-                connectorDeployers[connectorAddress] == msg.sender,
-                "Only connector owner can call directly"
+                custodyOwners[custodyId] == msg.sender,
+                "Only custody owner can call the whitelisted connector directly"
             );
         } else {
+            initCA(v.id);
             VerificationUtils.verifyLeaf(
                 CAs[v.id],
                 v.merkleProof,
@@ -300,7 +276,6 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
@@ -309,7 +284,7 @@ contract OTCCustody {
             v.timestamp > lastConnectorUpdateTimestamp[v.id],
             "Signature expired"
         );
-
+        initCA(v.id);
         VerificationUtils.verifyLeaf(
             CAs[v.id],
             v.merkleProof,
@@ -340,7 +315,6 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
@@ -349,7 +323,7 @@ contract OTCCustody {
             v.timestamp > lastConnectorUpdateTimestamp[v.id],
             "Signature expired"
         );
-
+        initCA(v.id);
         VerificationUtils.verifyLeaf(
             CAs[v.id],
             v.merkleProof,
@@ -377,9 +351,7 @@ contract OTCCustody {
 
         address connectorAddress = IConnectorFactory(_factoryAddress)
             .deployConnector(v.id, _data, msg.sender);
-        whitelistedConnectors[v.id][connectorAddress] = true;
-        connectorDeployers[connectorAddress] = msg.sender;
-
+        connectorToCustody[connectorAddress] = v.id;
         emit ConnectorDeployed(v.id, _factoryAddress, connectorAddress);
     }
 
@@ -391,17 +363,18 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
     {
-        if (whitelistedConnectors[v.id][connectorAddress]) {
+        bytes32 custodyId = connectorToCustody[connectorAddress]; // custodyId bound to connector if the connector is deployed via deployConnector
+        if (custodyId != bytes32(0)) {
             require(
-                connectorDeployers[connectorAddress] == msg.sender,
-                "Only connector owner can call directly"
+                custodyOwners[custodyId] == msg.sender,
+                "Only custody owner can call the whitelisted connector directly"
             );
         } else {
+            initCA(v.id);
             VerificationUtils.verifyLeaf(
                 CAs[v.id],
                 v.merkleProof,
@@ -446,11 +419,11 @@ contract OTCCustody {
         VerificationData calldata v
     )
         external
-        checkCustodyInitialized(v.id)
         checkCustodyState(v.id, v.state)
         checkExpiry(v.timestamp)
         checkNullifier(v.sig.e)
     {
+        initCA(v.id);
         VerificationUtils.verifyLeaf(
             CAs[v.id],
             v.merkleProof,
@@ -471,6 +444,13 @@ contract OTCCustody {
 
         custodyState[v.id] = state;
         emit CustodyStateChanged(v.id, state);
+    }
+
+    function initCA(bytes32 id) internal {
+        if (CAs[id] == bytes32(0)) {
+            CAs[id] = id;
+            custodyOwners[id] = msg.sender;
+        }
     }
 
     /// OTCCourt
@@ -502,16 +482,19 @@ contract OTCCustody {
     }
 
     function isConnectorWhitelisted(
-        bytes32 id,
         address connectorAddress
     ) external view returns (bool) {
-        return whitelistedConnectors[id][connectorAddress];
+        return connectorToCustody[connectorAddress] != bytes32(0);
     }
 
-    function getConnectorDeployer(
+    function getConnectorCustodyId(
         address connectorAddress
-    ) external view returns (address) {
-        return connectorDeployers[connectorAddress];
+    ) external view returns (bytes32) {
+        return connectorToCustody[connectorAddress];
+    }
+
+    function getCustodyOwner(bytes32 id) external view returns (address) {
+        return custodyOwners[id];
     }
 
     function getLastConnectorUpdateTimestamp(
@@ -535,5 +518,3 @@ contract OTCCustody {
         return custodyMsgLength[id];
     }
 }
-
-

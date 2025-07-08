@@ -267,7 +267,7 @@ export function SupplyPanel({
                         <h2 className="font-normal text-[15px] text-secondary">
                           {vault.name}
                         </h2>
-                        <div className="flex items-center gap-2 text-sm text-zinc-400">
+                        <div className="flex items-center gap-2 text-sm text-secondary">
                           <span className="text-[11px] bg-accent px-2 py-0.5 rounded">
                             {shortenAddress(vault.curator)}
                           </span>
@@ -318,7 +318,7 @@ export function SupplyPanel({
                                   (_vault) => _vault.name === vault.name
                                 )?.amount || ""
                               }
-                              className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-gray-400"
+                              className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-secondary"
                               onChange={(e) => {
                                 let value = e.target.value;
 

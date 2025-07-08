@@ -22,6 +22,7 @@ import { useTheme } from "next-themes";
 import Logo from "../icons/logo";
 import FAVICON from "../../public/logo/blue-logo.png";
 import { useWallet } from "@/contexts/wallet-context";
+import IndexMaker from "../icons/indexmaker";
 
 interface SidebarProps {
   open: boolean;
@@ -91,12 +92,8 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
         >
           <Link href="/" className="flex items-center">
             {collapsed ? (
-              <Image
-                src={FAVICON}
-                alt={"LOGO"}
-                width={24}
-                height={24}
-                className="object-cover text-primary"
+              <IndexMaker
+                className="object-cover text-muted w-6 h-6"
               />
             ) : (
               // <Logo
@@ -111,7 +108,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               //     className="text-primary"
               //   />
               <Logo
-                className="w-36 h-6 dark:text-ring"
+                className="w-48 h-8 dark:text-ring ml-[-40px] "
                 color={theme == "dark" ? "#D0CECE" : "#2470ff"}
               />
             )}
