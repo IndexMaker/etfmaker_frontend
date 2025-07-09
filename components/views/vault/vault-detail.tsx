@@ -106,7 +106,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   } = useWallet();
   const { t } = useLanguage();
   const vault = mockup_vaults[0];
-  const documents = getIndexData(index?.name || 'SY100').documents || [];
+  const documents = getIndexData(index?.name || 'SY100')?.documents || [];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
   const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");

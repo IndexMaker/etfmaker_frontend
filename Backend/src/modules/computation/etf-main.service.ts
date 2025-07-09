@@ -88,14 +88,18 @@ export class EtfMainService {
   async rebalanceSY100(rebalanceTimestamp: number): Promise<void> {
     const name = 'SY100';
     const symbol = 'SY100';
-    const custodyId = name; // will be turned into bytes32 by deployIndex
-
+    const indexId = 21;
     this.logger.log(
       `Starting ${symbol} rebalance at ${new Date(rebalanceTimestamp * 1000).toISOString()}…`,
     );
 
     // 1) load (or init) your JSON index list
-    let list: Array<{ name: string; symbol: string; address: string }> = [];
+    let list: Array<{
+      name: string;
+      symbol: string;
+      indexId: string;
+      address: string;
+    }> = [];
     try {
       const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
       const parsed = JSON.parse(raw);
@@ -110,9 +114,14 @@ export class EtfMainService {
 
     if (!entry) {
       this.logger.log(`${symbol} not found locally, deploying…`);
-      indexAddress = await this.deployIndex(name, symbol, custodyId);
+      indexAddress = await this.deployIndex(name, symbol, indexId);
       this.logger.log(`🆕 Deployed ${symbol} → ${indexAddress}`);
-      entry = { name, symbol, address: indexAddress };
+      entry = {
+        name,
+        symbol,
+        indexId: indexId.toString(),
+        address: indexAddress,
+      };
       list.push(entry);
       await fs.writeFile(
         this.INDEX_LIST_PATH,
@@ -619,7 +628,12 @@ export class EtfMainService {
 
     // 1) load or init deployedIndexes.json
     const INDEX_LIST_PATH = path.resolve(process.cwd(), 'deployedIndexes.json');
-    let list: Array<{ name: string; symbol: string; address: string }> = [];
+    let list: Array<{
+      name: string;
+      symbol: string;
+      indexId: string;
+      address: string;
+    }> = [];
     try {
       const raw = await fs.readFile(INDEX_LIST_PATH, 'utf8');
       const parsed = JSON.parse(raw);
@@ -634,9 +648,14 @@ export class EtfMainService {
 
     if (!entry) {
       this.logger.log(`🆕 ${symbol} not deployed yet — deploying now`);
-      indexAddress = await this.deployIndex(name, symbol, custodyId);
+      indexAddress = await this.deployIndex(name, symbol, indexId);
       this.logger.log(`✅ ${symbol} deployed @ ${indexAddress}`);
-      entry = { name, symbol, address: indexAddress };
+      entry = {
+        name,
+        symbol,
+        indexId: indexId.toString(),
+        address: indexAddress,
+      };
       list.push(entry);
       await fs.writeFile(
         INDEX_LIST_PATH,
@@ -988,7 +1007,7 @@ export class EtfMainService {
   async deployIndex(
     name: string,
     symbol: string,
-    custodyId: string,
+    indexId: number,
   ): Promise<string> {
     const chainId = 8453;
 
@@ -1128,7 +1147,6 @@ export class EtfMainService {
     );
     this.logger.log(`📝 deployConnector(IndexFactory) sent: ${tx.hash}`);
     const receipt = await tx.wait();
-    console.log(receipt?.logs)
     const indexDeployedEvent = receipt?.logs.find((log) => {
       try {
         const decoded = factoryContract.interface.parseLog(log);
@@ -1143,9 +1161,16 @@ export class EtfMainService {
     }
     const decoded = factoryContract.interface.parseLog(indexDeployedEvent);
     const deployedIndexAddress = decoded?.args[0] as string;
-    this.logger.log(`✅ ${symbol} deployed via factory to ${deployedIndexAddress}`);
+    this.logger.log(
+      `✅ ${symbol} deployed via factory to ${deployedIndexAddress}`,
+    );
 
-    await this.recordDeployedIndex({ name, symbol, address: deployedIndexAddress });
+    await this.recordDeployedIndex({
+      name,
+      symbol,
+      indexId: indexId.toString(),
+      address: deployedIndexAddress,
+    });
     this.logger.log(`💾 Recorded ${symbol} at ${deployedIndexAddress}`);
 
     return deployedIndexAddress;
@@ -1707,9 +1732,15 @@ export class EtfMainService {
   private async recordDeployedIndex(record: {
     name: string;
     symbol: string;
+    indexId: string;
     address: string;
   }) {
-    let list: Array<{ name: string; symbol: string; address: string }> = [];
+    let list: Array<{
+      name: string;
+      symbol: string;
+      indexId: string;
+      address: string;
+    }> = [];
     try {
       const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
       const parsed = JSON.parse(raw);
@@ -1753,7 +1784,6 @@ export class EtfMainService {
   ) {
     const custodyState = 0;
     const chainId = 8453;
-
     const publicKey = {
       parity: 0,
       x: hexlify(zeroPadValue(this.signer.address, 32)) as `0x${string}`,
@@ -1786,12 +1816,12 @@ export class EtfMainService {
       custodyArtifact.abi,
       this.signer,
     );
-
     const callData = buildCallData('curatorUpdate(uint256,bytes,uint256)', [
       timestamp,
       weightsBytes,
       priceScaled,
     ]);
+
     const callConnectorActionIndex = caHelper.callConnector(
       'OTCIndexConnector',
       process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
@@ -1820,7 +1850,7 @@ export class EtfMainService {
         e: hexlify(randomBytes(32)) as `0x${string}`,
         s: hexlify(randomBytes(32)) as `0x${string}`,
       },
-      merkleProof: caHelper.getMerkleProof(callConnectorActionIndex),
+      merkleProof: [],
     };
 
     // 3) call through the custody contract’s connector entrypoint
@@ -1938,15 +1968,28 @@ export class EtfMainService {
     const listRaw = await fs
       .readFile(this.INDEX_LIST_PATH, 'utf8')
       .catch(() => '[]');
-    const indexList: Array<{ name: string; symbol: string; address: string }> =
-      JSON.parse(listRaw);
+    const indexList: Array<{
+      name: string;
+      symbol: string;
+      indexId: string;
+      address: string;
+    }> = JSON.parse(listRaw);
     let entry = indexList.find((e) => e.symbol === symbol);
 
     let indexAddress: string;
     if (!entry) {
       this.logger.log(`🆕 Deploying ${symbol}`);
-      indexAddress = await this.deployIndex(name, symbol, symbol /*custodyId*/);
-      entry = { name, symbol, address: indexAddress };
+      indexAddress = await this.deployIndex(
+        name,
+        symbol,
+        indexNumericId /*indexId*/,
+      );
+      entry = {
+        name,
+        symbol,
+        indexId: indexNumericId.toString(),
+        address: indexAddress,
+      };
       indexList.push(entry);
       await fs.writeFile(
         this.INDEX_LIST_PATH,
@@ -1958,6 +2001,25 @@ export class EtfMainService {
       indexAddress = entry.address;
       this.logger.log(`✅ Found deployed ${symbol} @ ${indexAddress}`);
     }
+
+    // Validate updated weights from Blockchain
+    
+    // const custodyArtifact = require(
+    //   path.resolve(
+    //     __dirname,
+    //     '../../../../artifacts/contracts/Connectors/OTCIndex/OTCIndex.sol/OTCIndex.json',
+    //   ),
+    // );
+    // const otcIndex = new ethers.Contract(
+    //   indexAddress,
+    //   custodyArtifact.abi,
+    //   this.signer,
+    // );
+    // const [curatorW, curatorP, ,] = await otcIndex.getWeightsAt(
+    //   1547510400,
+    // );
+    // console.log(this.indexRegistryService.decodeWeights(curatorW), curatorP);
+    // return;
 
     // 4) fetch the NAV price for that day
     const date = new Date(rebalanceTimestamp * 1000).toISOString().slice(0, 10);
@@ -1977,20 +2039,32 @@ export class EtfMainService {
 
     // 5) for each pending row: parse weights, encode & on-chain update
     for (const row of pending) {
-      const weights: [string, number][] = JSON.parse(row.weights);
+      let weights: [string, number][] = JSON.parse(row.weights);
+      if (indexNumericId === 21 && row === pending[pending.length - 1]) {
+        weights =
+          this.indexRegistryService.replaceBitgetWeightsWithBTC(weights);
+        this.logger.log(
+          `🔁 Replaced Bitget weights with BTCUSDC in last SY100 rebalance`,
+        );
+      }
 
-      const encoded = this.indexRegistryService.encodeWeights(weights);
+      const encoded = this.indexRegistryService.encodeWeights(
+        weights,
+      ) as `0x${string}`;
 
       // scale NAV to 6 decimals:
       const scaledPrice = BigInt(Math.floor(nav * 1e6)) as ethers.BigNumberish;
       // push on-chain
       await this.updateWeights(
         indexAddress,
-        rebalanceTimestamp,
+        row.timestamp,
         encoded,
         scaledPrice,
       );
-      this.logger.log(`📝 curatorUpdate sent for row ${row.id}`);
+
+      this.logger.log(
+        `📝 curatorUpdate sent for row ${row.id} at timestamp ${row.timestamp}.`,
+      );
 
       // mark deployed
       await this.dbService

@@ -183,4 +183,38 @@ export class IndexRegistryService {
   
   //   return result;
   // }
+
+  public replaceBitgetWeightsWithBTC(
+    weights: [string, number][],
+  ): [string, number][] {
+    let bitgetTotalWeight = 0;
+    const newWeights: [string, number][] = [];
+  
+    for (const [pair, weight] of weights) {
+      if (pair.startsWith('bg.')) {
+        bitgetTotalWeight += weight;
+      } else {
+        newWeights.push([pair, weight]);
+      }
+    }
+  
+    if (bitgetTotalWeight > 0) {
+      const btcUSDCIndex = newWeights.findIndex(
+        ([pair]) => pair === 'bi.BTCUSDC',
+      );
+  
+      if (btcUSDCIndex !== -1) {
+        // Add bitget weight to existing bi.BTCUSDC
+        newWeights[btcUSDCIndex][1] += bitgetTotalWeight;
+      } else {
+        throw new Error(
+          `'bi.BTCUSDC' pair not found when replacing Bitget weights.`,
+        );
+      }
+    }
+  
+    return newWeights;
+  }
+  
+  
 }

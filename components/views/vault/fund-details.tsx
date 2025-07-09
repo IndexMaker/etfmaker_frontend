@@ -14,8 +14,8 @@ export default function FundDetail({indexId = 'SY100'}: {indexId: string}) {
         </CardTitle>
       </div>
       <CardContent className="space-y-3 overflow-y-auto px-3">
-        {fundDetails.map((item: any) => (
-          <div key={indexId} className="flex justify-between items-start text-[14px] border-b-1 pb-1">
+        {fundDetails.map((item: any, _i: any) => (
+          <div key={_i} className="flex justify-between items-start text-[14px] border-b-1 pb-1">
             <div className="flex gap-2 pr-4">
               <span
                 className={`${

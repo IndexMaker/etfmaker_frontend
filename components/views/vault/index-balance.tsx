@@ -9,6 +9,7 @@ import CustomTooltip from "@/components/elements/custom-tooltip";
 import Image from "next/image";
 import { Copy } from "lucide-react";
 import { useWallet } from "@/contexts/wallet-context";
+import { toast } from "sonner";
 
 interface IndexBalanceProps {
   className?: string;
@@ -30,6 +31,11 @@ export default function IndexBalance({
   const { wallet, connectWallet } = useWallet();
 
   const onClickBuyButton = useCallback(async () => {
+    if (index.name !== 'SY100') {
+      toast.warning("Only SY100 can be deposited right now...")
+      return;
+    }
+
     if (!wallet) await connectWallet()
       
     onSupplyClick && onSupplyClick(index.name, index.ticker);
@@ -148,7 +154,7 @@ export default function IndexBalance({
                 <td className="py-4 px-4 text-right max-w-[140px] w-[140px]">
                   <CustomButton
                     className="min-w-[100px] text-white"
-                    onClick={() => onClickBuyButton()}
+                    onClick={onClickBuyButton}
                   >
                     Buy
                   </CustomButton>
