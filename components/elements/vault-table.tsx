@@ -29,7 +29,8 @@ import { RootState } from "@/redux/store";
 import { IndexListEntry } from "@/types";
 import IndexMaker from "../icons/indexmaker";
 import { useWallet } from "../../contexts/wallet-context";
-import Link from "next/link";
+import USDC from "../../public/logos/usd-coin.png";
+import { getIndexData } from "@/lib/IndexMockupData";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -54,7 +55,7 @@ export function VaultTable({
   sortDirection,
   onSupplyClick,
 }: VaultTableProps) {
-  console.log(visibleColumns)
+  console.log(visibleColumns);
   const { t } = useLanguage();
   const { wallet } = useWallet();
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,6 +65,7 @@ export function VaultTable({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
+
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
   );
@@ -244,9 +246,18 @@ export function VaultTable({
                                 className="flex items-center"
                                 onClick={() => assetDetail(vault)}
                               >
-                                <div>{vault.totalSupply}</div>
+                                <div className="flex gap-1">
+                                  <Image
+                                    src={USDC}
+                                    alt={"Total Supply"}
+                                    width={8}
+                                    height={8}
+                                    className="object-cover w-full h-full"
+                                  />
+                                  <span>{vault.totalSupply}</span>
+                                </div>
                                 <div className="text-card p-1 ml-2 bg-accent text-xs">
-                                  {vault.totalSupply}
+                                  ${vault.totalSupplyUSD || "0"}
                                 </div>
                               </div>
                             )}

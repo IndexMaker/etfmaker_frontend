@@ -270,14 +270,6 @@ class CAHelper {
 
   // Get custody ID (merkle root)
   getCustodyID(): Hex {
-    if (this.custodyId === ('0x' as Hex)) {
-      this.custodyId = this.getCARoot();
-    }
-    return this.custodyId;
-  }
-
-  // Get CA (Merkle root)
-  getCARoot(): Hex {
     const tree = this.getMerkleTree();
     return tree.root as Hex;
   }

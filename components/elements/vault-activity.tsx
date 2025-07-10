@@ -145,27 +145,37 @@ export function VaultActivity({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {currentActivities.map((activity) => (
-                <TableRow
-                  key={activity.id}
-                  className="border-accent hover:bg-foreground/50 h-[54px] text-[13px]"
-                >
-                  {allActivityColumns.map((column, index) => {
-                    return visibleColumns.filter(
-                      (_column) => _column.id === column.id && _column.visible
-                    ).length > 0 ? (
-                      <TableCell
-                        className="pl-[20px] text-card pr-18"
-                        key={`${activity.id}-${index}`}
-                      >
-                        {renderCellContent(activity, column.id)}
-                      </TableCell>
-                    ) : (
-                      <></>
-                    );
-                  })}
+              {currentActivities.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={visibleColumns.filter((c) => c.visible).length}
+                    className="text-center py-4 text-muted"
+                  >
+                    No activity found
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                currentActivities.map((activity) => (
+                  <TableRow
+                    key={activity.id}
+                    className="border-accent hover:bg-foreground/50 h-[54px] text-[13px]"
+                  >
+                    {allActivityColumns.map((column, index) => {
+                      const isVisible = visibleColumns.some(
+                        (_column) => _column.id === column.id && _column.visible
+                      );
+                      return isVisible ? (
+                        <TableCell
+                          className="pl-[20px] text-card pr-18"
+                          key={`${activity.id}-${index}`}
+                        >
+                          {renderCellContent(activity, column.id)}
+                        </TableCell>
+                      ) : null;
+                    })}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

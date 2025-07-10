@@ -303,7 +303,7 @@ export function RebalanceTable({
                                     // onSupplyClick?.(vault.name, vault.ticker);
                                   }}
                                 >
-                                  Deploy
+                                  {rebalance.deployed ? 'Deploy' : 'Deployed'}
                                 </Button>
                               </div>
                             )}

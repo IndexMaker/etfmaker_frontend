@@ -487,10 +487,21 @@ export class CoinGeckoService {
 
   // Helper functions
   async fetchCoinGeckoMarkets(coinIds: string[]) {
-    const response = await fetch(
-      `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&ids=${coinIds.join(',')}`,
+    const response = await firstValueFrom(
+      this.httpService.get('https://pro-api.coingecko.com/api/v3/coins/markets', {
+        params: {
+          vs_currency: 'usd',
+          ids: coinIds.join(','), // array of IDs like ['bitcoin', 'ethereum']
+          order: 'market_cap_desc',
+        },
+        headers: {
+          accept: 'application/json',
+          'x-cg-pro-api-key': process.env.COINGECKO_API_KEY,
+        },
+      }),
     );
-    return await response.json();
+    
+    return response.data;
   }
 
   async getOrCreateCategory(coinId: string): Promise<string> {
@@ -1011,5 +1022,13 @@ export class CoinGeckoService {
       console.error(`Error fetching symbol for ${coinId}:`, error);
       return null;
     }
+  }
+
+  async getUSDCUSDPrice(coinId: string): Promise<number> {
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`
+    );
+    const data = await res.json();
+    return data[coinId]?.usd || 1;
   }
 }

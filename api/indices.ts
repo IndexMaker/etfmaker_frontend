@@ -1,5 +1,6 @@
 // src/api/indices.ts
 import { IndexData } from "@/components/views/vault/vault-detail";
+import { Activity, SupplyPosition } from "@/lib/data";
 import { IndexListEntry } from "@/types";
 import axios from "axios";
 
@@ -105,13 +106,45 @@ export const fetchVaultAssets = async (indexId: number): Promise<any[]> => {
 
 export const fetchHistoricalData = async (
   indexId: string | number
-): Promise<IndexData> => {
+): Promise<any> => {
   const response = await fetch(
     `${API_BASE_URL}/indices/getHistoricalData/${indexId}`
   );
 
   if (!response.ok) {
     console.log("Failed to fetch historical data");
+    return null
+  }
+  else{
+    return response.json();
+  }
+};
+
+export const fetchDepositTransactionData = async (
+  indexId: string | number
+): Promise<SupplyPosition[]> => {
+  const response = await fetch(
+    `${API_BASE_URL}/indices/getDepositTransactionData/${indexId}`
+  );
+
+  if (!response.ok) {
+    console.log("Failed to fetch deposit transaction data");
+    return []
+  }
+
+  return response.json();
+};
+
+export const fetchUserTransactionData = async (
+  indexId: string | number
+): Promise<Activity[]> => {
+  const response = await fetch(
+    `${API_BASE_URL}/indices/getUserTransactionData/${indexId}`
+  );
+
+  if (!response.ok) {
+    console.log("Failed to fetch user transaction data");
+    return []
   }
 
   return response.json();

@@ -16,6 +16,7 @@ export interface IndexListEntry {
   ticker: string;
   curator: string;
   totalSupply: number;
+  totalSupplyUSD: number;
   ytdReturn: number;
   collateral: { name: string; logo: string }[]; // URLs to token logos
   managementFee: number;

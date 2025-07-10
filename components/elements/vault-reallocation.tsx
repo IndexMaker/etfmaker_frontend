@@ -18,6 +18,7 @@ import RightArrow from "../icons/right-arrow";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
 import USDC from "../../public/logos/usd-coin.png";
+import Link from "next/link";
 
 interface VaultReAllocationProps {
   reallocations: ReAllocation[];
@@ -27,9 +28,7 @@ const allReAllocationColumns = [
   { id: "timestamp", name: "Date & Time", visible: true },
   { id: "user", name: "User", visible: true },
   { id: "hash", name: "Hash", visible: true },
-  { id: "amount", name: "Amount", visible: true },
   { id: "type", name: "Type", visible: true },
-  { id: "market", name: "Market", visible: false },
 ];
 export function VaultReAllocation({
   reallocations,
@@ -37,7 +36,7 @@ export function VaultReAllocation({
 }: VaultReAllocationProps) {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = reallocations.slice(indexOfFirstItem, indexOfLastItem);
@@ -70,14 +69,16 @@ export function VaultReAllocation({
         );
       case "hash":
         return (
-          <div className="flex items-center gap-2">
-            <div>{shortenAddress(allocation.hash)}</div>
-            <RightArrow
-              className="rotate-135 text-[#FFFFFF99]"
-              width="13px"
-              height="13px"
-            />
-          </div>
+          <Link href={`https://basescan.org/tx/${allocation.hash}`} target="_blank">
+            <div className="flex items-center gap-2">
+              {shortenAddress(allocation.hash)}
+              <RightArrow
+                className="rotate-135 text-[#FFFFFF99]"
+                width="13px"
+                height="13px"
+              />
+            </div>
+          </Link>
         );
       case "amount":
         return (
@@ -92,12 +93,7 @@ export function VaultReAllocation({
       case "market":
         return (
           <div className="flex items-center gap-2">
-            <Image
-              src={USDC}
-              alt="currency"
-              width={21}
-              height={21}
-            />
+            <Image src={USDC} alt="currency" width={21} height={21} />
             <div>{allocation.market}</div>
             <span>(LLTV {allocation.letv}%)</span>
             <div>

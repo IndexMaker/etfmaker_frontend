@@ -408,7 +408,7 @@ export function AdminDashboard({ onSupplyClick }: AdminDashboardProps) {
                             [asset, weight]: [string, number],
                             index: number
                           ) => (
-                            <TableRow key={asset}>
+                            <TableRow key={index + '-' + asset}>
                               <TableCell className="font-medium">
                                 {index + 1}
                               </TableCell>

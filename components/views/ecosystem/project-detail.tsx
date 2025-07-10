@@ -13,6 +13,8 @@ import { useTheme } from "next-themes";
 import { fetchProjectById } from "@/api/projects";
 import { Project } from "@/types";
 import { getFallbackProject } from "@/lib/fallback-projects";
+import Logo from "@/components/icons/logo";
+import IndexMaker from "@/components/icons/indexmaker";
 
 interface ProjectDetailPageProps {
   projectId: string;
@@ -74,28 +76,8 @@ export function ProjectDetailPage({ projectId }: ProjectDetailPageProps) {
         {/* Project Header */}
         <div className="flex items-end md:items-center justify-between h-[100px] md:h-[60px]">
           <div className="flex items-center gap-3 md:gap-5 flex-col md:flex-row">
-            <div className="bg-foreground w-15 h-15 rounded-full flex items-center justify-center text-xl">
-              <Image
-                src={
-                  theme == "light"
-                    ? project.icon !== "brahma"
-                      ? project.icon !== "moonwell"
-                        ? project.icon !== "ionic" &&
-                          project.icon !== "vaultcraft"
-                          ? project.icon === "safe"
-                            ? `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw.svg`
-                            : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw.png`
-                          : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-dark.png`
-                        : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-black.png`
-                      : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-dark.png`
-                    : project.icon !== "ionic"
-                    ? `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-white.png`
-                    : `${process.env.NEXT_PUBLIC_ASSETS_PATH}v2/communication/images/${project.icon.toLowerCase()}-logo-bw-light.png`
-                }
-                width={24}
-                height={24}
-                alt={project.name}
-              />
+            <div className="bg-foreground w-20 h-20 rounded-full flex items-center justify-center text-xl">
+              <IndexMaker className="h-10 text-muted" color={theme === 'light' ? '#2470ff' : '#ffffff'} />
             </div>
             <p className="text-[20px] md:text-[38px] font-normal text-primary h-[24px] md:h-full">
               {project.name}

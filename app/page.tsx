@@ -7,7 +7,7 @@ export default function Home() {
     <Suspense
       fallback={
         <div className="bg-background w-[100vw] h-[100vh] flex items-center justify-center">
-          <Logo className="w-20 h-20 text-muted" />
+          <Logo className="w-80 h-50 text-muted" />
         </div>
       }
     >

@@ -8,6 +8,8 @@ import External from "@/components/icons/external";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import Logo from "@/components/icons/logo";
+import IndexMaker from "@/components/icons/indexmaker";
 
 interface ProjectCardProps {
   project: Project;
@@ -46,13 +48,7 @@ export function ProjectCard({ project, className }: ProjectCardProps) {
         <div className="mb-4 flex justify-between">
           <div className="bg-accent w-[60px] h-[60px] rounded-full flex items-center justify-center">
             {project.icon ? (
-              <Image
-                src={getIconUrl(project.icon)}
-                width={24}
-                height={24}
-                alt={project.name}
-                className="object-contain"
-              />
+              <IndexMaker className="h-8 text-muted" color={theme === 'light' ? '#2470ff' : '#ffffff'} />
             ) : (
               <div className="w-6 h-6 bg-muted rounded-full" />
             )}

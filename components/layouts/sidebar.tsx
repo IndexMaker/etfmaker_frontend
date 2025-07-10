@@ -23,6 +23,7 @@ import Logo from "../icons/logo";
 import FAVICON from "../../public/logo/blue-logo.png";
 import { useWallet } from "@/contexts/wallet-context";
 import IndexMaker from "../icons/indexmaker";
+import IndexMakerLogo from "../icons/indexmakerLogo";
 
 interface SidebarProps {
   open: boolean;
@@ -107,8 +108,8 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               //     height={24}
               //     className="text-primary"
               //   />
-              <Logo
-                className="w-48 h-8 dark:text-ring ml-[-40px] "
+              <IndexMakerLogo
+                className="w-36 h-8 dark:text-ring "
                 color={theme == "dark" ? "#D0CECE" : "#2470ff"}
               />
             )}
@@ -186,7 +187,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://www.symm.io/"
-                icon={IndexMakerSvg}
+                icon={IndexMaker}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -196,7 +197,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="https://www.symm.io/"
-                icon={IndexMakerSvg}
+                icon={IndexMaker}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}

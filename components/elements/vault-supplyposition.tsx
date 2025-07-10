@@ -9,11 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import { SupplyPosition } from "@/lib/data";
 import RightArrow from "../icons/right-arrow";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
+import Link from "next/link";
 
 interface VaultSupplyProps {
   supplyPositions: SupplyPosition[];
@@ -38,13 +39,18 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
               height={17}
               alt="user"
             />
-            <div>{supply.user}</div>
+            <div>{shortenAddress(supply.user)}</div>
             <div>
-              <RightArrow
-                className="rotate-135 text-[#FFFFFF99]"
-                width="13px"
-                height="13px"
-              />
+              <Link
+                href={`https://basescan.org/address/${supply.user}`}
+                target="_blank"
+              >
+                <RightArrow
+                  className="rotate-135 text-[#FFFFFF99]"
+                  width="13px"
+                  height="13px"
+                />
+              </Link>
             </div>
           </div>
         );
@@ -54,8 +60,8 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
             <div>
               {supply.supply} {supply.currency}
             </div>
-            <div className="pl-[2px] pt-1 rounded-[4px] bg-[#fafafa1a] text-white text-[11px] flex items-center">
-              {supply.supplySummary}
+            <div className="px-[2px] pt-1 rounded-[4px] bg-[#fafafa1a] text-white text-[11px] flex items-center">
+              ${Number(supply.supplySummary).toFixed(2)}
             </div>
           </div>
         );
@@ -90,21 +96,32 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {supplyPositions.map((allocation) => (
-                <TableRow
-                  key={allocation.id}
-                  className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
-                >
-                  {allColumns.map((column, index) => (
-                    <TableCell
-                      className="pl-[20px] text-card pr-18"
-                      key={`${allocation.id}-${index}`}
-                    >
-                      {renderCellContent(allocation, column.id)}
-                    </TableCell>
-                  ))}
+              {supplyPositions.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={allColumns.length}
+                    className="text-center py-4 text-muted"
+                  >
+                    No data available
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                supplyPositions.map((allocation) => (
+                  <TableRow
+                    key={allocation.id}
+                    className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
+                  >
+                    {allColumns.map((column, index) => (
+                      <TableCell
+                        className="pl-[20px] text-card pr-18"
+                        key={`${allocation.id}-${index}`}
+                      >
+                        {renderCellContent(allocation, column.id)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

@@ -10,6 +10,7 @@ import {
   tempRebalances,
 } from '../../db/schema';
 import {
+  ConsoleLogWriter,
   and,
   asc,
   between,
@@ -40,6 +41,7 @@ interface HistoricalEntry {
   quantities?: Record<string, number>;
 }
 
+const YOUR_START_BLOCK = 32627126;
 @Injectable()
 export class EtfPriceService {
   private provider: ethers.JsonRpcProvider;
@@ -51,6 +53,7 @@ export class EtfPriceService {
     process.cwd(),
     'deployedIndexes.json',
   );
+
   constructor(
     private indexRegistryService: IndexRegistryService,
     private coinGeckoService: CoinGeckoService,
@@ -253,35 +256,166 @@ export class EtfPriceService {
   //   return [];
   // }
 
-  async getIndexTransactions(indexId: number) {
-    // Fetch transactions from database instead of blockchain
-    const transactions = await this.dbService
-      .getDb()
-      .select()
-      .from(tempRebalances)
-      .where(eq(tempRebalances.indexId, indexId.toString()))
-      .orderBy(desc(tempRebalances.timestamp));
-
+  async getDepositTransactions(indexId: number) {
     const indexData = await this.getIndexDataFromFile(indexId);
-    const marketName = indexData?.name || `Index ${indexId}`;
+    if (!indexData?.address) throw new Error(`Index ${indexId} not found`);
 
-    const formattedTransactions = transactions.map((tx, i) => {
+    const depositIface = new ethers.Interface([
+      'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+    ]);
+
+    const depositLogs = await this.provider.getLogs({
+      address: indexData.address,
+      fromBlock: 0,
+      toBlock: 'latest',
+      topics: [ethers.id('Deposit(uint256,address,uint256,address,address)')],
+    });
+    const USDValueOfUSDC =
+      await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
+    const deposits = depositLogs.map((log, i) => {
+      const parsed = depositIface.parseLog(log);
+      if (!parsed) return;
+
+      const user = parsed.args.from as string;
+      const amount = parsed.args.amount as bigint;
+      // const shares = parsed.args.shares as bigint;
+      const shares = 100;
+
       return {
-        id: `tx-${tx.id}`,
-        timestamp: formatTimestamp(tx.timestamp),
-        formattedTimestamp: tx.timestamp,
-        user: 'System', // Since these are system-generated rebalances
-        hash: `db-${tx.id}`, // No transaction hash from blockchain
-        amount: 0, // No amount in rebalance records
+        id: `deposit-${log.transactionHash}-${i}`,
+        user,
+        supply: ethers.formatUnits(amount, 6), // USDC is 6 decimals
+        supplySummary: `${Number(ethers.formatUnits(amount, 6)) * USDValueOfUSDC}`,
         currency: 'USDC',
-        type: 'Rebalance',
-        market: `🌬️ ${marketName} / USDC`,
-        letv: 0, // No LETV calculation for db records
-        weights: tx.weights, // Include weights from DB
-        prices: tx.prices, // Include prices from DB
-        coins: tx.coins, // Include coins from DB
+        share: shares, // assuming shares have 18 decimals
       };
     });
+
+    return deposits;
+  }
+
+  async getUserTransactions(indexId: number): Promise<any[]> {
+    const indexData = await this.getIndexDataFromFile(indexId);
+    if (!indexData?.address) throw new Error(`Index ${indexId} not found`);
+
+    const iface = new ethers.Interface([
+      'event Mint(uint256 amount, address to, uint256 seqNumExecutionReport)',
+      'event Transfer(address indexed from, address indexed to, uint256 value)',
+    ]);
+    const mintTopic = ethers.id('Mint(uint256,address,uint256)');
+    const transferTopic = ethers.id('Transfer(address,address,uint256)');
+    const [mintLogs, transferLogs] = await Promise.all([
+      this.provider.getLogs({
+        address: indexData.address,
+        fromBlock: 0,
+        toBlock: 'latest',
+        topics: [mintTopic],
+      }),
+      this.provider.getLogs({
+        address: indexData.address,
+        fromBlock: 0,
+        toBlock: 'latest',
+        topics: [transferTopic],
+      }),
+    ]);
+
+    const parseToActivity = async (
+      logs: ethers.Log[],
+      eventName: 'Mint' | 'Transfer',
+    ): Promise<any[]> => {
+      return Promise.all(
+        logs.map(async (log, i) => {
+          const parsed = iface.parseLog(log);
+          const block = await this.provider.getBlock(log.blockNumber);
+          if (!block || !parsed) return null;
+          const dateTime = new Date(block.timestamp * 1000).toISOString();
+
+          let amountRaw: bigint;
+          let wallet: string;
+
+          if (eventName === 'Mint') {
+            amountRaw = parsed.args.amount;
+            wallet = parsed.args.to;
+          } else {
+            amountRaw = parsed.args.value;
+            wallet = parsed.args.to; // or `from`, depending on perspective
+          }
+
+          const amount = Number(ethers.formatUnits(amountRaw, 6)); // assuming USDC
+
+          return {
+            id: `${eventName.toLowerCase()}-${log.transactionHash}-${i}`,
+            dateTime,
+            wallet,
+            hash: log.transactionHash,
+            transactionType: eventName,
+            amount: {
+              amount,
+              currency: 'USDC',
+              amountSummary: `${amount.toLocaleString()} USDC`,
+            },
+          };
+        }),
+      );
+    };
+
+    const [mintActivities, transferActivities] = await Promise.all([
+      parseToActivity(mintLogs, 'Mint'),
+      parseToActivity(transferLogs, 'Transfer'),
+    ]);
+
+    return [...mintActivities, ...transferActivities].sort(
+      (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+    );
+  }
+
+  async getIndexTransactions(indexId: number) {
+    const indexData = await this.getIndexDataFromFile(indexId);
+    if (!indexData?.address) throw new Error(`Index ${indexId} not found`);
+
+    const iface = new ethers.Interface([
+      'event CuratorUpdate(uint256 timestamp, bytes weights, uint256 nav)',
+    ]);
+
+    const START_BLOCK = 0;
+    const logs = await this.provider.getLogs({
+      address: indexData.address,
+      fromBlock: START_BLOCK,
+      toBlock: 'latest',
+      topics: [ethers.id('CuratorUpdate(uint256,bytes,uint256)')],
+    });
+
+    const txMap = new Map<number, any>(); // timestamp => transaction
+
+    logs.forEach((log, i) => {
+      try {
+        const parsed = iface.parseLog(log);
+        if (!parsed) return null;
+        const blockTimestamp = Number(parsed.args.timestamp);
+        const tx = {
+          id: `chain-${log.transactionHash}-${i}`,
+          timestamp: formatTimestamp(blockTimestamp),
+          formattedTimestamp: blockTimestamp,
+          user: 'System',
+          hash: log.transactionHash,
+          currency: 'USDC',
+          type: 'Rebalance',
+          letv: 0,
+          weights: parsed.args.weights,
+          prices: null,
+          coins: null,
+        };
+
+        // This will overwrite any previous tx with the same timestamp
+        txMap.set(blockTimestamp, tx);
+      } catch (e) {
+        // skip invalid logs
+      }
+    });
+
+    const formattedTransactions = Array.from(txMap.values()).sort(
+      (a, b) => b.formattedTimestamp - a.formattedTimestamp,
+    );
 
     return formattedTransactions;
   }
@@ -1708,9 +1842,13 @@ export class EtfPriceService {
       const logos = await this.getLogosForSymbols(tokenSymbols);
 
       // Fetch Total Supply for the ERC20 contract (assuming you have a way to get ERC20 contract address for the index)
+      const USDValueOfUSDC =
+        await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
       const totalSupply = await this.getTotalSupplyForIndex(
         indexData?.name || '',
       );
+
+      const totalSupplyUSD = USDValueOfUSDC * Number(totalSupply);
 
       // Calculate YTD return (you might need to fetch historical prices for this)
       let ytdReturn = await this.calculateYtdReturn(indexId);
@@ -1742,7 +1880,8 @@ export class EtfPriceService {
         name: indexData?.name || '',
         ticker: indexData?.symbol || '',
         curator: process.env.OTC_CUSTODY_ADDRESS!,
-        totalSupply,
+        totalSupply: Number(totalSupply),
+        totalSupplyUSD,
         ytdReturn,
         collateral: logos,
         managementFee: Number(ethers.parseUnits('2', 18)) / 1e18, // Assuming fee is in the smallest unit
@@ -1911,22 +2050,38 @@ export class EtfPriceService {
     });
   }
 
-  async getTotalSupplyForIndex(name: string): Promise<number> {
+  async getTotalSupplyForIndex(name: string): Promise<string> {
     const rawData = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
     this.indexes = JSON.parse(rawData);
     const index = this.indexes.find((index) => index.name === name);
-    if (!index || !index.address) return 0;
+    if (!index || !index.address) return '0';
 
-    const erc20 = new ethers.Contract(
-      process.env.USDC_ADDRESS_IN_BASE || '',
-      ['function balanceOf(address) view returns (uint256)'],
+    const indexToken = new ethers.Contract(
+      index.address,
+      ['function totalSupply() view returns (uint256)'],
       this.provider,
     );
 
-    const balance = await erc20.balanceOf(index.address);
-    console.log(balance);
-    return Number(ethers.formatUnits(balance, 6));
+    const totalSupply = await indexToken.totalSupply();
+    return Number(ethers.formatUnits(totalSupply, 6)).toFixed(2); // Use actual decimals
   }
+
+  // async getTotalSupplyForIndex(name: string): Promise<string> {
+  //   const rawData = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
+  //   this.indexes = JSON.parse(rawData);
+  //   const index = this.indexes.find((index) => index.name === name);
+  //   if (!index || !index.address) return '0';
+
+  //   // USDC contract (assumes 6 decimals)
+  //   const usdcToken = new ethers.Contract(
+  //     process.env.USDC_ADDRESS_IN_BASE || '',
+  //     ['function balanceOf(address) view returns (uint256)'],
+  //     this.provider,
+  //   );
+  //   console.log(usdcToken)
+  //   const balance = await usdcToken.balanceOf(index.address);
+  //   return Number(ethers.formatUnits(balance, 6)).toFixed(2);
+  // }
 
   async calculateYtdReturn(indexId: number): Promise<number> {
     const previousDay = new Date();
@@ -2017,33 +2172,43 @@ export class EtfPriceService {
     // 3. Get or create categories
     const assets = await Promise.all(
       coins.map(async ([coinId, weight], idx) => {
+        if (!marketData) return null;
+
         const coinData = marketData.find((c) => c.id === coinId);
-        // Get or create category
+        if (!coinData) return null;
+
         const sector = await this.coinGeckoService.getOrCreateCategory(coinId);
-        const symbol = coinData.symbol.toLowerCase();
+        const symbol = coinData.symbol?.toLowerCase?.();
+        if (!symbol) return null;
+
         const listingEntry = weights.find(([pair]) =>
           pair.toLowerCase().includes(symbol),
         );
         const listing = listingEntry?.[0].split('.')[0] || symbol;
 
         return {
-          id: idx + 1, // or generate proper IDs
+          id: idx + 1,
           ticker: coinData.symbol
-            .replace(/USDT$/, '') // Remove USDT at end
-            .replace(/USDC$/, '') // Remove USDC at end
+            .replace(/USDT$/, '')
+            .replace(/USDC$/, '')
             .toUpperCase(),
-          pair:listingEntry?.[0].split('.')[1] || symbol,
-          listing: listing,
+          pair: listingEntry?.[0].split('.')[1] || symbol,
+          listing,
           assetname: coinData?.name || coinData.symbol,
           sector,
           market_cap: coinData?.market_cap || 0,
           weights: (weight / 100).toFixed(2),
-          quantity: quantities[coinId] || 0, // Add quantity from daily_prices
+          quantity: quantities[coinId] || 0,
         };
       }),
     );
 
-    const sortAssets = assets.sort((a, b) => b.market_cap - a.market_cap);
+    // Filter out nulls and sort by market cap
+    const sortAssets = assets
+      .filter((a): a is NonNullable<typeof a> => a !== null)
+      .filter((a) => a.market_cap > 0)
+      .sort((a, b) => b.market_cap - a.market_cap);
+
     return sortAssets;
   }
 
@@ -2088,7 +2253,7 @@ export class EtfPriceService {
 
       const entry = list.find((item) => {
         // allow both number or string "21" matches
-        return Number(item.indexId) === indexId;
+        return Number(item.indexId) == indexId;
       });
 
       if (!entry) return null;

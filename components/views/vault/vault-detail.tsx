@@ -24,10 +24,10 @@ import { useEffect, useRef, useState } from "react";
 import Dashboard from "../Dashboard/dashboard";
 import { toast } from "sonner";
 import {
+  Activity,
+  SupplyPosition,
   VaultAsset,
   mockup_vaults,
-  supplyPositions,
-  userActivities,
 } from "@/lib/data";
 import {
   Popover,
@@ -50,8 +50,10 @@ import { IndexListEntry } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   fetchBtcHistoricalData,
+  fetchDepositTransactionData,
   fetchEthHistoricalData,
   fetchHistoricalData,
+  fetchUserTransactionData,
   fetchVaultAssets,
 } from "@/api/indices";
 import IndexMaker from "@/components/icons/indexmaker";
@@ -112,6 +114,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [historicalLoading, setHistoricalLoading] = useState<boolean>(false);
   const [indexAssetLoading, setAssetLoading] = useState<boolean>(false);
+  const [depositTransactionLoading, setDepositTransactionLoading] = useState<boolean>(false);
+  const [userActivityLoading, setUserActivityLoading] = useState<boolean>(false);
   const [indexData, setIndexData] = useState<IndexData | null>(null);
   const [btcData, setBtcData] = useState<any[]>([]);
   const [ethData, setEthData] = useState<any[]>([]);
@@ -119,6 +123,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   const [showComparison, setShowComparison] = useState(false);
   const [showETHComparison, setShowETHComparison] = useState(false);
   const [indexAssets, setIndexAssets] = useState<VaultAsset[]>([]);
+  const [supplyPositions, setSupplyPositions] = useState<SupplyPosition[]>([]);
+  const [userActivities, setUserActivities] = useState<Activity[]>([]);
 
   // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
   const dispatch = useDispatch();
@@ -178,12 +184,40 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
         const data = response;
         setIndexAssets(data);
       } catch (error) {
-        console.error("Error fetching eth data:", error);
+        console.error("Error Index asset data:", error);
       } finally {
         setAssetLoading(false);
       }
     };
     index?.indexId && _fetchVaultAssets(index?.indexId);
+
+    const _fetchDepositTransaction = async (_indexId: number) => {
+      setDepositTransactionLoading(true);
+      try {
+        const response = await fetchDepositTransactionData(_indexId);
+        const data = response;
+        setSupplyPositions(data);
+      } catch (error) {
+        console.error("Error deposit transaction data:", error);
+      } finally {
+        setDepositTransactionLoading(false);
+      }
+    };
+    index?.indexId && _fetchDepositTransaction(index?.indexId);
+
+    const _fetchUserTransaction = async (_indexId: number) => {
+      setUserActivityLoading(true);
+      try {
+        const response = await fetchUserTransactionData(_indexId);
+        const data = response;
+        setUserActivities(data);
+      } catch (error) {
+        console.error("Error user transaction data:", error);
+      } finally {
+        setUserActivityLoading(false);
+      }
+    };
+    index?.indexId && _fetchUserTransaction(index?.indexId);
 
     index && index.ticker && (setIndexDescription(getIndexData(index.ticker).description))
   }, [index]);
