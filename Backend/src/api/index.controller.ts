@@ -35,9 +35,9 @@ export class IndexController {
   }
 
   @ApiOperation({ summary: 'Get Sharpe Ratio' })
-  @Get(':indexId/sharpe')
-  async getSharpe(@Param('indexId') indexId: string): Promise<number> {
-    return this.metricsService.computeSharpeRatio(indexId, 1);
+  @Get('/getIndexMakerInfo')
+  async getIndexMakerInfo(@Param('indexId') indexId: string) {
+    return await this.etfPriceService.getIndexMakerInfo();
   }
 
   @Get('/parsingAnnouncements')
@@ -181,10 +181,10 @@ export class IndexController {
     return response;
   }
 
-  @Get('/getDepositTransactionData/:indexId')
-  async fetchDepositTransactionData(@Param('indexId') indexId: number) {
+  @Get('/getDepositTransactionData/:indexId/:address')
+  async fetchDepositTransactionData(@Param('indexId') indexId: number, @Param('address') address?: string) {
     if (!indexId) return {};
-    const formattedTransactions = await this.etfPriceService.getDepositTransactions(indexId);
+    const formattedTransactions = await this.etfPriceService.getDepositTransactions(indexId, address);
 
     return formattedTransactions
   }

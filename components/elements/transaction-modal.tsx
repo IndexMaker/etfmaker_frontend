@@ -58,7 +58,7 @@ export function TransactionConfirmModal({
 
   const [txHash, setTxHash] = useState<string | null>(null);
   const [finalizing, setFinalizing] = useState(false);
-
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { wallet, address, connectWallet } = useWallet();
 
   const handleConfirm = async () => {
@@ -78,7 +78,6 @@ export function TransactionConfirmModal({
       await connectWallet();
       return;
     }
-
     try {
       setIsProcessing(true);
       setApprovalStatus("idle");
@@ -128,7 +127,7 @@ export function TransactionConfirmModal({
           .toString() || "0",
         USDC_DECIMALS
       );
-      const seqNum = Math.floor(Math.random() * 100000)
+      const seqNum = Math.floor(Math.random() * 100000);
       const tx = await otcIndex.deposit(
         amount,
         seqNum,
@@ -141,10 +140,11 @@ export function TransactionConfirmModal({
       setFinalizing(true);
 
       // const _tx = await otcIndex.mint(OTC_INDEX_ADDRESS, amount, seqNum);
-
+      // Show success modal
+      setShowSuccessModal(true);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       // await _tx.wait();
       setDepositStatus("done");
-      toast.success("Deposit success...")
       // handleClose();
     } catch (e) {
       console.error("Deposit error:", e);
@@ -195,270 +195,274 @@ export function TransactionConfirmModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl bg-background border-accent text-primary">
-        <div className="flex justify-between items-center pb-4">
-          <DialogTitle className="text-lg font-bold">
-            {step === "review" ? "Review transaction" : "Confirm transaction"}
-          </DialogTitle>
-        </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent
+          className="max-w-2xl bg-background border-accent text-primary z-50"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <div className="flex justify-between items-center pb-4">
+            <DialogTitle className="text-lg font-bold">
+              {step === "review" ? "Review transaction" : "Confirm transaction"}
+            </DialogTitle>
+          </div>
 
-        {step === "review" && transactions ? (
-          <div className="space-y-4">
-            {/* Multiple Transaction Items */}
-            {transactions.map((transaction, index) => (
-              <div key={transaction.token} className="space-y-3">
-                {/* Token Info */}
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center">
-                    <span className="text-[12px] font-bold">
-                      <IndexMaker className="w-[24px] h-[24px] text-muted" />
-                    </span>
-                  </div>
-                  <span className="font-bold text-[18px]">
-                    {transaction.token}
-                  </span>
-                </div>
-
-                {/* Transaction Details */}
-                <div className="space-y-3 bg-foreground rounded-lg p-4 pt-8 pb-4">
-                  <div className="flex justify-between items-center text-[12px]">
-                    <span className="text-secondary">Supply</span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-transparent rounded-full flex items-center justify-center">
-                        <Image
-                          src={USDC}
-                          alt="USDC"
-                          width={20}
-                          height={20}
-                          className="rounded-full"
-                        />
-                      </div>
-                      <span className="font-medium">
-                        {transaction.amount} USDC
-                        {/* {transaction.value} */}
+          {step === "review" && transactions ? (
+            <div className="space-y-4">
+              {/* Multiple Transaction Items */}
+              {transactions.map((transaction, index) => (
+                <div key={transaction.token} className="space-y-3">
+                  {/* Token Info */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-transparent rounded-full flex items-center justify-center">
+                      <span className="text-[12px] font-bold">
+                        <IndexMaker className="w-[24px] h-[24px] text-muted" />
                       </span>
                     </div>
+                    <span className="font-bold text-[18px]">
+                      {transaction.token}
+                    </span>
                   </div>
 
-                  <div className="flex justify-between items-center text-[12px]">
-                    <span className="text-secondary">Net Supply APY</span>
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{transaction.apy}</span>
-                      <Sparkles className="w-4 h-4 text-blue-400" />
+                  {/* Transaction Details */}
+                  <div className="space-y-3 bg-foreground rounded-lg p-4 pt-8 pb-4">
+                    <div className="flex justify-between items-center text-[12px]">
+                      <span className="text-secondary">Supply</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 bg-transparent rounded-full flex items-center justify-center">
+                          <Image
+                            src={USDC}
+                            alt="USDC"
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                          />
+                        </div>
+                        <span className="font-medium">
+                          {transaction.amount} USDC
+                          {/* {transaction.value} */}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex justify-between items-center text-[12px]">
-                    <span className="text-secondary">Collateral</span>
-                    <div className="flex items-center gap-1">
-                      {transaction.collateral.length > 0 ? (
-                        transaction.collateral
-                          .slice(0, 5)
-                          .map((collateral, index) => (
-                            <CustomTooltip
-                              key={"collateral-" + index.toString()}
-                              content={
-                                <div className="flex flex-col gap-1 min-w-[220px] bg-foreground rounded-[8px]">
-                                  <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                    <span>Collateral</span>
-                                    <div className="flex items-center">
-                                      <Image
-                                        src={collateral.logo || USDC}
-                                        alt={"USDC"}
-                                        width={17}
-                                        height={17}
-                                      />
-                                      <span>PT-U...025</span>
+                    <div className="flex justify-between items-center text-[12px]">
+                      <span className="text-secondary">Net Supply APY</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{transaction.apy}</span>
+                        <Sparkles className="w-4 h-4 text-blue-400" />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center text-[12px]">
+                      <span className="text-secondary">Collateral</span>
+                      <div className="flex items-center gap-1">
+                        {transaction.collateral.length > 0 ? (
+                          transaction.collateral
+                            .slice(0, 5)
+                            .map((collateral, index) => (
+                              <CustomTooltip
+                                key={"collateral-" + index.toString()}
+                                content={
+                                  <div className="flex flex-col gap-1 min-w-[220px] bg-foreground rounded-[8px]">
+                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                      <span>Collateral</span>
+                                      <div className="flex items-center">
+                                        <Image
+                                          src={collateral.logo || USDC}
+                                          alt={"USDC"}
+                                          width={17}
+                                          height={17}
+                                        />
+                                        <span>PT-U...025</span>
+                                      </div>
+                                    </div>
+                                    <div className="flex justify-between border-b py-1 px-3 border-accent">
+                                      <span className="">Oracle</span>
+                                      <a
+                                        target="_blank"
+                                        href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
+                                        className="hover:bg-[afafaf20]"
+                                      >
+                                        Exchange rate
+                                      </a>
+                                      <Copy className="w-[15px] h-[15px]" />
                                     </div>
                                   </div>
-                                  <div className="flex justify-between border-b py-1 px-3 border-accent">
-                                    <span className="">Oracle</span>
-                                    <a
-                                      target="_blank"
-                                      href="https://etherscan.io/address/0xDddd770BADd886dF3864029e4B377B5F6a2B6b83"
-                                      className="hover:bg-[afafaf20]"
-                                    >
-                                      Exchange rate
-                                    </a>
-                                    <Copy className="w-[15px] h-[15px]" />
-                                  </div>
-                                </div>
-                              }
-                            >
-                              <div className="flex items-center gap-1 hover:px-1 hover:transition-all">
-                                {/* <span className="hover:px-1 hover:transition-all text-primary text-[12px] cursor-pointer">
+                                }
+                              >
+                                <div className="flex items-center gap-1 hover:px-1 hover:transition-all">
+                                  {/* <span className="hover:px-1 hover:transition-all text-primary text-[12px] cursor-pointer">
                                     {collateral.name}
                                   </span> */}
-                                <Image
-                                  src={collateral.logo ?? USDC}
-                                  alt={collateral.name}
-                                  width={17}
-                                  height={17}
-                                  className="object-cover w-full h-full"
-                                />
+                                  <Image
+                                    src={collateral.logo ?? USDC}
+                                    alt={collateral.name}
+                                    width={17}
+                                    height={17}
+                                    className="object-cover w-full h-full"
+                                  />
+                                </div>
+                              </CustomTooltip>
+                            ))
+                        ) : (
+                          <></>
+                        )}
+                        {transaction.collateral.length > 5 && (
+                          <CustomTooltip
+                            content={
+                              <div className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[300px] bg-foreground">
+                                {transaction.collateral
+                                  .slice(5)
+                                  .map((collateral, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <span>{collateral.name}</span>
+                                    </div>
+                                  ))}
                               </div>
-                            </CustomTooltip>
-                          ))
-                      ) : (
-                        <></>
-                      )}
-                      {transaction.collateral.length > 5 && (
-                        <CustomTooltip
-                          content={
-                            <div className="flex flex-col gap-2 p-2 overflow-y-auto max-h-[300px] bg-foreground">
-                              {transaction.collateral
-                                .slice(5)
-                                .map((collateral, index) => (
-                                  <div
-                                    key={index}
-                                    className="flex items-center gap-2"
-                                  >
-                                    <span>{collateral.name}</span>
-                                  </div>
-                                ))}
-                            </div>
-                          }
-                        >
-                          <span className="text-[12px] pl-2 text-secondary">
-                            + {transaction.collateral.length - 5}
-                          </span>
-                        </CustomTooltip>
-                      )}
+                            }
+                          >
+                            <span className="text-[12px] pl-2 text-secondary">
+                              + {transaction.collateral.length - 5}
+                            </span>
+                          </CustomTooltip>
+                        )}
+                      </div>
                     </div>
                   </div>
+
+                  {index < transactions.length - 1 && (
+                    <div className="border-t border-accent my-4" />
+                  )}
                 </div>
+              ))}
 
-                {index < transactions.length - 1 && (
-                  <div className="border-t border-accent my-4" />
-                )}
-              </div>
-            ))}
-
-            {/* Terms */}
-            <p className="text-[11px] text-secondary">
-              By confirming this transaction, you agree to the{" "}
-              <a
-                target="_blank"
-                href={
-                  "https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use"
-                }
-                className="underline cursor-pointer"
-              >
-                Terms of Use
-              </a>{" "}
-              and the services provisions relating to the IndexMaker Vault.
-            </p>
-
-            {/* Confirm Button */}
-            <Button
-              onClick={handleConfirm}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={isProcessing}
-            >
-              {isProcessing ? "Processing..." : "Confirm"}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* STEP 1: Token Approval */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                {approvalStatus === "done" ? (
-                  <CheckCircle2 className="text-blue-500 w-5 h-5" />
-                ) : approvalStatus === "error" ? (
-                  <XCircle className="text-red-500 w-5 h-5" />
-                ) : (
-                  <Circle className="text-blue-500 w-5 h-5 animate-pulse" />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-[15px] font-medium text-primary">
-                  Approve bundler to spend your{" "}
-                  {transactions
-                    ?.reduce((sum, t) => sum + Number(t.amount), 0)
-                    .toString() || "0"}{" "}
-                  USDC (via permit)
-                </p>
-                {approvalStatus === "idle" && (
-                  <Button
-                    onClick={handleApproval}
-                    size="sm"
-                    className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? "Waiting for Wallet..." : "Approve USDC"}
-                  </Button>
-                )}
-                {approvalStatus === "error" && (
-                  <Button
-                    onClick={handleApproval}
-                    size="sm"
-                    variant="outline"
-                    className="mt-2 text-red-500 border-red-500"
-                  >
-                    Retry Approval
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* STEP 2: Execute Deposit */}
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                {depositStatus === "done" ? (
-                  <CheckCircle2 className="text-blue-500 w-5 h-5" />
-                ) : depositStatus === "error" ? (
-                  <XCircle className="text-red-500 w-5 h-5" />
-                ) : (
-                  <Circle
-                    className={`w-5 h-5 ${
-                      approvalStatus === "done"
-                        ? "text-blue-500"
-                        : "text-secondary"
-                    }`}
-                  />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-[15px] font-medium text-primary">
-                  Execute deposit transaction
-                </p>
-                <div
-                  className={`mt-4 space-y-2 ${
-                    approvalStatus !== "done" ? "opacity-50" : ""
-                  }`}
+              {/* Terms */}
+              <p className="text-[11px] text-secondary">
+                By confirming this transaction, you agree to the{" "}
+                <a
+                  target="_blank"
+                  href={
+                    "https://psymm.gitbook.io/indexmaker/index-maker-hld/compliance/terms-of-use"
+                  }
+                  className="underline cursor-pointer"
                 >
-                  {transactions?.map((t) => (
-                    <div
-                      key={t.token + "-deposit"}
-                      className="p-3 bg-foreground rounded-lg text-[12px] text-secondary"
-                    >
-                      Supply {t.amount} USDC to {t.token}
-                    </div>
-                  ))}
-                </div>
+                  Terms of Use
+                </a>{" "}
+                and the services provisions relating to the IndexMaker Vault.
+              </p>
 
-                {approvalStatus === "done" && depositStatus !== "done" && (
-                  <Button
-                    onClick={handleDeposit}
-                    size="sm"
-                    className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? "Processing..." : "Execute Transaction"}
-                  </Button>
-                )}
-                {depositStatus === "error" && (
-                  <p className="text-sm text-red-500 mt-2">
-                    Deposit failed. Please try again.
-                  </p>
-                )}
-              </div>
+              {/* Confirm Button */}
+              <Button
+                onClick={handleConfirm}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isProcessing}
+              >
+                {isProcessing ? "Processing..." : "Confirm"}
+              </Button>
             </div>
+          ) : (
+            <div className="space-y-4">
+              {/* STEP 1: Token Approval */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  {approvalStatus === "done" ? (
+                    <CheckCircle2 className="text-blue-500 w-5 h-5" />
+                  ) : approvalStatus === "error" ? (
+                    <XCircle className="text-red-500 w-5 h-5" />
+                  ) : (
+                    <Circle className="text-blue-500 w-5 h-5 animate-pulse" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[15px] font-medium text-primary">
+                    Approve bundler to spend your{" "}
+                    {transactions
+                      ?.reduce((sum, t) => sum + Number(t.amount), 0)
+                      .toString() || "0"}{" "}
+                    USDC (via permit)
+                  </p>
+                  {approvalStatus === "idle" && (
+                    <Button
+                      onClick={handleApproval}
+                      size="sm"
+                      className="mt-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? "Waiting for Wallet..." : "Approve USDC"}
+                    </Button>
+                  )}
+                  {approvalStatus === "error" && (
+                    <Button
+                      onClick={handleApproval}
+                      size="sm"
+                      variant="outline"
+                      className="mt-2 text-red-500 border-red-500"
+                    >
+                      Retry Approval
+                    </Button>
+                  )}
+                </div>
+              </div>
 
-            {/* STEP 3: Send FIX Message */}
-            {/* <div className="flex items-start gap-3">
+              {/* STEP 2: Execute Deposit */}
+              <div className="flex items-start gap-3">
+                <div className="mt-1">
+                  {depositStatus === "done" ? (
+                    <CheckCircle2 className="text-blue-500 w-5 h-5" />
+                  ) : depositStatus === "error" ? (
+                    <XCircle className="text-red-500 w-5 h-5" />
+                  ) : (
+                    <Circle
+                      className={`w-5 h-5 ${
+                        approvalStatus === "done"
+                          ? "text-blue-500"
+                          : "text-secondary"
+                      }`}
+                    />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[15px] font-medium text-primary">
+                    Execute deposit transaction
+                  </p>
+                  <div
+                    className={`mt-4 space-y-2 ${
+                      approvalStatus !== "done" ? "opacity-50" : ""
+                    }`}
+                  >
+                    {transactions?.map((t) => (
+                      <div
+                        key={t.token + "-deposit"}
+                        className="p-3 bg-foreground rounded-lg text-[12px] text-secondary"
+                      >
+                        Supply {t.amount} USDC to {t.token}
+                      </div>
+                    ))}
+                  </div>
+
+                  {approvalStatus === "done" && depositStatus !== "done" && (
+                    <Button
+                      onClick={handleDeposit}
+                      size="sm"
+                      className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={isProcessing}
+                    >
+                      {isProcessing ? "Processing..." : "Execute Transaction"}
+                    </Button>
+                  )}
+                  {depositStatus === "error" && (
+                    <p className="text-sm text-red-500 mt-2">
+                      Deposit failed. Please try again.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* STEP 3: Send FIX Message */}
+              {/* <div className="flex items-start gap-3">
               <div className="mt-1">
                 {fixStatus === "done" ? (
                   <CheckCircle2 className="text-blue-500 w-5 h-5" />
@@ -497,34 +501,69 @@ export function TransactionConfirmModal({
               </div>
             </div> */}
 
-            {/* Final Step: Transaction Finalizing */}
-            {finalizing && txHash && (
-              <div className="flex items-start gap-3 mt-4">
-                <div className="mt-1">
-                  <Circle className="w-5 h-5 text-blue-500 animate-spin" />
+              {/* Final Step: Transaction Finalizing */}
+              {finalizing && txHash && (
+                <div className="flex items-start gap-3 mt-4">
+                  <div className="mt-1">
+                    <CheckCircle2 className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[15px] font-medium text-primary">
+                      Transaction{" "}
+                      <a
+                        href={`https://basescan.org/tx/${txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline text-blue-500"
+                      >
+                        {txHash.slice(0, 6)}...{txHash.slice(-4)}
+                      </a>{" "}
+                      is finalizing
+                    </p>
+                    <p className="text-sm text-secondary">
+                      Feel free to browse as the transaction finalizes
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-[15px] font-medium text-primary">
-                    Transaction{" "}
+              )}
+            </div>
+          )}
+          {showSuccessModal && (
+            <div className="fixed inset-0 bg-transaprent bg-opacity-60 flex items-center justify-center z-200">
+              <div className="bg-background p-6 rounded-lg max-w-md w-full border border-accent z-100">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <CheckCircle2 className="w-12 h-12 text-green-500" />
+                  <h3 className="text-lg font-bold text-primary">
+                    Transaction Successful!
+                  </h3>
+                  <p className="text-sm text-secondary">
+                    Your deposit has been confirmed on the blockchain.
+                  </p>
+                  {txHash && (
                     <a
                       href={`https://basescan.org/tx/${txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="underline text-blue-500"
+                      className="text-blue-500 text-sm underline"
                     >
-                      {txHash.slice(0, 6)}...{txHash.slice(-4)}
-                    </a>{" "}
-                    is finalizing
-                  </p>
-                  <p className="text-sm text-secondary">
-                    Feel free to browse as the transaction finalizes
-                  </p>
+                      View on Explorer
+                    </a>
+                  )}
+                  <Button
+                    onClick={() => {
+                      setShowSuccessModal(false);
+                      toast.success("Deposit success...");
+                    }}
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  >
+                    Continue
+                  </Button>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

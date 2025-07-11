@@ -256,13 +256,80 @@ export class EtfPriceService {
   //   return [];
   // }
 
-  async getDepositTransactions(indexId: number) {
+  async getIndexMakerInfo() {
+    // Get current USDC balance
+    const usdcContract = new ethers.Contract(
+      process.env.USDC_ADDRESS_IN_BASE!,
+      ['function balanceOf(address) view returns (uint256)'],
+      this.provider,
+    );
+    const totalVolume = await usdcContract.balanceOf(
+      process.env.OTC_CUSTODY_ADDRESS!,
+    );
+
+    // Get deposit events to calculate volume
+    const depositLogs = await this.provider.getLogs({
+      address: process.env.OTC_CUSTODY_ADDRESS!,
+      topics: [ethers.id('Deposit(uint256,address)')],
+    });
+
+    const totalManaged = 0n;
+
+    return {
+      totalManaged: ethers.formatUnits(totalManaged, 6),
+      totalVolume: ethers.formatUnits(totalVolume, 6),
+    };
+  }
+
+  async getDepositTransactions(indexId: number, address?: string) {
+    // Handle case when indexId is -1 (get all indexes)
+    if (indexId == -1) {
+      const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
+      const allIndexes: Array<any> = JSON.parse(raw);
+
+      // Get deposits for all indexes in parallel
+      const allDeposits = await Promise.all(
+        allIndexes.map(async (index) => {
+          const indexDeposits = await this.getDepositTransactions(
+            Number(index.indexId),
+            address,
+          );
+          return indexDeposits;
+        }),
+      );
+
+      // Flatten the array and filter for user's address if provided
+      const flattenedDeposits = allDeposits.flat();
+      return address
+        ? flattenedDeposits.filter(
+            (deposit) => deposit?.user.toLowerCase() === address.toLowerCase(),
+          )
+        : flattenedDeposits;
+    }
+
+    // Original logic for specific indexId
     const indexData = await this.getIndexDataFromFile(indexId);
     if (!indexData?.address) throw new Error(`Index ${indexId} not found`);
 
-    const depositIface = new ethers.Interface([
+    const iface = new ethers.Interface([
       'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+      'function balanceOf(address account) view returns (uint256)',
+      'function totalSupply() view returns (uint256)',
     ]);
+
+    // Filter by user address in event topics if address is provided
+    const filter: any = {
+      address: indexData.address,
+      fromBlock: 0,
+      toBlock: 'latest',
+      topics: [ethers.id('Deposit(uint256,address,uint256,address,address)')],
+    };
+
+    // if (address) {
+    //   filter.topics.push(ethers.zeroPadValue(address, 32)); // Add address filter
+    // }
+
+    // const depositLogs = await this.provider.getLogs(filter);
 
     const depositLogs = await this.provider.getLogs({
       address: indexData.address,
@@ -270,28 +337,54 @@ export class EtfPriceService {
       toBlock: 'latest',
       topics: [ethers.id('Deposit(uint256,address,uint256,address,address)')],
     });
+
+    const indexContract = new ethers.Contract(
+      indexData.address,
+      iface,
+      this.provider,
+    );
+
+    const totalSupply = await indexContract.totalSupply();
     const USDValueOfUSDC =
       await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
-    const deposits = depositLogs.map((log, i) => {
-      const parsed = depositIface.parseLog(log);
-      if (!parsed) return;
 
-      const user = parsed.args.from as string;
-      const amount = parsed.args.amount as bigint;
-      // const shares = parsed.args.shares as bigint;
-      const shares = 100;
+    const deposits = await Promise.all(
+      depositLogs.map(async (log, i) => {
+        const parsed = iface.parseLog(log);
+        if (!parsed) return;
 
-      return {
-        id: `deposit-${log.transactionHash}-${i}`,
-        user,
-        supply: ethers.formatUnits(amount, 6), // USDC is 6 decimals
-        supplySummary: `${Number(ethers.formatUnits(amount, 6)) * USDValueOfUSDC}`,
-        currency: 'USDC',
-        share: shares, // assuming shares have 18 decimals
-      };
-    });
+        const user = parsed.args.from as string;
+        const amount = parsed.args.amount as bigint;
+        const userBalance = await indexContract.balanceOf(user);
 
-    return deposits;
+        const sharePercentage =
+          totalSupply > 0
+            ? (Number(userBalance) / Number(totalSupply)) * 100
+            : 0;
+
+        return {
+          id: `deposit-${log.transactionHash}-${i}`,
+          indexId: indexData.indexId,
+          indexName: indexData.name,
+          indexSymbol: indexData.symbol,
+          user,
+          supply: ethers.formatUnits(amount, 6),
+          supplyValueUSD:
+            Number(ethers.formatUnits(amount, 6)) * USDValueOfUSDC,
+          currency: 'USDC',
+          share: sharePercentage.toFixed(2),
+          rawShare: sharePercentage,
+          userBalance: ethers.formatUnits(userBalance, 18),
+          totalSupply: ethers.formatUnits(totalSupply, 18),
+          blockNumber: log.blockNumber,
+          transactionHash: log.transactionHash,
+        };
+      }),
+    );
+
+    // Filter by address again in case the topic filter didn't work perfectly
+    const filteredDeposits = deposits.filter(Boolean);
+    return filteredDeposits;
   }
 
   async getUserTransactions(indexId: number): Promise<any[]> {

@@ -194,7 +194,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     const _fetchDepositTransaction = async (_indexId: number) => {
       setDepositTransactionLoading(true);
       try {
-        const response = await fetchDepositTransactionData(_indexId);
+        const response = await fetchDepositTransactionData(_indexId, '0x0000');
         const data = response;
         setSupplyPositions(data);
       } catch (error) {

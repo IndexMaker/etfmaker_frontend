@@ -72,7 +72,7 @@ export default function IndexBalance({
                   </div>
                 </td>
                 <td className="py-4 px-4 font-medium text-secondary text-[13px]">
-                  {index.performance?.oneYearReturn.toFixed(2)} %
+                  {index.totalSupply} USDC
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex flex-col gap-2 items-start">

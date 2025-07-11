@@ -120,11 +120,25 @@ export const fetchHistoricalData = async (
   }
 };
 
+export const getIndexMakerInfo = async () => {
+  const response = await fetch(
+    `${API_BASE_URL}/indices/getIndexMakerInfo`
+  );
+
+  if (!response.ok) {
+    console.log("Failed to fetch deposit transaction data");
+    return null
+  }
+
+  return response.json();
+}
+
 export const fetchDepositTransactionData = async (
-  indexId: string | number
+  indexId: string | number,
+  address?: string
 ): Promise<SupplyPosition[]> => {
   const response = await fetch(
-    `${API_BASE_URL}/indices/getDepositTransactionData/${indexId}`
+    `${API_BASE_URL}/indices/getDepositTransactionData/${indexId}/${address}`
   );
 
   if (!response.ok) {

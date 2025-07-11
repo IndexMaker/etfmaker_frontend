@@ -61,7 +61,7 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
               {supply.supply} {supply.currency}
             </div>
             <div className="px-[2px] pt-1 rounded-[4px] bg-[#fafafa1a] text-white text-[11px] flex items-center">
-              ${Number(supply.supplySummary).toFixed(2)}
+              ${Number(supply.supplyValueUSD).toFixed(2)}
             </div>
           </div>
         );
