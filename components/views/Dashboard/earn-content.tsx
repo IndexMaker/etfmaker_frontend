@@ -68,8 +68,8 @@ export function EarnContent({
   const [sortColumn, setSortColumn] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  const [totalManaged, setTotalManaged] = useState<number>(0);
-  const [totalVolumn, setTotalVolumn] = useState<number>(0);
+  const [totalManaged, setTotalManaged] = useState<string>('0');
+  const [totalVolumn, setTotalVolumn] = useState<string>('0');
   const [activeMyearnTab, setActiveMyearnTab] = useState<
     "position" | "historic"
   >("position");
@@ -109,12 +109,13 @@ export function EarnContent({
       const response = await getIndexMakerInfo()
       if (response) {
         setTotalManaged(response.totalManaged)
-        setTotalVolumn(response.totalVolumn)
+        setTotalVolumn(parseFloat(response.totalVolume).toFixed(2))
       }
     }
 
     fetchInfo()
   }, []);
+
 
   useEffect(() => {
     const termsAccepted = localStorage.getItem("termsAccepted");

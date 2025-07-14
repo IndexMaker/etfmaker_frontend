@@ -257,7 +257,7 @@ export function VaultTable({
                                   <span>{vault.totalSupply}</span>
                                 </div>
                                 <div className="text-card p-1 ml-2 bg-accent text-xs">
-                                  ${vault.totalSupplyUSD || "0"}
+                                  ${vault.totalSupplyUSD.toFixed(2) || "0"}
                                 </div>
                               </div>
                             )}

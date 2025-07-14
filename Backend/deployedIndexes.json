@@ -3,36 +3,42 @@
     "name": "Decentralized Finance Tokens",
     "symbol": "SYDF",
     "indexId": "27",
-    "address": "0xfA1AfB2854cfC22463667776B5fAA349d579d6e3"
+    "address": "0xfA1AfB2854cfC22463667776B5fAA349d579d6e3",
+    "custodyId": "0xe2275d780b78176f5ad17a1287a41c7c51b323e10da1cd7207f0e894c20f8467"
   },
   {
     "name": "A16Z Crypto Portfolio",
     "symbol": "SYAZ",
     "indexId": "22",
-    "address": "0xe28eD9Ee3A8C78A578a7A6738FF08189bCaa8bE3"
+    "address": "0xe28eD9Ee3A8C78A578a7A6738FF08189bCaa8bE3",
+    "custodyId": "0x8d1553c6ebd657aab61753eff17956bc7f951a742b197c6e3a7e2fc43f5931d4"
   },
   {
     "name": "SY100",
     "symbol": "SY100",
     "indexId": "21",
-    "address": "0xF3eA34CfAD1ce45Ea39AaEb636a701E892510a10"
+    "address": "0xF3eA34CfAD1ce45Ea39AaEb636a701E892510a10",
+    "custodyId": "0x762cc53b3c481fba6bf25f70cc7e7e1c547356518491d798d7c1c2e10616867f"
   },
   {
     "name": "Artificial Intelligence Tokens",
     "symbol": "SYAI",
     "indexId": "24",
-    "address": "0xDAa97B90a22C0D6b390D242686c4463AC457D89e"
+    "address": "0xDAa97B90a22C0D6b390D242686c4463AC457D89e",
+    "custodyId": "0xc804669f30abc63f8068ee3e4ff473bf5ac1db8e1245df5537d4d860444c2dd9"
   },
   {
     "name": "Layer 2 Tokens",
     "symbol": "SYL2",
     "indexId": "23",
-    "address": "0xcbA67afAe691166306efe7AF58966755c7371205"
+    "address": "0xcbA67afAe691166306efe7AF58966755c7371205",
+    "custodyId": "0xe73fd05391ea139ee33dd12a02b590b3bfe43655d48fee6d22a08897ccda0288"
   },
   {
     "name": "Meme Tokens",
     "symbol": "SYME",
     "indexId": "25",
-    "address": "0x2f484b4E41949f8A36c639bf2f02e719c3FB2a86"
+    "address": "0x2f484b4E41949f8A36c639bf2f02e719c3FB2a86",
+    "custodyId": "0xeb9587c88fcefdebcddc0eaf36f12183c202aa94743da22eaaa542e6a919dec3"
   }
 ]

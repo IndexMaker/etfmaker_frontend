@@ -48,7 +48,14 @@ export class EtfPriceService {
   private indexRegistry: ethers.Contract;
   private readonly signer: ethers.Wallet;
   private priceCache: Record<string, Array<[number, number]>> = {};
-  private indexes: { name: string; symbol: string; address: string }[];
+  private indexes: {
+    name: string;
+    symbol: string;
+    address: string;
+    indexId: number;
+    custodyId: string;
+  }[];
+  private otcCustody: ethers.Contract;
   private readonly INDEX_LIST_PATH = path.resolve(
     process.cwd(),
     'deployedIndexes.json',
@@ -67,6 +74,18 @@ export class EtfPriceService {
     if (!privateKey) {
       throw new Error('PRIVATE_KEY is not set in .env');
     }
+    this.signer = new ethers.Wallet(privateKey, this.provider);
+    const custodyArtifact = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
+      ),
+    );
+    this.otcCustody = new ethers.Contract(
+      process.env.OTC_CUSTODY_ADDRESS!,
+      custodyArtifact.abi,
+      this.signer,
+    );
   }
 
   async computeLivePrice(indexId: string, chainId: number): Promise<number> {
@@ -101,167 +120,12 @@ export class EtfPriceService {
     return totalPrice;
   }
 
-  // async getIndexTransactions(indexId: number) {
-  //   const filter = this.indexRegistry.filters.CuratorWeightsSet(indexId);
-  //   const latestBlock = await this.provider.getBlockNumber();
-  //   const fromBlock = Math.max(0, latestBlock - 50000);
-  //   const events = await this.indexRegistry.queryFilter(
-  //     filter,
-  //     fromBlock,
-  //     'latest',
-  //   );
-  //   const indexData = await this.indexRegistry.getIndexDatas(
-  //     indexId.toString(),
-  //   );
-  //   const formattedTransactions = events
-  //     .map((event: any, i) => {
-  //       // Calculate timestamp (assuming block timestamp is available)
-  //       const eventTimestamp = Number(
-  //         event.args?.[1] || Math.floor(Date.now() / 1000) - i * 86400,
-  //       ); // Fallback: space out by days
-
-  //       // Format user address
-  //       const userAddress = event.address || event.args?.[0] || '0x000...000';
-
-  //       // Format transaction hash
-  //       const txHash = event.transactionHash;
-
-  //       // Get amount (adjust based on your event structure)
-  //       const amount = event.args?.[3]
-  //         ? parseFloat(ethers.formatUnits(event.args?.[3], 18))
-  //         : 0;
-
-  //       // Get market name from indexData (adjust based on your data structure)
-  //       const marketName = indexData?.name || `Index ${indexId}`;
-  //       return {
-  //         id: `tx-${i + 1}`,
-  //         timestamp: formatTimestamp(eventTimestamp),
-  //         formattedTimestamp: eventTimestamp,
-  //         user: userAddress,
-  //         hash: txHash,
-  //         amount: amount,
-  //         currency: 'DM',
-  //         type: 'Rebalance', // or determine from event type
-  //         market: `🌬️ ${marketName} / DM`,
-  //         letv: calculateLETV(amount), // Your LETV calculation
-  //       };
-  //     })
-  //     .sort((a, b) => b.formattedTimestamp - a.formattedTimestamp);
-
-  //   return formattedTransactions;
-  // }
-
-  // async getHistoricalData(indexId: number): Promise<HistoricalEntry[]> {
-  //   // 1. Fetch all rebalances from database (sorted oldest to newest)
-  //   const rebalanceEvents = await this.dbService
-  //     .getDb()
-  //     .select({
-  //       timestamp: rebalances.timestamp,
-  //       weights: rebalances.weights,
-  //       prices: rebalances.prices,
-  //     })
-  //     .from(rebalances)
-  //     .where(eq(rebalances.indexId, indexId.toString()))
-  //     .orderBy(asc(rebalances.timestamp));
-
-  //   if (rebalanceEvents.length === 0) return [];
-  //   // 2. Get index metadata
-  //   const indexData = await this.indexRegistry.getIndexDatas(
-  //     indexId.toString(),
-  //   );
-
-  //   const historicalData: HistoricalEntry[] = [];
-  //   let baseValue = 10000;
-
-  //   // Pre-fetch all needed CoinGecko IDs once
-  //   const allSymbols = rebalanceEvents.flatMap((event) =>
-  //     JSON.parse(event.weights).map((w: [string, number]) => w[0]),
-  //   );
-  //   const uniqueSymbols: any[] = [...new Set(allSymbols)];
-  //   const coingeckoIdMap = await this.mapToCoingeckoIds(uniqueSymbols);
-
-  //   // Process each rebalance period
-  //   for (let i = 0; i < rebalanceEvents.length; i++) {
-  //     const current = {
-  //       timestamp: Number(rebalanceEvents[i].timestamp),
-  //       weights: JSON.parse(rebalanceEvents[i].weights) as [string, number][],
-  //       prices: rebalanceEvents[i].prices as Record<string, number>,
-  //     };
-
-  //     const next = rebalanceEvents[i + 1];
-  //     const endTimestamp = next
-  //       ? Number(next.timestamp)
-  //       : Math.floor(Date.now() / 1000);
-
-  //     // Get historical prices for this period
-  //     const tokenPrices = await this.getHistoricalPricesForPeriod(
-  //       coingeckoIdMap,
-  //       current.timestamp,
-  //       endTimestamp,
-  //     );
-
-  //     // Calculate daily index prices
-  //     for (let ts = current.timestamp; ts <= endTimestamp; ts += 86400) {
-  //       const dateStr = new Date(ts * 1000).toISOString().split('T')[0];
-  //       const price = this.calculateIndexPriceFromDb(
-  //         current.weights,
-  //         tokenPrices,
-  //         ts,
-  //       );
-
-  //       if (price === null) continue;
-
-  //       const prevPrice =
-  //         historicalData.length === 0
-  //           ? price
-  //           : historicalData[historicalData.length - 1].price;
-
-  //       baseValue = baseValue * (price / prevPrice);
-
-  //       historicalData.push({
-  //         name: indexData.name, // Assuming indexData is not an array anymore
-  //         date: new Date(ts * 1000),
-  //         price,
-  //         value: baseValue,
-  //       });
-  //     }
-  //   }
-
-  //   // Filter to keep only one entry per date (latest)
-  //   const dateMap = new Map<string, HistoricalEntry>();
-  //   historicalData.forEach((entry) => {
-  //     const dateKey = entry.date.toISOString().split('T')[0];
-  //     if (!dateMap.has(dateKey) || entry.date > dateMap.get(dateKey)!.date) {
-  //       dateMap.set(dateKey, entry);
-  //     }
-  //   });
-
-  //   const filteredData = Array.from(dateMap.values()).sort(
-  //     (a, b) => a.date.getTime() - b.date.getTime(),
-  //   );
-
-  //   // Apply scaling (normalize to 10,000 starting value)
-  //   if (filteredData.length > 0) {
-  //     const scalingFactor = 10000 / filteredData[0].price;
-  //     return filteredData.map((entry, index) => ({
-  //       ...entry,
-  //       price: entry.price * scalingFactor,
-  //       value:
-  //         index === 0
-  //           ? 10000
-  //           : filteredData[0].value * (entry.price / filteredData[0].price),
-  //     }));
-  //   }
-
-  //   return [];
-  // }
-
   async getIndexMakerInfo() {
     // Get current USDC balance
     const usdcContract = new ethers.Contract(
       process.env.USDC_ADDRESS_IN_BASE!,
       ['function balanceOf(address) view returns (uint256)'],
-      this.provider,
+      this.signer,
     );
     const totalVolume = await usdcContract.balanceOf(
       process.env.OTC_CUSTODY_ADDRESS!,
@@ -341,12 +205,15 @@ export class EtfPriceService {
     const indexContract = new ethers.Contract(
       indexData.address,
       iface,
-      this.provider,
+      this.signer,
     );
 
     const totalSupply = await indexContract.totalSupply();
     const USDValueOfUSDC =
       await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
+
+    // Add a cache object outside the Promise.all
+    const userBalanceCache: Record<string, bigint> = {};
 
     const deposits = await Promise.all(
       depositLogs.map(async (log, i) => {
@@ -355,7 +222,13 @@ export class EtfPriceService {
 
         const user = parsed.args.from as string;
         const amount = parsed.args.amount as bigint;
-        const userBalance = await indexContract.balanceOf(user);
+
+        // Check cache first
+        let userBalance = userBalanceCache[user];
+        if (userBalance === undefined) {
+          userBalance = await indexContract.balanceOf(user);
+          userBalanceCache[user] = userBalance; // Cache the result
+        }
 
         const sharePercentage =
           totalSupply > 0
@@ -1920,7 +1793,29 @@ export class EtfPriceService {
       //   lastWeightUpdateTimestamp,
       // );
       // const tokenLists = this.indexRegistryService.decodeWeights(weights);
+      // console.log(indexData?.indexId)
+      // const custodyArtifact = require(
+      //   path.resolve(
+      //     __dirname,
+      //     '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
+      //   ),
+      // );
+      // const otcCustody = new ethers.Contract(
+      //   process.env.OTC_CUSTODY_ADDRESS!,
+      //   custodyArtifact.abi,
+      //   this.signer,
+      // );
+      // if (indexData && indexData.indexId && indexData.indexId === 27) {
+      //   try {
+      //     const custodyId = await otcCustody.getConnectorCustodyId(indexData?.address);
+      //     console.log("Custody ID:", custodyId);
+      //   } catch (error) {
+      //     console.error("Error fetching custody ID:", error);
+      //     throw error;
+      //   }
 
+      // }
+      // continue
       const result = await this.dbService
         .getDb()
         .select()
@@ -2149,32 +2044,13 @@ export class EtfPriceService {
     const index = this.indexes.find((index) => index.name === name);
     if (!index || !index.address) return '0';
 
-    const indexToken = new ethers.Contract(
-      index.address,
-      ['function totalSupply() view returns (uint256)'],
-      this.provider,
+    const totalSupply = await this.otcCustody.getCustodyBalances(
+      index.custodyId,
+      process.env.USDC_ADDRESS_IN_BASE,
     );
 
-    const totalSupply = await indexToken.totalSupply();
     return Number(ethers.formatUnits(totalSupply, 6)).toFixed(2); // Use actual decimals
   }
-
-  // async getTotalSupplyForIndex(name: string): Promise<string> {
-  //   const rawData = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
-  //   this.indexes = JSON.parse(rawData);
-  //   const index = this.indexes.find((index) => index.name === name);
-  //   if (!index || !index.address) return '0';
-
-  //   // USDC contract (assumes 6 decimals)
-  //   const usdcToken = new ethers.Contract(
-  //     process.env.USDC_ADDRESS_IN_BASE || '',
-  //     ['function balanceOf(address) view returns (uint256)'],
-  //     this.provider,
-  //   );
-  //   console.log(usdcToken)
-  //   const balance = await usdcToken.balanceOf(index.address);
-  //   return Number(ethers.formatUnits(balance, 6)).toFixed(2);
-  // }
 
   async calculateYtdReturn(indexId: number): Promise<number> {
     const previousDay = new Date();
@@ -2339,6 +2215,7 @@ export class EtfPriceService {
     symbol: string;
     address: string;
     indexId: number;
+    custodyId: string;
   } | null> {
     try {
       const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
@@ -2356,6 +2233,7 @@ export class EtfPriceService {
         symbol: entry.symbol,
         address: entry.address,
         indexId: Number(entry.indexId),
+        custodyId: entry.custodyId,
       };
     } catch (err: any) {
       console.error('Failed to read index data from file:', err);

@@ -62,6 +62,7 @@ export class EtfMainService {
 
   private readonly provider: ethers.JsonRpcProvider;
   private readonly signer: ethers.Wallet;
+  private otcCustody: ethers.Contract;
   private readonly INDEX_LIST_PATH = path.resolve(
     process.cwd(),
     'deployedIndexes.json',
@@ -74,7 +75,7 @@ export class EtfMainService {
     private indexRegistryService: IndexRegistryService,
     private dbService: DbService,
   ) {
-    const rpcUrl = process.env.BASE_RPCURL || 'https://mainnet.base.org'; // Use testnet URL for Sepolia if needed
+    const rpcUrl = 'https://mainnet.base.org'; // Use testnet URL for Sepolia if needed
     this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
     // Configure signer with private key
@@ -83,6 +84,17 @@ export class EtfMainService {
       throw new Error('PRIVATE_KEY is not set in .env');
     }
     this.signer = new ethers.Wallet(privateKey, this.provider);
+    const custodyArtifact = require(
+      path.resolve(
+        __dirname,
+        '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
+      ),
+    );
+    this.otcCustody = new ethers.Contract(
+      process.env.OTC_CUSTODY_ADDRESS!,
+      custodyArtifact.abi,
+      this.signer,
+    );
   }
 
   async rebalanceSY100(rebalanceTimestamp: number): Promise<void> {
@@ -1021,18 +1033,6 @@ export class EtfMainService {
       process.env.OTC_CUSTODY_ADDRESS! as `0x${string}`,
     );
 
-    const custodyArtifact = require(
-      path.resolve(
-        __dirname,
-        '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
-      ),
-    );
-    const otcCustody = new ethers.Contract(
-      process.env.OTC_CUSTODY_ADDRESS!,
-      custodyArtifact.abi,
-      this.signer,
-    );
-
     const erc20Json = require(
       path.resolve(
         __dirname,
@@ -1139,7 +1139,7 @@ export class EtfMainService {
     };
 
     console.log('Deploying index via factory...');
-    const tx = await otcCustody.deployConnector(
+    const tx = await this.otcCustody.deployConnector(
       'IndexFactory',
       indexFactoryAddress,
       deployCallData,
@@ -1805,17 +1805,6 @@ export class EtfMainService {
       this.signer,
     );
 
-    const custodyArtifact = require(
-      path.resolve(
-        __dirname,
-        '../../../../artifacts/contracts/OTCCustody/OTCCustody.sol/OTCCustody.json',
-      ),
-    );
-    const otcCustody = new ethers.Contract(
-      process.env.OTC_CUSTODY_ADDRESS!,
-      custodyArtifact.abi,
-      this.signer,
-    );
     const callData = buildCallData('curatorUpdate(uint256,bytes,uint256)', [
       timestamp,
       weightsBytes,
@@ -1854,7 +1843,7 @@ export class EtfMainService {
     };
 
     // 3) call through the custody contract’s connector entrypoint
-    const tx = await otcCustody.callConnector(
+    const tx = await this.otcCustody.callConnector(
       'OTCIndexConnector',
       indexAddress,
       callData,
