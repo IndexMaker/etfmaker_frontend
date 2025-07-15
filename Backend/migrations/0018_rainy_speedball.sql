@@ -1,0 +1,1 @@
+ALTER TABLE "sync_state" ADD CONSTRAINT "sync_state_event_name_unique" UNIQUE("event_name");

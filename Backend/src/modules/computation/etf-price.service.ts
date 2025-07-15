@@ -3,10 +3,12 @@ import { IndexRegistryService } from '../blockchain/index-registry.service';
 import { CoinGeckoService } from '../data-fetcher/coingecko.service';
 import { DbService } from '../../db/db.service';
 import {
+  blockchainEvents,
   coinSymbols,
   dailyPrices,
   historicalPrices,
   rebalances,
+  syncState,
   tempRebalances,
 } from '../../db/schema';
 import {
@@ -121,218 +123,289 @@ export class EtfPriceService {
   }
 
   async getIndexMakerInfo() {
-    // Get current USDC balance
+    const contractAddress = process.env.OTC_CUSTODY_ADDRESS!;
+    const usdcAddress = process.env.USDC_ADDRESS_IN_BASE!;
+    const provider = this.provider;
+
+    // 1. Sync Deposit & Withdraw events from blockchain to DB
+    await this.indexRegistryService.syncBlockchainEvents({
+      provider,
+      network: 'base',
+      contractAddress,
+      eventDefs: [
+        {
+          name: 'Deposit',
+          abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+          topic: ethers.id('Deposit(uint256,address)'),
+        },
+        {
+          name: 'Withdraw',
+          abi: 'event Withdraw(uint256 amount, address to, bytes executionReport)',
+          topic: ethers.id('Withdraw(uint256,address,bytes)'),
+        },
+      ],
+    });
+
+    // 2. Get current USDC balance from chain (totalManaged)
     const usdcContract = new ethers.Contract(
-      process.env.USDC_ADDRESS_IN_BASE!,
+      usdcAddress,
       ['function balanceOf(address) view returns (uint256)'],
       this.signer,
     );
-    const totalVolume = await usdcContract.balanceOf(
-      process.env.OTC_CUSTODY_ADDRESS!,
-    );
 
-    // Get deposit events to calculate volume
-    const depositLogs = await this.provider.getLogs({
-      address: process.env.OTC_CUSTODY_ADDRESS!,
-      topics: [ethers.id('Deposit(uint256,address)')],
-    });
+    const totalManagedRaw = await usdcContract.balanceOf(contractAddress);
 
-    const totalManaged = 0n;
+    // 3. Query DB for totalVolume (sum of Deposit and Withdraw amounts)
+    const rows = await this.dbService
+      .getDb()
+      .select({
+        eventType: blockchainEvents.eventType,
+        amount: blockchainEvents.amount,
+      })
+      .from(blockchainEvents)
+      .where(inArray(blockchainEvents.eventType, ['deposit', 'withdraw']));
+
+    const totalVolumeRaw = rows.reduce((acc, row) => {
+      const amt = BigInt(row.amount ?? '0');
+      return acc + amt;
+    }, 0n);
 
     return {
-      totalManaged: ethers.formatUnits(totalManaged, 6),
-      totalVolume: ethers.formatUnits(totalVolume, 6),
+      totalManaged: ethers.formatUnits(totalManagedRaw, 6),
+      totalVolume: ethers.formatUnits(totalVolumeRaw, 6),
     };
   }
 
   async getDepositTransactions(indexId: number, address?: string) {
-    // Handle case when indexId is -1 (get all indexes)
+    // Handle all indexes case
     if (indexId == -1) {
       const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
       const allIndexes: Array<any> = JSON.parse(raw);
 
-      // Get deposits for all indexes in parallel
       const allDeposits = await Promise.all(
-        allIndexes.map(async (index) => {
-          const indexDeposits = await this.getDepositTransactions(
-            Number(index.indexId),
-            address,
-          );
-          return indexDeposits;
-        }),
+        allIndexes.map((index) =>
+          this.getDepositTransactions(index.indexId, address),
+        ),
       );
 
-      // Flatten the array and filter for user's address if provided
-      const flattenedDeposits = allDeposits.flat();
-      return address
-        ? flattenedDeposits.filter(
-            (deposit) => deposit?.user.toLowerCase() === address.toLowerCase(),
-          )
-        : flattenedDeposits;
+      return allDeposits.flat();
     }
 
-    // Original logic for specific indexId
+    // Get index metadata
     const indexData = await this.getIndexDataFromFile(indexId);
     if (!indexData?.address) throw new Error(`Index ${indexId} not found`);
 
-    const iface = new ethers.Interface([
-      'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
-      'function balanceOf(address account) view returns (uint256)',
-      'function totalSupply() view returns (uint256)',
-    ]);
+    const indexAddress = indexData.address.toLowerCase(); // normalize
+    const network = 'base'; // e.g., 'base', 'mainnet'
 
-    // Filter by user address in event topics if address is provided
-    const filter: any = {
-      address: indexData.address,
-      fromBlock: 0,
-      toBlock: 'latest',
-      topics: [ethers.id('Deposit(uint256,address,uint256,address,address)')],
-    };
-
-    // if (address) {
-    //   filter.topics.push(ethers.zeroPadValue(address, 32)); // Add address filter
-    // }
-
-    // const depositLogs = await this.provider.getLogs(filter);
-
-    const depositLogs = await this.provider.getLogs({
-      address: indexData.address,
-      fromBlock: 0,
-      toBlock: 'latest',
-      topics: [ethers.id('Deposit(uint256,address,uint256,address,address)')],
+    // 1. Sync Deposit events for this contract from blockchain to DB
+    await this.indexRegistryService.syncBlockchainEvents({
+      provider: this.provider,
+      network,
+      contractAddress: indexAddress,
+      eventDefs: [
+        {
+          name: 'Deposit',
+          abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+          topic: ethers.id('Deposit(uint256,address,uint256,address,address)'),
+        },
+      ],
     });
 
-    const indexContract = new ethers.Contract(
-      indexData.address,
-      iface,
-      this.signer,
-    );
+    // 2. Query synced deposit logs from DB
+    const db = this.dbService.getDb();
 
-    const totalSupply = await indexContract.totalSupply();
+    const conditions = [
+      eq(blockchainEvents.contractAddress, indexAddress),
+      eq(blockchainEvents.network, network),
+      eq(blockchainEvents.eventType, 'deposit'),
+    ];
+
+    const rows = await db
+      .select()
+      .from(blockchainEvents)
+      .where(and(...conditions));
+
     const USDValueOfUSDC =
       await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
 
-    // Add a cache object outside the Promise.all
-    const userBalanceCache: Record<string, bigint> = {};
-
+    const _totalSupply = await this.otcCustody.getCustodyBalances(
+      indexData.custodyId,
+      process.env.USDC_ADDRESS_IN_BASE,
+    );
+    const totalSupply = Number(ethers.formatUnits(_totalSupply, 6));
     const deposits = await Promise.all(
-      depositLogs.map(async (log, i) => {
-        const parsed = iface.parseLog(log);
-        if (!parsed) return;
-
-        const user = parsed.args.from as string;
-        const amount = parsed.args.amount as bigint;
-
-        // Check cache first
-        let userBalance = userBalanceCache[user];
-        if (userBalance === undefined) {
-          userBalance = await indexContract.balanceOf(user);
-          userBalanceCache[user] = userBalance; // Cache the result
-        }
+      rows.map(async (event, i) => {
+        const user = event.userAddress!;
+        const amount = BigInt(event.amount ?? '0');
+        if (
+          address &&
+          address !== '0x0000' &&
+          user.toLowerCase() !== address.toLowerCase()
+        )
+          return null;
 
         const sharePercentage =
-          totalSupply > 0
-            ? (Number(userBalance) / Number(totalSupply)) * 100
-            : 0;
+          totalSupply > 0 ? Number(amount) / Number(totalSupply) / 10000 : 0;
 
         return {
-          id: `deposit-${log.transactionHash}-${i}`,
+          id: `deposit-${event.txHash}-${i}`,
           indexId: indexData.indexId,
           indexName: indexData.name,
           indexSymbol: indexData.symbol,
-          user,
+          user: user.toLowerCase(),
           supply: ethers.formatUnits(amount, 6),
           supplyValueUSD:
             Number(ethers.formatUnits(amount, 6)) * USDValueOfUSDC,
           currency: 'USDC',
           share: sharePercentage.toFixed(2),
           rawShare: sharePercentage,
-          userBalance: ethers.formatUnits(userBalance, 18),
-          totalSupply: ethers.formatUnits(totalSupply, 18),
-          blockNumber: log.blockNumber,
-          transactionHash: log.transactionHash,
+          userBalance: ethers.formatUnits(amount, 18),
+          totalSupply: totalSupply.toFixed(2),
+          blockNumber: event.blockNumber,
+          transactionHash: event.txHash,
         };
       }),
     );
 
-    // Filter by address again in case the topic filter didn't work perfectly
-    const filteredDeposits = deposits.filter(Boolean);
-    return filteredDeposits;
+    const validDeposits = deposits.filter(Boolean) as NonNullable<
+      (typeof deposits)[0]
+    >[];
+
+    const grouped: Record<
+      string,
+      ReturnType<(typeof validDeposits)[number]> & { count: number }
+    > = {};
+
+    for (const dep of validDeposits) {
+      const key =
+        address && address !== '0x0000'
+          ? dep.indexId.toString()
+          : dep.user.toLowerCase();
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          ...dep,
+          count: 1,
+          supply: dep.supply,
+          supplyValueUSD: dep.supplyValueUSD,
+        };
+      } else {
+        grouped[key].count += 1;
+        grouped[key].supply = (
+          parseFloat(grouped[key].supply) + parseFloat(dep.supply)
+        ).toFixed(2);
+        grouped[key].supplyValueUSD =
+          parseFloat(grouped[key].supplyValueUSD) +
+          parseFloat(dep.supplyValueUSD);
+      }
+    }
+
+    const groupedArray = Object.values(grouped).map((item) => ({
+      indexId: item.indexId,
+      indexName: item.indexName,
+      indexSymbol: item.indexSymbol,
+      user: address && address !== '0x0000' ? null : item.user ,
+      totalSupply: item.totalSupply,
+      supplyValueUSD: item.supplyValueUSD,
+      depositCount: item.count,
+      supply: item.supply,
+      currency: item.currency,
+      share:
+        totalSupply > 0 ? (Number(item.supply) / Number(totalSupply)) * 100 : 0,
+      rawShare: item.rawShare,
+    }));
+
+    return groupedArray;
   }
 
   async getUserTransactions(indexId: number): Promise<any[]> {
     const indexData = await this.getIndexDataFromFile(indexId);
     if (!indexData?.address) throw new Error(`Index ${indexId} not found`);
 
-    const iface = new ethers.Interface([
-      'event Mint(uint256 amount, address to, uint256 seqNumExecutionReport)',
-      'event Transfer(address indexed from, address indexed to, uint256 value)',
-    ]);
-    const mintTopic = ethers.id('Mint(uint256,address,uint256)');
-    const transferTopic = ethers.id('Transfer(address,address,uint256)');
-    const [mintLogs, transferLogs] = await Promise.all([
-      this.provider.getLogs({
-        address: indexData.address,
-        fromBlock: 0,
-        toBlock: 'latest',
-        topics: [mintTopic],
-      }),
-      this.provider.getLogs({
-        address: indexData.address,
-        fromBlock: 0,
-        toBlock: 'latest',
-        topics: [transferTopic],
-      }),
-    ]);
+    const contractAddress = indexData.address.toLowerCase();
+    const network = 'base';
 
-    const parseToActivity = async (
-      logs: ethers.Log[],
-      eventName: 'Mint' | 'Transfer',
-    ): Promise<any[]> => {
-      return Promise.all(
-        logs.map(async (log, i) => {
-          const parsed = iface.parseLog(log);
-          const block = await this.provider.getBlock(log.blockNumber);
-          if (!block || !parsed) return null;
-          const dateTime = new Date(block.timestamp * 1000).toISOString();
+    const eventDefs = [
+      {
+        name: 'Deposit',
+        abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+        topic: ethers.id('Deposit(uint256,address,uint256,address,address)'),
+      },
+      {
+        name: 'Withdraw',
+        abi: 'event Withdraw(uint256 amount, address to, bytes executionReport)',
+        topic: ethers.id('Withdraw(uint256,address,bytes)'),
+      },
+    ];
 
-          let amountRaw: bigint;
-          let wallet: string;
+    const USDValueOfUSDC =
+      await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
 
-          if (eventName === 'Mint') {
-            amountRaw = parsed.args.amount;
-            wallet = parsed.args.to;
-          } else {
-            amountRaw = parsed.args.value;
-            wallet = parsed.args.to; // or `from`, depending on perspective
-          }
+    // 1. Sync Mint + Transfer events from blockchain
+    await this.indexRegistryService.syncBlockchainEvents({
+      provider: this.provider,
+      network,
+      contractAddress,
+      eventDefs,
+    });
 
-          const amount = Number(ethers.formatUnits(amountRaw, 6)); // assuming USDC
-
-          return {
-            id: `${eventName.toLowerCase()}-${log.transactionHash}-${i}`,
-            dateTime,
-            wallet,
-            hash: log.transactionHash,
-            transactionType: eventName,
-            amount: {
-              amount,
-              currency: 'USDC',
-              amountSummary: `${amount.toLocaleString()} USDC`,
-            },
-          };
-        }),
+    // 2. Query from local DB
+    const events = await this.dbService
+      .getDb()
+      .select()
+      .from(blockchainEvents)
+      .where(
+        and(
+          eq(blockchainEvents.contractAddress, contractAddress),
+          eq(blockchainEvents.network, network),
+          inArray(blockchainEvents.eventType, ['withdraw', 'deposit']),
+        ),
       );
+
+    // 3. Fetch timestamps for each block with caching
+    const blockCache: Record<number, string> = {};
+
+    const getBlockTimestamp = async (blockNumber: number): Promise<string> => {
+      if (blockCache[blockNumber]) return blockCache[blockNumber];
+      const block = await this.provider.getBlock(blockNumber);
+      const timestamp = block
+        ? new Date(block.timestamp * 1000).toISOString()
+        : new Date().toISOString();
+      blockCache[blockNumber] = timestamp;
+      return timestamp.split('.')[0].replace('T', ' ');
     };
 
-    const [mintActivities, transferActivities] = await Promise.all([
-      parseToActivity(mintLogs, 'Mint'),
-      parseToActivity(transferLogs, 'Transfer'),
-    ]);
+    // 4. Parse to activity list
+    const activities = await Promise.all(
+      events.map(async (event, i) => {
+        const wallet = event.userAddress;
+        const amount = Number(event.amount ?? '0') / 1e6; // assuming USDC 6 decimals
+        const dateTime = await getBlockTimestamp(event.blockNumber);
 
-    return [...mintActivities, ...transferActivities].sort(
-      (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+        return {
+          id: `${event.eventType}-${event.txHash}-${i}`,
+          dateTime,
+          wallet,
+          hash: event.txHash,
+          transactionType:
+            event.eventType.charAt(0).toUpperCase() + event.eventType.slice(1),
+          amount: {
+            amount,
+            currency: 'USDC',
+            amountSummary: `$${(amount * USDValueOfUSDC).toFixed(2)}`,
+          },
+        };
+      }),
     );
+
+    // 5. Sort by date desc
+    return activities
+      .filter(Boolean)
+      .sort(
+        (a, b) =>
+          new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime(),
+      );
   }
 
   async getIndexTransactions(indexId: number) {

@@ -214,3 +214,25 @@ export const announcementsTable = pgTable('announcements', {
   parsed: boolean('parsed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 });
+
+export const blockchainEvents = pgTable('blockchain_events', {
+  id: serial('id').primaryKey(),
+  txHash: text('tx_hash').notNull(),
+  blockNumber: integer('block_number').notNull(),
+  logIndex: integer('log_index').notNull(),
+  eventType: text('event_type').notNull(),        // e.g. 'deposit', 'withdraw'
+  contractAddress: text('contract_address').notNull(),
+  network: text('network').notNull(),             // e.g. 'base', 'mainnet'
+  userAddress: text('user_address'),
+  amount: numeric('amount'),
+  timestamp: timestamp('timestamp', { withTimezone: true }), // optional
+});
+
+export const syncState = pgTable('sync_state', {
+  id: serial('id').primaryKey(),
+  contractAddress: text('contract_address').notNull(),
+  network: text('network').notNull(),
+  lastSyncedBlock: integer('last_synced_block').notNull(),
+}, (table) => ({
+  uniqueSyncKey: unique().on(table.contractAddress, table.network),
+}));

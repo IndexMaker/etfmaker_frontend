@@ -18,8 +18,16 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useWallet } from "../../../contexts/wallet-context";
 import { IndexListEntry } from "@/types";
-import { setIndices } from "@/redux/indexSlice";
-import { fetchAllIndices, fetchDepositTransactionData, getIndexMakerInfo } from "@/api/indices";
+import {
+  setIndices,
+  setTotalManaged,
+  setTotalVolume,
+} from "@/redux/indexSlice";
+import {
+  fetchAllIndices,
+  fetchDepositTransactionData,
+  getIndexMakerInfo,
+} from "@/api/indices";
 import {
   Tooltip,
   TooltipContent,
@@ -68,8 +76,6 @@ export function EarnContent({
   const [sortColumn, setSortColumn] = useState<string>("");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  const [totalManaged, setTotalManaged] = useState<string>('0');
-  const [totalVolumn, setTotalVolumn] = useState<string>('0');
   const [activeMyearnTab, setActiveMyearnTab] = useState<
     "position" | "historic"
   >("position");
@@ -79,7 +85,8 @@ export function EarnContent({
   );
 
   const dispatch = useDispatch();
-
+  const totalManaged = useSelector((state: RootState) => state.index.totalManaged);
+  const totalVolume = useSelector((state: RootState) => state.index.totalVolume);
   const [depositTransactionLoading, setDepositTransactionLoading] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -106,16 +113,15 @@ export function EarnContent({
     if (storedIndexes.length === 0) fetchData();
 
     const fetchInfo = async () => {
-      const response = await getIndexMakerInfo()
+      const response = await getIndexMakerInfo();
       if (response) {
-        setTotalManaged(response.totalManaged)
-        setTotalVolumn(parseFloat(response.totalVolume).toFixed(2))
+        dispatch(setTotalManaged(response.totalManaged));
+        dispatch(setTotalVolume(response.totalVolume));
       }
-    }
+    };
 
-    fetchInfo()
+    !totalManaged && fetchInfo();
   }, []);
-
 
   useEffect(() => {
     const termsAccepted = localStorage.getItem("termsAccepted");
@@ -127,7 +133,10 @@ export function EarnContent({
       const _fetchDepositTransaction = async (_indexId: number) => {
         setDepositTransactionLoading(true);
         try {
-          const response = await fetchDepositTransactionData(-1, wallet?.accounts[0]?.address);
+          const response = await fetchDepositTransactionData(
+            -1,
+            wallet?.accounts[0]?.address
+          );
           const data = response;
           setSupplyPositions(data);
         } catch (error) {
@@ -136,7 +145,7 @@ export function EarnContent({
           setDepositTransactionLoading(false);
         }
       };
-      _fetchDepositTransaction(-1)
+      _fetchDepositTransaction(-1);
     }
   }, [wallet]);
   // Function to handle sorting
@@ -272,7 +281,7 @@ export function EarnContent({
                 </CardHeader>
                 <CardContent className="p-0 h-[20px]">
                   <div className="font-normal text-secondary text-[15px] pb-2">
-                    ${totalManaged}
+                    ${totalManaged ? totalManaged : 0}
                   </div>
                 </CardContent>
               </Card>
@@ -292,7 +301,7 @@ export function EarnContent({
                 </CardHeader>
                 <CardContent className="p-0 h-[20px]">
                   <div className="text-[15px] font-normal text-secondary mb-2">
-                    ${totalVolumn}
+                    ${totalVolume ? totalVolume : 0}
                   </div>
                 </CardContent>
               </Card>
@@ -374,7 +383,7 @@ export function EarnContent({
                       t("common.noEarnPosition")
                     ) : (
                       <div className="mt-[-30] m-[-16]">
-                        <VaultSupply supplyPositions={supplyPositions} />
+                        <VaultSupply supplyPositions={supplyPositions} myPositions={true} />
                       </div>
                     )
                   ) : (

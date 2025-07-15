@@ -18,13 +18,14 @@ import Link from "next/link";
 
 interface VaultSupplyProps {
   supplyPositions: SupplyPosition[];
+  myPositions?: boolean;
 }
 const allColumns = [
   { id: "user", name: "User", visible: true },
   { id: "supply", name: "Supply", visible: true },
   { id: "share", name: "Share", visible: true },
 ];
-export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
+export function VaultSupply({ supplyPositions, myPositions = false }: VaultSupplyProps) {
   const { t } = useLanguage();
   // Helper function to render cell content based on column ID
   const renderCellContent = (supply: SupplyPosition, columnId: string) => {
@@ -32,17 +33,17 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
       case "user":
         return (
           <div className="flex items-center gap-2">
-            <Image
+            {supply.user ? <Image
               src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0ib3B0aW1pemVTcGVlZCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij48cGF0aCBmaWxsPSJoc2woMTM2IDk4JSAzOSUpIiBkPSJNMCwwSDhWOEgweiIvPjxwYXRoIGZpbGw9ImhzbCgzNTEgNzklIDM4JSkiIGQ9Ik0xLDBoMXYxaC0xek02LDBoMXYxaC0xek0yLDBoMXYxaC0xek01LDBoMXYxaC0xek0zLDBoMXYxaC0xek00LDBoMXYxaC0xek0xLDJoMXYxaC0xek02LDJoMXYxaC0xek0xLDNoMXYxaC0xek02LDNoMXYxaC0xek0yLDNoMXYxaC0xek01LDNoMXYxaC0xek0zLDNoMXYxaC0xek00LDNoMXYxaC0xek0xLDRoMXYxaC0xek02LDRoMXYxaC0xek0zLDRoMXYxaC0xek00LDRoMXYxaC0xek0xLDVoMXYxaC0xek02LDVoMXYxaC0xek0yLDVoMXYxaC0xek01LDVoMXYxaC0xek0zLDZoMXYxaC0xek00LDZoMXYxaC0xek0xLDdoMXYxaC0xek02LDdoMXYxaC0xeiIvPjxwYXRoIGZpbGw9ImhzbCgyNDMgNTAlIDcyJSkiIGQ9Ik0yLDFoMXYxaC0xek01LDFoMXYxaC0xek0wLDJoMXYxaC0xek03LDJoMXYxaC0xek0yLDJoMXYxaC0xek01LDJoMXYxaC0xek0zLDVoMXYxaC0xek00LDVoMXYxaC0xek0xLDZoMXYxaC0xek02LDZoMXYxaC0xeiIvPjwvc3ZnPg=="
               className="w-[17px] h-[17px] rounded-full"
               width={17}
               height={17}
               alt="user"
-            />
-            <div>{shortenAddress(supply.user)}</div>
+            /> : <></>}
+            <div>{supply.user ? shortenAddress(supply.user) : supply.indexName}</div>
             <div>
               <Link
-                href={`https://basescan.org/address/${supply.user}`}
+                href={`https://basescan.org/address/${supply.user ? supply.user : '#'}`}
                 target="_blank"
               >
                 <RightArrow
@@ -58,7 +59,7 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
         return (
           <div className="flex items-center gap-2">
             <div>
-              {supply.supply} {supply.currency}
+              {parseFloat(supply.supply)} {supply.currency}
             </div>
             <div className="px-[2px] pt-1 rounded-[4px] bg-[#fafafa1a] text-white text-[11px] flex items-center">
               ${Number(supply.supplyValueUSD).toFixed(2)}
@@ -90,7 +91,7 @@ export function VaultSupply({ supplyPositions }: VaultSupplyProps) {
                       "text-secondary text-[13px] pl-[20px] pr-[72px]"
                     )}
                   >
-                    {t("table." + column.id)}
+                    {column.id === 'user' && myPositions ? "Index" : t("table." + column.id)}
                   </TableHead>
                 ))}
               </TableRow>

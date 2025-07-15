@@ -10,13 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, shortenAddress } from "@/lib/utils";
 import { Button } from "../ui/button";
 import LeftArrow from "../icons/left-arrow";
 import RightArrow from "../icons/right-arrow";
 import { Activity, transactionTypes } from "@/lib/data";
 import Image from "next/image";
 import { useLanguage } from "@/contexts/language-context";
+import Link from "next/link";
 
 interface VaultReAllocationProps {
   activities: Activity[];
@@ -35,7 +36,7 @@ export function VaultActivity({
 }: VaultReAllocationProps) {
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 10;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentActivities = activities.slice(indexOfFirstItem, indexOfLastItem);
@@ -56,25 +57,35 @@ export function VaultActivity({
               height={17}
               alt="user"
             />
-            <div>{activity.wallet}</div>
+            <div>{shortenAddress(activity.wallet)}</div>
             <div>
-              <RightArrow
-                className="rotate-135 text-[#FFFFFF99]"
-                width="13px"
-                height="13px"
-              />
+              <Link
+                href={`https://basescan.org/address/${activity.wallet}`}
+                target="_blank"
+              >
+                <RightArrow
+                  className="rotate-135 text-[#FFFFFF99]"
+                  width="13px"
+                  height="13px"
+                />
+              </Link>
             </div>
           </div>
         );
       case "hash":
         return (
           <div className="flex items-center gap-2">
-            <div>{activity.hash}</div>
-            <RightArrow
-              className="rotate-135 text-[#FFFFFF99]"
-              width="13px"
-              height="13px"
-            />
+            <div>{shortenAddress(activity.hash)}</div>
+            <Link
+              href={`https://basescan.org/tx/${activity.hash}`}
+              target="_blank"
+            >
+              <RightArrow
+                className="rotate-135 text-[#FFFFFF99]"
+                width="13px"
+                height="13px"
+              />
+            </Link>
           </div>
         );
       case "transactionType":

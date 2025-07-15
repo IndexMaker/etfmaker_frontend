@@ -706,6 +706,7 @@ export const reallocations: ReAllocation[] = [
 
 export type SupplyPosition = {
   id: string;
+  indexName?: string;
   user: string;
   supply: string;
   supplyValueUSD: string;

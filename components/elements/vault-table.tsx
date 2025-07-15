@@ -243,7 +243,7 @@ export function VaultTable({
                             )}
                             {col.id === "totalSupply" && (
                               <div
-                                className="flex items-center"
+                                className="flex items-center gap-2"
                                 onClick={() => assetDetail(vault)}
                               >
                                 <div className="flex gap-1">
@@ -254,7 +254,7 @@ export function VaultTable({
                                     height={8}
                                     className="object-cover w-full h-full"
                                   />
-                                  <span>{vault.totalSupply}</span>
+                                  <span>{vault.totalSupply} USDC</span>
                                 </div>
                                 <div className="text-card p-1 ml-2 bg-accent text-xs">
                                   ${vault.totalSupplyUSD.toFixed(2) || "0"}

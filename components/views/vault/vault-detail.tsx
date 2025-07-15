@@ -108,14 +108,16 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   } = useWallet();
   const { t } = useLanguage();
   const vault = mockup_vaults[0];
-  const documents = getIndexData(index?.name || 'SY100')?.documents || [];
+  const documents = getIndexData(index?.name || "SY100")?.documents || [];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
   const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
   const [historicalLoading, setHistoricalLoading] = useState<boolean>(false);
   const [indexAssetLoading, setAssetLoading] = useState<boolean>(false);
-  const [depositTransactionLoading, setDepositTransactionLoading] = useState<boolean>(false);
-  const [userActivityLoading, setUserActivityLoading] = useState<boolean>(false);
+  const [depositTransactionLoading, setDepositTransactionLoading] =
+    useState<boolean>(false);
+  const [userActivityLoading, setUserActivityLoading] =
+    useState<boolean>(false);
   const [indexData, setIndexData] = useState<IndexData | null>(null);
   const [btcData, setBtcData] = useState<any[]>([]);
   const [ethData, setEthData] = useState<any[]>([]);
@@ -135,7 +137,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     (state: RootState) => state.vault.selectedVault
   );
 
-  const [indexDescription, setIndexDescription] = useState('')
+  const [indexDescription, setIndexDescription] = useState("");
 
   useEffect(() => {
     const fetchData = async (indexId: number) => {
@@ -194,7 +196,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     const _fetchDepositTransaction = async (_indexId: number) => {
       setDepositTransactionLoading(true);
       try {
-        const response = await fetchDepositTransactionData(_indexId, '0x0000');
+        const response = await fetchDepositTransactionData(_indexId, "0x0000");
         const data = response;
         setSupplyPositions(data);
       } catch (error) {
@@ -219,7 +221,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
     };
     index?.indexId && _fetchUserTransaction(index?.indexId);
 
-    index && index.ticker && (setIndexDescription(getIndexData(index.ticker).description))
+    index &&
+      index.ticker &&
+      setIndexDescription(getIndexData(index.ticker).description);
   }, [index]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -419,13 +423,17 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               {/* Vault Description */}
               <div className="bg-foreground rounded-sm p-5  flex items-center w-full">
                 <p className="text-secondary text-[13px] leading-[16px]">
-                  {indexDescription || ''}
+                  {indexDescription || ""}
                 </p>
               </div>
             </div>
 
             {isSmallWindow ? (
-              <Accordion type="multiple" className="w-full space-y-4 pt-6" defaultValue={["Balance"]}>
+              <Accordion
+                type="multiple"
+                className="w-full space-y-4 pt-6"
+                defaultValue={["Balance"]}
+              >
                 {/* Index Balance */}
                 <AccordionItem value="Balance">
                   <AccordionTrigger className="text-left lg:text-[20px] text-[16px] text-primary font-custom">
@@ -593,10 +601,16 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     {t("common.vaultReallocations")}
                   </AccordionTrigger>
                   <AccordionContent className="pt-4">
-                    <VaultReAllocation
-                      reallocations={indexData?.formattedTransactions || []}
-                      visibleColumns={visibleReAllocationColumns}
-                    />
+                    {historicalLoading ? (
+                      <div className="space-y-3 animate-pulse py-2">
+                        <div className="h-10 bg-foreground rounded w-full mx-auto"></div>
+                      </div>
+                    ) : (
+                      <VaultReAllocation
+                        reallocations={indexData?.formattedTransactions || []}
+                        visibleColumns={visibleReAllocationColumns}
+                      />
+                    )}
                   </AccordionContent>
                 </AccordionItem>
 
@@ -606,7 +620,13 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     {t("common.supplyPositions")}
                   </AccordionTrigger>
                   <AccordionContent className="pt-4">
-                    <VaultSupply supplyPositions={supplyPositions} />
+                    {depositTransactionLoading ? (
+                      <div className="space-y-3 animate-pulse py-2">
+                        <div className="h-10 bg-foreground rounded w-full mx-auto"></div>
+                      </div>
+                    ) : (
+                      <VaultSupply supplyPositions={supplyPositions} />
+                    )}
                   </AccordionContent>
                 </AccordionItem>
 
@@ -616,10 +636,16 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     {t("common.userActivity")}
                   </AccordionTrigger>
                   <AccordionContent className="pt-4">
-                    <VaultActivity
-                      activities={userActivities}
-                      visibleColumns={visibleTransactionColumns}
-                    />
+                    {userActivityLoading ? (
+                      <div className="space-y-3 animate-pulse py-2">
+                        <div className="h-10 bg-foreground rounded w-full mx-auto"></div>
+                      </div>
+                    ) : (
+                      <VaultActivity
+                        activities={userActivities}
+                        visibleColumns={visibleTransactionColumns}
+                      />
+                    )}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -879,7 +905,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     <FundDetail indexId={index.ticker} />
                     {!isSmallWindow && <FundManager indexId={index.ticker} />}
                     <FundOverview indexId={index.ticker} />
-                    {!isSmallWindow && <PortfolioManagerInsights indexId={index.ticker} />}
+                    {!isSmallWindow && (
+                      <PortfolioManagerInsights indexId={index.ticker} />
+                    )}
                     <FundRiskReturn indexId={index.ticker} />
                     {!isSmallWindow && <Risk indexId={index.ticker} />}
                   </div>
@@ -1089,10 +1117,16 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       </PopoverContent>
                     </Popover>
                   </h1>
-                  <VaultReAllocation
-                    reallocations={indexData?.formattedTransactions || []}
-                    visibleColumns={visibleReAllocationColumns}
-                  />
+                  {historicalLoading ? (
+                    <div className="space-y-3 animate-pulse py-2">
+                      <div className="h-10 bg-foreground rounded w-full mx-auto"></div>
+                    </div>
+                  ) : (
+                    <VaultReAllocation
+                      reallocations={indexData?.formattedTransactions || []}
+                      visibleColumns={visibleReAllocationColumns}
+                    />
+                  )}
                 </div>
 
                 <div className="pt-16">
@@ -1101,7 +1135,13 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       <div>{t("common.supplyPositions")}</div>
                     </div>
                   </h1>
-                  <VaultSupply supplyPositions={supplyPositions} />
+                  {depositTransactionLoading ? (
+                    <div className="space-y-3 animate-pulse py-2">
+                      <div className="h-10 bg-foreground rounded w-full mx-auto"></div>
+                    </div>
+                  ) : (
+                    <VaultSupply supplyPositions={supplyPositions} />
+                  )}
                 </div>
 
                 <div className="pt-16">
@@ -1173,10 +1213,16 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       </Popover>
                     </div>
                   </h1>
-                  <VaultActivity
-                    activities={userActivities}
-                    visibleColumns={visibleTransactionColumns}
-                  />
+                  {userActivityLoading ? (
+                    <div className="space-y-3 animate-pulse py-2">
+                      <div className="h-10 bg-foreground rounded w-full mx-auto"></div>
+                    </div>
+                  ) : (
+                    <VaultActivity
+                      activities={userActivities}
+                      visibleColumns={visibleTransactionColumns}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -1185,42 +1231,44 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
               <div className="grid grid-cols-1">
                 <div className="col-span-1">
                   <h4 className="text-[13px] pb-2 pt-3 font-bold text-primary">
-                  Before investing, consider the index' investment objectives, risks, charges and expenses. Contact your investment professional or visit indexmaker.global for a prospectus containing this information. Read it carefully.
+                    Before investing, consider the index' investment objectives,
+                    risks, charges and expenses. Contact your investment
+                    professional or visit indexmaker.global for a prospectus
+                    containing this information. Read it carefully.
                   </h4>
-                  
+
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
                     The index is described in a Key Information Document (KID),
-                    or Key Investor Information Document (KIID) for
-                    investors, and prospectus. The Funds KID, or KIID, must be made available to potential subscribers
-                    prior to subscription.
+                    or Key Investor Information Document (KIID) for investors,
+                    and prospectus. The Funds KID, or KIID, must be made
+                    available to potential subscribers prior to subscription.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
                     The Funds reference material (KIID, prospectus, annual and
-                    semi-annual reports) can be obtained from IndexMaker on request,
-                    or obtained via the indexmaker.global website. <br></br>
-                    For Professional Clients only. This
-                    website is addressed only to those persons in the UK falling
-                    within one or more of the following exemptions from the
-                    restrictions in Section 238 FSMA:<br></br>- Authorised firms
-                    under FSMA and certain other investment professionals
-                    falling within article 14 of the FSMA (Promotion of
-                    Collective Investment Schemes) (Exemptions) Order 2001, as
-                    amended (the "CIS Order") and their directors, officers and
-                    employees acting for such entities in relation to
-                    investment.<br></br>- High value entities falling within
-                    article 22 CIS Order and their directors, officers and
-                    employees acting for such entities in relation to
-                    investment;<br></br>- Other persons who are in accordance
-                    with the Rules of the FCA prior to 1 November 2007
-                    classified as Intermediate Customers or Market
+                    semi-annual reports) can be obtained from IndexMaker on
+                    request, or obtained via the indexmaker.global website.{" "}
+                    <br></br>
+                    For Professional Clients only. This website is addressed
+                    only to those persons in the UK falling within one or more
+                    of the following exemptions from the restrictions in Section
+                    238 FSMA:<br></br>- Authorised firms under FSMA and certain
+                    other investment professionals falling within article 14 of
+                    the FSMA (Promotion of Collective Investment Schemes)
+                    (Exemptions) Order 2001, as amended (the "CIS Order") and
+                    their directors, officers and employees acting for such
+                    entities in relation to investment.<br></br>- High value
+                    entities falling within article 22 CIS Order and their
+                    directors, officers and employees acting for such entities
+                    in relation to investment;<br></br>- Other persons who are
+                    in accordance with the Rules of the FCA prior to 1 November
+                    2007 classified as Intermediate Customers or Market
                     Counterparties or on or thereafter classified as
                     Professional Clients or Eligible Counterparties.<br></br>
                     The distribution of this website's information to any person
                     in the UK not falling within one of the above categories is
-                    not permitted by IndexMkaer Limited and may contravene
-                    FSMA. No person in the UK falling outside those categories
-                    should rely or act on it for any purposes whatsoever.{" "}
-                    <br></br>
+                    not permitted by IndexMkaer Limited and may contravene FSMA.
+                    No person in the UK falling outside those categories should
+                    rely or act on it for any purposes whatsoever. <br></br>
                     This website's information is only directed at persons who
                     are Professional Clients (as defined in the FCA's Handbook
                     of Rules and Guidance), must not be distributed to the
@@ -1228,8 +1276,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     persons for any purposes whatsoever. <br></br>
                     Potential investors in the UK should be aware that none of
                     the protections afforded by the UK regulatory system will
-                    apply to an investment in an Index and that compensation will
-                    not be available under the UK Financial Services
+                    apply to an investment in an Index and that compensation
+                    will not be available under the UK Financial Services
                     Compensation Scheme. <br></br>
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
@@ -1245,12 +1293,12 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     The Index offers no capital guarantee. Investors may not get
                     back the full amount of their initial investment,
                     particularly in the event that the benchmark index falls.
-                    Potential investors are advised to read the Funds risk profile, which
-                    is described in detail in the prospectus. The amount that is
-                    reasonable to invest in the Fund will depend on the personal
-                    circumstances of each investor. To determine this amount,
-                    investors should take into account their financial
-                    situation, personal assets, and current and future
+                    Potential investors are advised to read the Funds risk
+                    profile, which is described in detail in the prospectus. The
+                    amount that is reasonable to invest in the Fund will depend
+                    on the personal circumstances of each investor. To determine
+                    this amount, investors should take into account their
+                    financial situation, personal assets, and current and future
                     requirements, as well as considering their willingness to
                     accept risks or conversely their preference to invest
                     cautiously. Investors are also strongly recommended to
@@ -1261,8 +1309,8 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     purchasing any units of the Fund.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 text-secondary">
-                    The source of the data contained in this document is IndexMaker
-                    unless otherwise stated.
+                    The source of the data contained in this document is
+                    IndexMaker unless otherwise stated.
                   </p>
                   <p className="text-[13px] mb-0 pb-4 font-bold text-secondary">
                     Policy regarding portfolio transparency and warning on
@@ -1275,10 +1323,10 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     Shares purchased on the secondary market cannot usually be
                     sold directly back to the fund. Investors must buy and sell
                     shares on a secondary market with the assistance of an
-                    intermediary (e.g. a broker) and may incur fees for
-                    doing so. Investors may pay more than the current net asset
-                    value when buying shares and may receive less than the
-                    current net asset value when selling them.
+                    intermediary (e.g. a broker) and may incur fees for doing
+                    so. Investors may pay more than the current net asset value
+                    when buying shares and may receive less than the current net
+                    asset value when selling them.
                   </p>
                 </div>
               </div>
