@@ -226,7 +226,9 @@ export const blockchainEvents = pgTable('blockchain_events', {
   userAddress: text('user_address'),
   amount: numeric('amount'),
   timestamp: timestamp('timestamp', { withTimezone: true }), // optional
-});
+}, (table) => ({
+  uniqueTxHash: unique().on(table.txHash),
+}));
 
 export const syncState = pgTable('sync_state', {
   id: serial('id').primaryKey(),

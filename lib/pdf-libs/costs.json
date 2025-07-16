@@ -1,0 +1,136 @@
+{
+    "title": "IndexMaker Enhanced Disclosure Document",
+    "reportDate": "1 July 2025",
+    "disclaimer": "This document is an operational communication and should not be regarded as a financial promotion. This document is designed for use by, and is directed only at persons resident in Switzerland.",
+    "introParagraphs": [
+      "IndexMaker is required to provide information on costs and charges incurred within IndexMaker indexes to Distributors and other Intermediaries...",
+      "Intermediaries will usually have other costs relating to the services they provide...",
+      "The information provided in this document is for general information only..."
+    ],
+    "costsBreakdown": [
+      {
+        "title": "Ongoing costs",
+        "description": "All ongoing costs and charges related to the management of the index replication..."
+      },
+      {
+        "title": "One-off costs",
+        "description": "All costs and charges paid to index distributor at the beginning or at the end..."
+      },
+      {
+        "title": "Transaction costs",
+        "description": "All costs and charges incurred as a result of the acquisition and disposal..."
+      },
+      {
+        "title": "Incidental costs",
+        "description": "Performance fees and anything similar. IndexMaker indexes funds have no incidental costs currently."
+      },
+      {
+        "title": "Total fund costs",
+        "description": "This is the total of the ongoing costs, one-off costs, transaction costs and incidental costs of minting the index."
+      }
+    ],
+    "funds": [
+      {
+        "ticker": "SY100",
+        "name": "Symmio Crypto Top 100 Index",
+        "allocation": "Crypto",
+        "ongoingCharges": "0.17%",
+        "ongoingCosts": "0.17%",
+        "oneOffCosts": "0.00%",
+        "transactionCosts": "0.03%",
+        "incidentalCosts": "0.00%",
+        "totalCosts": "0.20%"
+      },
+      {
+        "ticker": "SYAZ",
+        "name": "Symmio Top 20 A16Z Crypto VC Index",
+        "allocation": "Crypto",
+        "ongoingCharges": "0.12%",
+        "ongoingCosts": "0.12%",
+        "oneOffCosts": "0.00%",
+        "transactionCosts": "0.09%",
+        "incidentalCosts": "0.00%",
+        "totalCosts": "0.21%"
+      },
+      {
+        "ticker": "SYL2",
+        "name": "Symmio Crypto 20 Lending Index",
+        "allocation": "Crypto",
+        "ongoingCharges": "0.24%",
+        "ongoingCosts": "0.25%",
+        "oneOffCosts": "0.00%",
+        "transactionCosts": "0.27%",
+        "incidentalCosts": "0.00%",
+        "totalCosts": "0.52%"
+      },
+      {
+        "ticker": "SYAI",
+        "name": "Symmio Crypto 20 AI Index",
+        "allocation": "Crypto",
+        "ongoingCharges": "0.24%",
+        "ongoingCosts": "0.24%",
+        "oneOffCosts": "0.00%",
+        "transactionCosts": "0.02%",
+        "incidentalCosts": "0.00%",
+        "totalCosts": "0.26%"
+      },
+      {
+        "ticker": "SYME",
+        "name": "Symmio Crypto 20 MemeCoins Index",
+        "allocation": "Crypto",
+        "ongoingCharges": "0.24%",
+        "ongoingCosts": "0.24%",
+        "oneOffCosts": "0.00%",
+        "transactionCosts": "0.02%",
+        "incidentalCosts": "0.00%",
+        "totalCosts": "0.26%"
+      },
+      {
+        "ticker": "SYDF",
+        "name": "Symmio Crypto 20 Defi Index",
+        "allocation": "Crypto",
+        "ongoingCharges": "0.24%",
+        "ongoingCosts": "0.24%",
+        "oneOffCosts": "0.00%",
+        "transactionCosts": "0.00%",
+        "incidentalCosts": "0.00%",
+        "totalCosts": "0.12%"
+      }
+    ],
+    "footnotes": [
+      "Please note the Funds below are a sample representation of IndexMaker funds that are available. The full list of IndexMaker indexes can be found on our website www.indexmaker.global.",
+      "If you have any further questions in relation to this document please refer to IndexMaker DAO community."
+    ],
+    "risks": [
+      {
+        "title": "General Investment Risk",
+        "description": "The value of investments, and the income from them, may fall or rise..."
+      },
+      {
+        "title": "Currency Risk",
+        "description": "Some indexes invest in assets which are denominated in different currencies..."
+      },
+      {
+        "title": "Derivatives Risk",
+        "description": "The IndexMaker issuer network may use derivatives, including for investment purposes..."
+      },
+      {
+        "title": "Emerging Markets Risk",
+        "description": "Some indexes invest in emerging assets which can be more volatile than more established markets..."
+      },
+      {
+        "title": "Index Trading Risk",
+        "description": "Index shares can be bought or sold only through a broker..."
+      },
+      {
+        "title": "See Risk Factors",
+        "description": "For further information on risks please see the 'Risk Factors' section of the prospectus on our website at https://docs.indexmaker.global/risks"
+      }
+    ],
+    "footer": {
+      "issuer": "Issued by IndexMaker DAO.",
+      "copyright": "© 2025 IndexMaker. All rights reserved.",
+      "website": "www.indexmaker.global"
+    }
+  }
+  

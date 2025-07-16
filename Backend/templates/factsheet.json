@@ -1,0 +1,138 @@
+{
+    "indexName": "Symmio Crypto 100 Index",
+    "sectorIndustry": "SECTOR/INDUSTRY | SECTOR",
+    "factSheetDate": "FACT SHEET JULY 01, 2025",
+    "symbol": "SY100",
+    "ticker": "FTEC",
+    "intradayNavSymbol": "FTEC.IV",
+    "cusip": "316092808",
+    "fundInformation": {
+      "type": "SECTOR/INDUSTRY",
+      "sector": "SECTOR",
+      "objective": "Investment returns that correspond, before fees and expenses, generally to the performance of the top 100 cryptocurrencies.",
+      "strategy": "Invests at least 95% of assets in cryptocurrencies included in top 100 crypto by market caps.",
+      "indexDescription": "The Symmio Crypto 100 Index is a modified market equal-weighted index that captures the large-, and mid- segments of the Crypto market. All cryptocurrencies in the index are classified according to the top 5 largest cryptocurrencies exchanges."
+    },
+    "calendarYearReturns": {
+      "years": ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"],
+      "data": {
+        "SY100-NAV": ["5.03", "13.79", "37.08", "-0.18", "48.67", "45.90", "30.40", "-29.57", "53.27", "29.47"],
+        "SY100—Market Price": ["4.91", "13.98", "36.83", "-0.37", "48.93", "45.87", "30.49", "-29.59", "53.30", "29.40"],
+        "Benchmark": ["5.13", "13.90", "37.24", "-0.09", "48.84", "46.05", "30.50", "-29.52", "53.24", "29.59"]
+      }
+    },
+    "totalReturns": {
+      "FTEC—NAV": {
+        "threeMonth": "-12.72",
+        "ytd": "-12.72",
+        "oneYear": "3.92",
+        "threeYear": "10.25",
+        "fiveYear": "21.73",
+        "tenYear": "18.70",
+        "grossExpense": "0.084",
+        "netExpense": "0.084"
+      },
+      "FTEC—Market Price": {
+        "threeMonth": "-12.65",
+        "ytd": "-12.65",
+        "oneYear": "4.02",
+        "threeYear": "10.24",
+        "fiveYear": "21.72",
+        "tenYear": "18.70",
+        "grossExpense": null,
+        "netExpense": null
+      },
+      "Benchmark": {
+        "threeMonth": "-12.70",
+        "ytd": "-12.70",
+        "oneYear": "4.01",
+        "threeYear": "10.30",
+        "fiveYear": "21.81",
+        "tenYear": "18.80",
+        "grossExpense": null,
+        "netExpense": null
+      }
+    },
+    "morningstarRating": {
+      "overall": 5,
+      "threeYear": 4,
+      "fiveYear": 5,
+      "tenYear": 5,
+      "categoryCount": ["243", "243", "209", "155"]
+    },
+    "indexDetails": {
+      "Management Style": "Bi-weekly Rebalanced",
+      "Issuer": "IndexMaker Issuer Network",
+      "Index Inception Date": "01/01/2019",
+      "Portfolio Assets": "$11,378.2M",
+      "Total Holdings": "100",
+      "Benchmark": "Symmio Crypto 100 Index",
+      "Morningstar Category": "Crypto",
+      "Turnover Rate (1/25)": "2%"
+    },
+    "characteristics": {
+      "Price/Earnings (TTM)": "35.30",
+      "Price/Book": "7.95",
+      "30-Day SEC Yield": "0.53%",
+      "Beta (3-Yr)": "1.00",
+      "Standard Deviation (3-Yr)": "23.31"
+    },
+    "chart": {
+      "finalValue": "$55,530",
+      "caption": "For the period 3/31/15 to 3/31/25.<br>Includes changes in share price and reinvestment of dividends and capital gains."
+    },
+    "topHoldings": {
+      "holdings": [
+        {"name": "APPLE INC", "percentage": "18.23"},
+        {"name": "NVIDIA CORP", "percentage": "14.36"},
+        {"name": "MICROSOFT CORP", "percentage": "13.83"},
+        {"name": "BROADCOM INC", "percentage": "3.93"},
+        {"name": "SALESFORCE INC", "percentage": "1.78"},
+        {"name": "CISCO SYSTEMS INC", "percentage": "1.73"},
+        {"name": "INTL BUS MACH CORP", "percentage": "1.62"},
+        {"name": "ORACLE CORP", "percentage": "1.61"},
+        {"name": "ACCENTURE PLC CL A", "percentage": "1.37"},
+        {"name": "PALANTIR TECHNOLOGIES INC", "percentage": "1.25"}
+      ],
+      "summary": {
+        "top10": "59.70",
+        "top20": "69.94",
+        "top50": "82.72"
+      },
+      "totalHoldings": "295"
+    },
+    "subIndustryDiversification": [
+      {"name": "Semiconductors", "percentage": "27.01"},
+      {"name": "Systems Software", "percentage": "20.11"},
+      {"name": "Technology Hardware, Storage & Peripherals", "percentage": "19.83"},
+      {"name": "Application Software", "percentage": "15.20"},
+      {"name": "IT Consulting & Other Services", "percentage": "4.01"},
+      {"name": "Communications Equipment", "percentage": "3.77"},
+      {"name": "Semiconductor Materials & Equipment", "percentage": "3.17"},
+      {"name": "Internet Services & Infrastructure", "percentage": "1.88"},
+      {"name": "Electronic Equipment & Instruments", "percentage": "1.73"},
+      {"name": "Electronic Components", "percentage": "1.35"},
+      {"name": "Electronic Manufacturing Services", "percentage": "1.15"},
+      {"name": "Technology Distributors", "percentage": "0.65"},
+      {"name": "Trading Companies & Distributors", "percentage": "0.00"}
+    ],
+    "assetAllocation": [
+      {"name": "Domestic Equities", "percentage": "99.97"},
+      {"name": "International Equities", "percentage": "0.01"},
+      {"name": "  Developed Markets", "percentage": "0.01"},
+      {"name": "  Emerging Markets", "percentage": "0.00"},
+      {"name": "  Tax-Advantaged Domiciles", "percentage": "0.00"},
+      {"name": "Bonds", "percentage": "0.00"},
+      {"name": "Cash & Net Other Assets", "percentage": "0.02"},
+      {"name": "Futures, Options & Swaps", "percentage": "0.11"}
+    ],
+    "riskMeasures": {
+      "Alpha": "-0.05",
+      "Beta": "1.00",
+      "R²": "1.00",
+      "Relative Volatility": "1.00",
+      "Sharpe Ratio": "0.25",
+      "Standard Deviation": "23.31",
+      "Tracking Error": "0.07"
+    }
+  }

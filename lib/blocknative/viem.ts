@@ -8,7 +8,7 @@ const chainMap = {
 };
 
 export const getViemClient = (chainId: string) => {
-  const chain = chainMap[chainId as keyof typeof chainMap] || mainnet; // Default to mainnet if unknown
+  const chain = chainMap[chainId as keyof typeof chainMap] || base; // Default to mainnet if unknown
   return createPublicClient({
     chain,
     transport: http(), // Uses default RPC URL for the chain

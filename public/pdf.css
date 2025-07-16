@@ -1,0 +1,249 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.document {
+  overflow-y: auto;
+}
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.4;
+  color: #333;
+  background: #fff;
+}
+
+.page {
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto 20px auto;
+  padding: 20mm;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  page-break-after: always;
+  position: relative;
+}
+
+/* Last page with footer at bottom */
+.page:last-child {
+  page-break-after: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* For Puppeteer PDF generation */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  body {
+    margin: 0;
+    background: white;
+  }
+  .page {
+    /* remove explicit height and margins so the UA can paginate naturally */
+    margin: 0;
+    /* ensure no shadows force overflow: */
+    box-shadow: none;
+    /* guarantee each .page starts on a new sheet but won't orphan an empty last sheet */
+    page-break-after: always;
+    break-inside: avoid;
+  }
+  .page:last-child {
+    page-break-after: auto;
+  }
+}
+
+.indexmaker-header {
+  background: linear-gradient(135deg, #c41e3a, #8b1538);
+  color: white;
+  padding: 30px 40px;
+  margin: -20mm -20mm 30px -20mm;
+  position: relative;
+}
+
+.indexmaker-logo {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.main-title {
+  font-size: 32px;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.date-info {
+  font-size: 14px;
+  margin-bottom: 15px;
+  opacity: 0.9;
+}
+
+.disclaimer {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Content section with reduced font size to match page 3 */
+.content-section {
+  margin-bottom: 25px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.content-section p {
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+.numbered-list {
+  counter-reset: item;
+  margin: 20px 0;
+  font-size: 11px;
+}
+
+.numbered-item {
+  display: flex;
+  margin-bottom: 15px;
+  counter-increment: item;
+}
+
+.number-circle {
+  background: #17a2b8;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-right: 15px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.number-circle::before {
+  content: counter(item);
+}
+
+.item-content {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.item-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.table-container {
+  overflow-x: auto;
+  margin: 20px 0;
+}
+
+.funds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin: 20px 0;
+}
+
+.funds-table th {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 8px 4px;
+  text-align: center;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+.funds-table td {
+  border: 1px solid #dee2e6;
+  padding: 6px 4px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.funds-table td.percentage {
+  text-align: center;
+}
+
+.funds-table tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.table-note {
+  font-size: 10px;
+  color: #666;
+  margin-top: 10px;
+  line-height: 1.3;
+}
+
+.page-number {
+  position: absolute;
+  bottom: 20mm;
+  right: 20mm;
+  font-size: 14px;
+  color: #666;
+}
+
+.important-header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.legal-text {
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: justify;
+  margin-bottom: 15px;
+}
+
+/* Last page content area */
+.last-page-content {
+  flex: 1;
+}
+
+/* Footer section at bottom of last page */
+.footer-section {
+  margin-top: auto;
+  padding-top: 40px;
+}
+
+.footer-logo {
+  text-align: right;
+}
+
+.footer-logo .indexmaker-brand {
+  background: linear-gradient(135deg, #c41e3a, #8b1538);
+  color: white;
+  padding: 10px 20px;
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  display: inline-block;
+}
+
+.connect-info {
+  text-align: right;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #c41e3a;
+  font-weight: bold;
+}
+
+.copyright {
+  text-align: right;
+  margin-top: 20px;
+  font-size: 10px;
+  color: #666;
+}

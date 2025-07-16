@@ -14,6 +14,8 @@ import { ProjectsService } from './projects/project.service';
 import { ProjectsModule } from './modules/projects/project.module';
 import { ListingController } from './api/listing.controller';
 import { ListingModule } from './modules/scraper/scraper.module';
+import { PdfController } from './api/pdf.controller';
+import { PDFModule } from './modules/pdf/pdf.module';
 
 @Module({
   imports: [
@@ -30,9 +32,10 @@ import { ListingModule } from './modules/scraper/scraper.module';
     ComputationModule,
     StorageModule,
     ProjectsModule,
-    ListingModule
+    ListingModule,
+    PDFModule
   ],
-  controllers: [IndexController, ProjectsController, ListingController],
+  controllers: [IndexController, ProjectsController, ListingController, PdfController],
   providers: [DailyFetchJob],
 })
 export class AppModule {}

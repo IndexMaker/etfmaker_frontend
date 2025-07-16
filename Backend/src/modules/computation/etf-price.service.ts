@@ -1905,9 +1905,9 @@ export class EtfPriceService {
       // Fetch Total Supply for the ERC20 contract (assuming you have a way to get ERC20 contract address for the index)
       const USDValueOfUSDC =
         await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
-      const totalSupply = await this.getTotalSupplyForIndex(
+      const totalSupply = indexData && indexData?.indexId === 21 ?  await this.getTotalSupplyForIndex(
         indexData?.name || '',
-      );
+      ) : 0;
 
       const totalSupplyUSD = USDValueOfUSDC * Number(totalSupply);
 

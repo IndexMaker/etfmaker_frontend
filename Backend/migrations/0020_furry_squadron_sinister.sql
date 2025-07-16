@@ -1,0 +1,1 @@
+ALTER TABLE "blockchain_events" ADD CONSTRAINT "blockchain_events_tx_hash_unique" UNIQUE("tx_hash");
