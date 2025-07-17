@@ -5,9 +5,10 @@ import { CoinMarketCapService } from './coinmarketcap.service';
 import { BinanceService } from './binance.service';
 import { DbService } from 'src/db/db.service';
 import { BitgetService } from './bitget.service';
+import { PDFModule } from '../pdf/pdf.module';
 
 @Module({
-  imports: [HttpModule],
+  imports: [HttpModule, PDFModule],
   providers: [CoinGeckoService, CoinMarketCapService, BinanceService, DbService, BitgetService],
   exports: [CoinGeckoService, CoinMarketCapService, BinanceService, DbService, BitgetService],
 })

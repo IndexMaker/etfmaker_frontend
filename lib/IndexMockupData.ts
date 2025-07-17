@@ -117,7 +117,7 @@ export const indexData: any = {
       {
         id: "Index Overview",
         name: "Index Overview",
-        url: "#",
+        url: "pdf-generation/pdfview/factsheet/SY100",
         description: "Technical details about the Spark DAI vault",
       },
       {
@@ -241,9 +241,9 @@ export const indexData: any = {
     description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
-        id: "whitepaper",
-        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
-        url: "#",
+        id: "Index Overview",
+        name: "Index Overview",
+        url: "pdf-generation/pdfview/factsheet/SYAZ",
         description: "Technical details about the Spark DAI vault",
       },
       {
@@ -367,9 +367,9 @@ export const indexData: any = {
     description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
-        id: "whitepaper",
-        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
-        url: "#",
+        id: "Index Overview",
+        name: "Index Overview",
+        url: "pdf-generation/pdfview/factsheet/SYAI",
         description: "Technical details about the Spark DAI vault",
       },
       {
@@ -493,9 +493,9 @@ export const indexData: any = {
     description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
-        id: "whitepaper",
-        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
-        url: "#",
+        id: "Index Overview",
+        name: "Index Overview",
+        url: "pdf-generation/pdfview/factsheet/SYME",
         description: "Technical details about the Spark DAI vault",
       },
       {
@@ -619,9 +619,9 @@ export const indexData: any = {
     description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
-        id: "whitepaper",
-        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
-        url: "#",
+        id: "Index Overview",
+        name: "Index Overview",
+        url: "pdf-generation/pdfview/factsheet/SYL2",
         description: "Technical details about the Spark DAI vault",
       },
       {
@@ -745,9 +745,9 @@ export const indexData: any = {
     description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
-        id: "whitepaper",
-        name: "Technical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vaultTechnical details about the Spark DAI vault",
-        url: "#",
+        id: "Index Overview",
+        name: "Index Overview",
+        url: "pdf-generation/pdfview/factsheet/SYDF",
         description: "Technical details about the Spark DAI vault",
       },
       {

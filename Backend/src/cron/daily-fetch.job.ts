@@ -11,7 +11,9 @@ import { IndexRegistryService } from 'src/modules/blockchain/index-registry.serv
 import { binanceListings, tokenCategories, tokenOhlc } from 'src/db/schema';
 import { BitgetService } from 'src/modules/data-fetcher/bitget.service';
 import { ScraperService } from 'src/modules/scraper/scraperService';
-
+import * as fs from 'fs';
+import * as path from 'path';
+import { PdfService } from 'src/modules/pdf/pdf.service';
 @Injectable()
 export class DailyFetchJob {
   constructor(
@@ -23,6 +25,7 @@ export class DailyFetchJob {
     private bitgetService: BitgetService,
     private etfPriceService: EtfPriceService,
     private scraperService: ScraperService,
+    private readonly pdfService: PdfService
   ) {}
 
   @Cron('10 21 * * *')
@@ -215,5 +218,46 @@ export class DailyFetchJob {
     // const transformedListings = await this.scraperService.transformData(allListings);
     // await this.scraperService.saveListingsToDatabase(transformedListings);
     // await this.scraperService.saveAnnouncementsToDatabase(allAnnouncements);
+  }
+
+  @Cron('0 * * * *')
+  async handleFactsheetPdfGeneration() {
+    const title = 'factsheet';
+    const templateFile = `${title}.html`;
+
+    // Use a known list of index names — or fetch from DB
+    const indexNames = ['SY100', 'SYAZ', 'SYL2', 'SYDF', 'SYAI', 'SYME'];
+
+    const jsonPath = path.resolve(
+      __dirname,
+      `../../../templates/${title}.json`,
+    );
+    if (!fs.existsSync(jsonPath)) {
+      console.error(`Base template JSON not found: ${jsonPath}`);
+      return;
+    }
+
+    const rawJson = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
+
+    for (const indexName of indexNames) {
+      try {
+        const jsonData = await this.pdfService.updateFactsheetData(
+          indexName,
+          rawJson,
+        );
+        const pdfPath = await this.pdfService.generatePdfFromHtml(
+          templateFile,
+          jsonData,
+          title,
+          indexName,
+        );
+
+        console.log(`PDF generated: ${pdfPath}`);
+      } catch (err) {
+        console.error(
+          `Failed to generate PDF for ${indexName}: ${err.message}`,
+        );
+      }
+    }
   }
 }
