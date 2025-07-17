@@ -108,7 +108,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
   } = useWallet();
   const { t } = useLanguage();
   const vault = mockup_vaults[0];
-  const documents = getIndexData(index?.name || "SY100")?.documents || [];
+  const documents = getIndexData(index?.ticker || "SY100")?.documents || [];
   const isMobile = useMediaQuery({ maxWidth: 1540 });
   const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [selectedPeriod, setSelectedPeriod] = useState<string>("all");
@@ -444,6 +444,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       indexBalance={wallet ? "0" : "-"}
                       onSupplyClick={handleSupplyClick}
                       index={index}
+                      supplyPositions={supplyPositions}
                       className={""}
                     />
                   </AccordionContent>
@@ -660,6 +661,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                     indexBalance={wallet ? "0" : "-"}
                     onSupplyClick={handleSupplyClick}
                     index={index}
+                    supplyPositions={supplyPositions}
                     className={""}
                   />
                 </div>

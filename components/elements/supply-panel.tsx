@@ -495,9 +495,10 @@ export function SupplyPanel({
                                 </div>
                               }
                             >
-                              <span className="text-[11px] text-blue-400">
+                              {/* <span className="text-[11px] text-blue-400">
                                 <InstantAPY className="w-[15px] h-[15px] hover:transition-all cursor-pointer" />
-                              </span>
+                              </span> */}
+                              <></>
                             </CustomTooltip>
                           )}
                         </div>

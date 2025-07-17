@@ -5,6 +5,7 @@ import { useMediaQuery } from "react-responsive";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Logo from "@/components/icons/logo";
+import { cn } from "@/lib/utils";
 
 const logo = "/frames/frame52.png";
 
@@ -38,10 +39,8 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
   }, [imagesLoaded, images.length]);
 
   useEffect(() => {
-    if (!readyToAnimate) return;
-
     const timeout = setTimeout(() => setStartExit(true), 2000);
-    const finish = setTimeout(() => onFinish(), 2500);
+    const finish = setTimeout(() => onFinish(), 2000);
 
     return () => {
       clearTimeout(timeout);
@@ -80,7 +79,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
     center: {
       opacity: 1,
       scale: 1,
-      transition: { delay: images.length * 0.1 + 0.2 }, // shorter delay
+      transition: { delay: images.length * 0.1 + 0.3 }, // shorter delay
     },
     exit: {
       opacity: 0,
@@ -91,10 +90,10 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
   };
 
   return (
-    <div className="w-screen h-screen bg-background flex items-center justify-center overflow-hidden">
-      <div className="flex flex-col items-center">
+    <div className={`w-screen h-screen bg-background flex items-center justify-center overflow-hidden`}>
+      <div className={`flex flex-col ${isMobile ? "mt-[-40vh]" : "items-center "}`}>
         <div
-          className={`grid gap-1 ${
+          className={`grid gap-3 ${
             isMobile
               ? "grid-cols-2 w-[80vw] max-w-[320px]"
               : "grid-cols-3 w-[90vw] max-w-[720px]"
@@ -109,15 +108,9 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
               className="relative aspect-square w-full"
               variants={imageVariants(i)}
               initial="hidden"
-              animate={readyToAnimate ? "visible" : "hidden"}
+              animate={"visible"}
             >
-              <Image
-                src={src}
-                alt={`img-${i}`}
-                fill
-                className="object-cover"
-                onLoad={handleImageLoad}
-              />
+              <Image src={src} alt={`img-${i}`} fill className="object-cover" />
             </motion.div>
           ))}
         </div>

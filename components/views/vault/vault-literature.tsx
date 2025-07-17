@@ -53,7 +53,7 @@ export function VaultLiteratureSection({
         {literature.map((doc) => (
           <Link
             key={doc.id}
-            href={doc.url}
+            href={`${process.env.NEXT_PUBLIC_BACKEND_API}/${doc.url}`}
             target="_blank"
             rel="noopener noreferrer"
             className="group flex gap-3 items-center opacity-80 hover:opacity-100 transition-opacity"

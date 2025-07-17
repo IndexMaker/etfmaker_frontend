@@ -10,6 +10,7 @@ import Image from "next/image";
 import { Copy } from "lucide-react";
 import { useWallet } from "@/contexts/wallet-context";
 import { toast } from "sonner";
+import { SupplyPosition } from "@/lib/data";
 
 interface IndexBalanceProps {
   className?: string;
@@ -17,6 +18,7 @@ interface IndexBalanceProps {
   indexBalance?: string;
   tokenSymbol?: string;
   instantAPY?: string;
+  supplyPositions: SupplyPosition[];
   onSupplyClick?: (indexId: string, token: string) => void;
 }
 
@@ -26,18 +28,19 @@ export default function IndexBalance({
   indexBalance = "-",
   tokenSymbol = "USDC",
   instantAPY = "24.79",
+  supplyPositions,
   onSupplyClick,
 }: IndexBalanceProps) {
-  const { wallet, connectWallet } = useWallet();
-
+  const { wallet, address, connectWallet } = useWallet();
+  console.log(address, supplyPositions)
   const onClickBuyButton = useCallback(async () => {
-    if (index.name !== 'SY100') {
-      toast.warning("Only SY100 can be deposited right now...")
+    if (index.name !== "SY100") {
+      toast.warning("Only SY100 can be deposited right now...");
       return;
     }
 
-    if (!wallet) await connectWallet()
-      
+    if (!wallet) await connectWallet();
+
     onSupplyClick && onSupplyClick(index.name, index.ticker);
   }, [wallet]);
   return (
@@ -72,7 +75,17 @@ export default function IndexBalance({
                   </div>
                 </td>
                 <td className="py-4 px-4 font-medium text-secondary text-[13px]">
-                  {index.totalSupply} USDC
+                  {address && supplyPositions
+                    ? (() => {
+                        const userSupply = supplyPositions.find(
+                          (pos) =>
+                            pos.user.toLowerCase() === address.toLowerCase()
+                        );
+                        return userSupply
+                          ? `${userSupply.supply} ${userSupply.currency}`
+                          : "0 USDC";
+                      })()
+                    : "-"}
                 </td>
                 <td className="py-4 px-4">
                   <div className="flex flex-col gap-2 items-start">
