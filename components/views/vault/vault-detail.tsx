@@ -79,6 +79,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordian";
 import { getIndexData } from "@/lib/IndexMockupData";
+import SymmioIndices from "@/components/icons/symmioIndices";
 interface VaultDetailPageProps {
   index: IndexListEntry | null;
 }
@@ -410,12 +411,9 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="relative h-[17px] w-[17px] rounded-full overflow-hidden bg-transparent flex items-center justify-center">
-                        <IndexMaker className="w-[17px] h-[17px] text-muted" />
+                      <div className="relative rounded-full overflow-hidden bg-transparent flex items-center justify-center">
+                        <SymmioIndices className="w-[120px] h-[28px] text-muted" />
                       </div>
-                      <span className="text-secondary text-[20px]">
-                        {"SYMMIO"}
-                      </span>
                     </div>
                   </div>
                 </div>

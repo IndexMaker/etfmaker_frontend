@@ -281,10 +281,10 @@ export const projects: Project[] = [
     icon: "aragon",
   },
   {
-    id: "Carbon",
-    name: "Carbon Index",
+    id: "TBD",
+    name: "TBD Index",
     description:
-      "Carbon Index is a leading onchain index provider, enabling index providers to launch liquidity in minutes.",
+      "TBD Index is a leading onchain index provider, enabling index providers to launch liquidity in minutes.",
     icon: "brahma",
   },
 ];

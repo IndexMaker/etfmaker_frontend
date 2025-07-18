@@ -24,6 +24,7 @@ import FAVICON from "../../public/logo/blue-logo.png";
 import { useWallet } from "@/contexts/wallet-context";
 import IndexMaker from "../icons/indexmaker";
 import IndexMakerLogo from "../icons/indexmakerLogo";
+import GithubLogo from "../icons/githublogo";
 
 interface SidebarProps {
   open: boolean;
@@ -133,7 +134,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               collapsed ? "px-0" : "px-[10px]"
             )}
           >
-            {isConnected && wallet && isAdmin ? (
+            {/* {isConnected && wallet && isAdmin ? (
               <NavItem
                 href="/private-dashboard"
                 active={isRouteActive("/private-dashboard")}
@@ -146,7 +147,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
             ) : (
               <></>
-            )}
+            )} */}
             <NavItem
               href="/"
               active={isRouteActive("/")}
@@ -186,9 +187,9 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 {t("common.analytics")}
               </NavItem>
               <NavItem
-                href="https://www.symm.io/"
-                icon={IndexMaker}
-                external
+                href="/private-dashboard"
+                icon={GithubLogo}
+                active={isRouteActive("/private-dashboard")}
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
                 iconClassName="mr-[2px] text-muted"
@@ -203,7 +204,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 collapsed={collapsed}
                 iconClassName="mr-[2px] text-muted"
               >
-                {t("common.responsibleInvesting")}
+                {t("common.openSource")}
               </NavItem>
 
               <NavItem
