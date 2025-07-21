@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dynamic Index Fund Fact Sheet</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap"
+      rel="stylesheet"
+    />
     <style>
       @page {
         size: A4;
@@ -327,8 +331,9 @@
       }
 
       .star-rating {
+        font-family: 'Noto Sans', sans-serif;
         font-size: 14pt;
-        color: #999;
+        color: #f5c518;
       }
 
       .small-code {
@@ -1062,26 +1067,84 @@
         const svg = document.getElementById('growthChart');
         const polyline = document.getElementById('chartLine');
 
+        // Clear existing elements
+        const oldElements = document.querySelectorAll(
+          '.y-axis-label, .y-grid-line',
+        );
+        oldElements.forEach((el) => el.remove());
+
         if (!data || !Array.isArray(data) || data.length === 0) return;
 
         const values = data.map((d) => d.value);
+        const baseValue = 10000;
         const max = Math.max(...values);
-        const min = Math.min(...values);
-        const width = 600;
-        const height = 100;
-        const padding = 10;
+        const min = baseValue;
 
+        const width = 600;
+        const height = 120;
+        const leftPadding = 50;
+        const rightPadding = 10;
+        const verticalPadding = 10;
+
+        // 🟡 Generate 5 Y-labels, including baseValue at the bottom
+        const labelCount = 5;
+        const step = (max - min) / (labelCount - 1);
+        const labelValues = Array.from(
+          { length: labelCount },
+          (_, i) => min + step * i,
+        ).reverse(); // descending top→bottom
+
+        for (let i = 0; i < labelValues.length; i++) {
+          const value = labelValues[i];
+          const y =
+            (i / (labelCount - 1)) * (height - verticalPadding * 2) +
+            verticalPadding;
+
+          // Label
+          const text = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'text',
+          );
+          text.setAttribute('x', 2);
+          text.setAttribute('y', y + 4);
+          text.setAttribute('font-size', '10');
+          text.setAttribute('fill', '#666');
+          text.setAttribute('letter-spacing', '2px'); // ✅ Added letter-spacing
+          text.setAttribute('class', 'y-axis-label');
+          text.textContent = `$${Math.round(value).toLocaleString()}`;
+          svg.appendChild(text);
+
+          // Grid line
+          const line = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'line',
+          );
+          line.setAttribute('x1', leftPadding);
+          line.setAttribute('x2', width - rightPadding);
+          line.setAttribute('y1', y);
+          line.setAttribute('y2', y);
+          line.setAttribute('stroke', '#e0e0e0');
+          line.setAttribute('stroke-dasharray', '2,2');
+          line.setAttribute('class', 'y-grid-line');
+          svg.appendChild(line);
+        }
+
+        // Plot line
         const points = data.map((point, i) => {
-          const x = (i / (data.length - 1)) * (width - padding * 2) + padding;
+          const x =
+            (i / (data.length - 1)) * (width - leftPadding - rightPadding) +
+            leftPadding;
           const y =
             height -
-            ((point.value - min) / (max - min)) * (height - padding * 2) +
-            padding;
+            ((point.value - min) / (max - min)) *
+              (height - verticalPadding * 2) -
+            verticalPadding;
           return `${x},${y}`;
         });
 
         polyline.setAttribute('points', points.join(' '));
       }
+
       // Function to load JSON data
       async function loadData() {
         try {
@@ -1144,7 +1207,7 @@
       // Function to generate star rating HTML
       function generateStars(rating) {
         const fullStars = '★'.repeat(rating);
-        const emptyStars = '★'.repeat(5 - rating);
+        const emptyStars = '☆'.repeat(5 - rating);
         return fullStars + emptyStars;
       }
 

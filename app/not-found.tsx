@@ -11,7 +11,7 @@ export default function Custom404() {
       <p className="text-lg text-secondary">The page you're looking for doesn't exist.</p>
       <button
         onClick={() => router.push("/")}
-        className="px-6 py-2 bg-blue-500 text-primary rounded hover:bg-blue-600 transition"
+        className="px-6 py-2 bg-blue-500 rounded hover:bg-blue-600 transition text-white"
       >
         Return Home
       </button>

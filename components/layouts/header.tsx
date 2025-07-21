@@ -29,6 +29,7 @@ import { setCurrentChainId, setSelectedNetwork } from "@/redux/networkSlice";
 import { RootState } from "@/redux/store";
 import ETH from "../../public/logos/ethereum.png";
 import { clearSelectedVault } from "@/redux/vaultSlice";
+import { useQuoteContext } from "@/contexts/quote-context";
 interface HeaderProps {
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
@@ -63,7 +64,7 @@ export function Header({
   const searchParams = useSearchParams();
   const currentNetwork = searchParams.get("network");
   const router = useRouter();
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   // const [selectedNetwork, setSelectedNetwork] = useState<string>("0x1");
   const { selectedNetwork, currentChainId } = useSelector(
     (state: RootState) => state.network
@@ -76,6 +77,11 @@ export function Header({
 
   const defaultNetwork =
     networks.find((n) => n.id === searchParams.get("network")) || networks[0];
+
+  const { connect } = useQuoteContext();
+  useEffect(() => {
+    connect();
+  }, []);
 
   // Initialize network if not set
   useEffect(() => {
@@ -120,6 +126,12 @@ export function Header({
   );
 
   // Listen for wallet chain changes
+  useEffect(() => {
+    if (!wallet || !wallet.provider) {
+      dispatch(clearSelectedVault())
+      return;
+    }
+  }, [wallet, dispatch])
   useEffect(() => {
     if (wallet && wallet.chains.length > 0) {
       const chainId = wallet.chains[0].id;

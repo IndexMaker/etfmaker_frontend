@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X, BarChart2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn, shortenAddress } from "@/lib/utils";
@@ -29,6 +29,8 @@ import IndexMaker from "../icons/indexmaker";
 import { useWallet } from "@/contexts/wallet-context";
 import { TransactionConfirmModal } from "./transaction-modal";
 import USDC from "../../public/logos/usd-coin.png";
+import { useQuoteContext } from "@/contexts/quote-context";
+import AnimatedPrice from "./animate-price";
 
 interface SupplyPanelProps {
   vaultIds: VaultInfo[];
@@ -70,8 +72,8 @@ export function SupplyPanel({
     switchNetwork,
     switchWallet,
   } = useWallet();
-  const [amount, setAmount] = useState<{ [key: string]: number }>({});
-  const [balance, setBalance] = useState(0);
+  const { indexPrices } = useQuoteContext();
+  const [quantity, setQuantity] = useState<{ [key: string]: number }>({});
   const { t } = useLanguage();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [confirmModalOpen, setConfrimModalOpen] = useState(false);
@@ -91,17 +93,17 @@ export function SupplyPanel({
   const dispatch = useDispatch();
 
   useEffect(() => {
-    setBalance(0);
-  }, []);
-
-  useEffect(() => {
     const _transactions: TransactionData[] = vaults.map((vault) => {
       return {
         token: vault.name,
         amount:
-          Number(vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount) || 0,
+          Number(
+            vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount
+          ) || 0,
         value:
-          Number(vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount) || 0,
+          Number(
+            vaultIds.find((vaultId) => vaultId.name === vault.name)?.amount
+          ) || 0,
         apy: vault.performance?.oneYearReturn || 0,
         collateral: vault.collateral,
       };
@@ -213,21 +215,44 @@ export function SupplyPanel({
     dispatch(removeSelectedVault(vaultId));
   };
 
-  const handleAmountChange = (vaultId: string, value: string) => {
-    // Store value as-is
-    dispatch(updateVaultAmount({ name: vaultId, amount: value }));
+  const handleAmountChange = useCallback(
+    async (vaultId: string, value: string) => {
+      // Store value as-is
+      dispatch(updateVaultAmount({ name: vaultId, amount: value }));
 
-    // Optional: parse number for validation purposes
-    const amount = parseFloat(value);
-    if (!isNaN(amount) && amount >= 0) {
-      setInsufficientValue(false);
-    }
-  };
+      // Optional: parse number for validation purposes
+      const amount = parseFloat(value);
+      if (!isNaN(amount) && amount >= 0) {
+        setQuantity((prev) => ({ ...prev, [vaultId]: 0 }));
+        setInsufficientValue(false);
+      }
+      const calculatedQuantity =
+        Number(indexPrices[vaultId]) !== 0 && indexPrices[vaultId]
+          ? amount / Number(indexPrices[vaultId])
+          : 0;
+      setQuantity((prev) => ({ ...prev, [vaultId]: calculatedQuantity }));
+    },
+    [indexPrices, dispatch]
+  );
 
   const onConfirmTransactionClose = () => {
     // console.log(`Supplying ${amount} to vault ${vaultIds}`);
     setConfrimModalOpen(false);
   };
+
+  useEffect(() => {
+    const newQuantities: { [ticker: string]: number } = {};
+
+    selectedVault.forEach((vault) => {
+      const amount = parseFloat(vault.amount);
+      const price = Number(indexPrices[vault.ticker]);
+
+      const qty = !isNaN(amount) && price > 0 ? amount / price : 0;
+      newQuantities[vault.ticker] = qty;
+    });
+
+    setQuantity(newQuantities);
+  }, [selectedVault, indexPrices]);
 
   return (
     <>
@@ -272,7 +297,10 @@ export function SupplyPanel({
                             {shortenAddress(vault.curator)}
                           </span>
                           <span className="text-[11px] bg-accent px-2 py-0.5 rounded">
-                            {"USDC"}
+                            <AnimatedPrice
+                              currency="USDC"
+                              value={Number(indexPrices[vault.ticker] ?? 0)}
+                            />
                           </span>
                         </div>
                       </div>
@@ -309,6 +337,7 @@ export function SupplyPanel({
                             <input
                               type="text"
                               placeholder="0"
+                              id="amount"
                               inputMode="decimal"
                               autoComplete="off"
                               autoCorrect="off"
@@ -318,7 +347,7 @@ export function SupplyPanel({
                                   (_vault) => _vault.name === vault.name
                                 )?.amount || ""
                               }
-                              className="w-full font-mono text-[14px] outline-none bg-transparent text-primary placeholder-secondary"
+                              className="w-full font-mono text-[13px] outline-none bg-transparent text-primary placeholder-secondary mb-1"
                               onChange={(e) => {
                                 let value = e.target.value;
 
@@ -336,8 +365,11 @@ export function SupplyPanel({
                               }}
                             />
 
-                            <div className="font-mono text-[11px] text-muted">
-                              {0.0}
+                            <div className="font-mono text-[10px] text-muted">
+                              {quantity[vault.ticker]
+                                ? quantity[vault.ticker]
+                                : "0"}{" "}
+                              {vault.ticker}
                             </div>
                           </div>
 
@@ -596,7 +628,9 @@ export function SupplyPanel({
           {/* Footer */}
           <div className="mt-auto px-4 py-6 border-t border-accent relative flex flex-col gap-2">
             <div className="p-0 flex flex-col">
-              <span className="text-yellow-500 text-[11px] text-right">⚠️Withdraw and Rebalances are pause until DAO is formed.</span>
+              <span className="text-yellow-500 text-[11px] text-right">
+                ⚠️Withdraw and Rebalances are pause until DAO is formed.
+              </span>
               <div className="w-full text-[13px] text-secondary text-right">
                 Estimated Fill Time : ~15 Minutes
               </div>

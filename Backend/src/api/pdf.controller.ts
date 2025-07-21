@@ -9,33 +9,55 @@ export class PdfController {
   constructor(private readonly pdfService: PdfService) {}
 
   @Get(':title/:indexName')
-  async generatePdf(@Param('title') title: string, @Param('indexName') indexName: string, @Res() res: Response) {
+  async generatePdf(
+    @Param('title') title: string,
+    @Param('indexName') indexName: string,
+    @Res() res: Response,
+  ) {
     const templateFile = `${title}.html`;
-    
+
     if (title === 'factsheet') {
-      if (!indexName) return
-      
-      const jsonPath = path.resolve(__dirname, `../../../templates/${title}.json`);
+      if (!indexName) return;
+
+      const jsonPath = path.resolve(
+        __dirname,
+        `../../../templates/${title}.json`,
+      );
       if (!fs.existsSync(jsonPath)) {
         return res.status(404).send('JSON data not found.');
       }
       const rawJson = JSON.parse(fs.readFileSync(jsonPath, 'utf-8'));
-      const jsonData = await this.pdfService.updateFactsheetData(indexName, rawJson)
-      const pdfPath = await this.pdfService.generatePdfFromHtml(templateFile, jsonData, title, indexName);
-    }
-    else if (title === 'costs') {
+      const jsonData = await this.pdfService.updateFactsheetData(
+        indexName,
+        rawJson,
+      );
+      const pdfPath = await this.pdfService.generatePdfFromHtml(
+        templateFile,
+        jsonData,
+        title,
+        indexName,
+      );
 
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${title}-${indexName}.pdf"`,
+      });
+      fs.createReadStream(pdfPath).pipe(res);
+    } else if (title === 'costs') {
     }
-
   }
 
   @Get('/pdfview/:title/:indexName')
-  async previewPdf(@Param('title') title: string, @Param('indexName') indexName: string, @Res() res: Response) {
+  async previewPdf(
+    @Param('title') title: string,
+    @Param('indexName') indexName: string,
+    @Res() res: Response,
+  ) {
     const pdfPath = path.resolve(process.cwd(), 'output');
     const outputPath = path.join(pdfPath, `${title}-${indexName}.pdf`);
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${title}-${indexName}.pdf"`
+      'Content-Disposition': `inline; filename="${title}-${indexName}.pdf"`,
     });
     fs.createReadStream(outputPath).pipe(res);
   }

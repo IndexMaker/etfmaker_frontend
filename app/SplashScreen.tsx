@@ -2,129 +2,111 @@
 
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import Logo from "@/components/icons/logo";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
 
-const logo = "/frames/frame52.png";
+const topTitle = "/frames/frame53.svg";
+const bottomTitle = "/frames/frame52.svg";
 
-const desktopImages = [
-  "/frames/frame24.png",
-  "/frames/frame27.png",
-  "/frames/frame30.png",
-  "/frames/frame31.png",
-  "/frames/frame26.png",
-  "/frames/frame25.png",
-];
-
-const mobileImages = [
-  "/frames/frame30.png",
-  "/frames/frame27.png",
-  "/frames/frame24.png",
-  "/frames/frame25.png",
+const svgs = [
+  "/frames/1.svg", // Left
+  "/frames/2.svg", // Middle
+  "/frames/3.svg", // Right (desktop only)
 ];
 
 export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
-  const isMobile = useMediaQuery({ maxWidth: 1024 });
-  const images = isMobile ? mobileImages : desktopImages;
-  const [startExit, setStartExit] = useState(false);
-  const [imagesLoaded, setImagesLoaded] = useState(0);
-  const [readyToAnimate, setReadyToAnimate] = useState(false);
+  const isMobile = useMediaQuery({ maxWidth: 768 });
+  const visibleSvgs = isMobile ? svgs.slice(0, 2) : svgs;
+
+  const [loaded, setLoaded] = useState(0);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (imagesLoaded === images.length) {
-      setReadyToAnimate(true);
-    }
-  }, [imagesLoaded, images.length]);
+    if (loaded === visibleSvgs.length) setReady(true);
+  }, [loaded, visibleSvgs.length]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setStartExit(true), 2000);
-    const finish = setTimeout(() => onFinish(), 2000);
+    if (!ready) return;
+    const timeout = setTimeout(() => onFinish(), 2500);
+    return () => clearTimeout(timeout);
+  }, [ready, onFinish]);
 
-    return () => {
-      clearTimeout(timeout);
-      clearTimeout(finish);
-    };
-  }, [readyToAnimate, onFinish]);
-  const handleImageLoad = () => {
-    setImagesLoaded((prev) => prev + 1);
-  };
-  const imageVariants: any = (i: number) => ({
-    hidden: {
-      opacity: 0,
-      scale: 0.3,
-      x: Math.cos((i / images.length) * 2 * Math.PI) * 400,
-      y: Math.sin((i / images.length) * 2 * Math.PI) * 400,
-    },
+  const handleLoad = () => setLoaded((prev) => prev + 1);
+
+  const fadeVariants = (i: number) => ({
+    hidden: { opacity: 0, y: 40 },
     visible: {
       opacity: 1,
-      scale: 1,
-      x: 0,
       y: 0,
       transition: {
+        delay: i * 0.5 + 0.4,
         type: "spring",
-        stiffness: 100,
-        damping: 20,
-        delay: i * 0.1, // faster stagger
+        stiffness: 80,
+        damping: 18,
       },
     },
   });
 
-  const logoVariants = {
-    enter: {
-      opacity: 0,
-      scale: 0.8,
-    },
-    center: {
-      opacity: 1,
-      scale: 1,
-      transition: { delay: images.length * 0.1 + 0.3 }, // shorter delay
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.1,
-      rotate: 180,
-      transition: { duration: 0.4, ease: "easeInOut" }, // quicker exit
-    },
-  };
-
   return (
-    <div className={`w-screen h-screen bg-background flex items-center justify-center overflow-hidden`}>
-      <div className={`flex flex-col ${isMobile ? "mt-[-40vh]" : "items-center "}`}>
-        <div
-          className={`grid gap-3 ${
-            isMobile
-              ? "grid-cols-2 w-[80vw] max-w-[320px]"
-              : "grid-cols-3 w-[90vw] max-w-[720px]"
-          }`}
-          style={{
-            gridTemplateRows: isMobile ? "repeat(2, auto)" : "repeat(2, auto)",
-          }}
-        >
-          {images.map((src, i) => (
-            <motion.div
-              key={i}
-              className="relative aspect-square w-full"
-              variants={imageVariants(i)}
-              initial="hidden"
-              animate={"visible"}
-            >
-              <Image src={src} alt={`img-${i}`} fill className="object-cover" />
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Logo below the grid */}
+    <div className="w-screen h-screen bg-white flex flex-col justify-center items-center px-4 md:px-12 py-8 md:py-12">
+      {/* Top Title aligned inside container */}
+      <div
+        className={`w-full max-w-[720px] flex ${
+          isMobile ? "justify-center mt-[-100px]" : "justify-start"
+        } mb-4`}
+      >
         <motion.div
-          className="mt-6"
-          variants={logoVariants as any}
-          initial="enter"
-          animate={"center"}
+          className="relative w-[450px] md:w-[400px] h-[60px] md:h-[80px]"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1, transition: { delay: 0.2 } }}
         >
-          <Image src={logo} alt="Logo" width={300} height={160} />
+          <Image
+            src={topTitle}
+            alt="Top Title"
+            fill
+            className="object-contain"
+          />
         </motion.div>
       </div>
+
+      {/* SVG Cards with responsive sizing */}
+      <div className="w-full max-w-[720px] flex justify-center gap-4 md:gap-6">
+        {visibleSvgs.map((src, i) => (
+          <motion.div
+            key={i}
+            variants={fadeVariants(i) as any}
+            initial="hidden"
+            animate="visible"
+            className="flex-1 max-w-[220px] aspect-[3/4] relative"
+          >
+            <Image
+              src={src}
+              alt={`svg-${i}`}
+              fill
+              className="object-contain"
+              onLoadingComplete={handleLoad}
+            />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Bottom Logo */}
+      <motion.div
+        className={`flex justify-center mt-8 ${
+          isMobile ? "absolute bottom-15" : ""
+        }`}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1, transition: { delay: 1.8 } }}
+      >
+        <div className="relative w-[360px] md:w-[40vw] h-[80px]">
+          <Image
+            src={bottomTitle}
+            alt="Bottom Title"
+            fill
+            className="object-contain"
+          />
+        </div>
+      </motion.div>
     </div>
   );
 }

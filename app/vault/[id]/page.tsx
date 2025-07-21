@@ -1,5 +1,5 @@
 "use client";
-import { notFound, useParams } from "next/navigation";
+import { notFound, redirect, useParams } from "next/navigation";
 import { VaultDetailPage } from "@/components/views/vault/vault-detail";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -46,24 +46,24 @@ export default function VaultPage() {
         if (foundIndex) {
           setVault(foundIndex);
         } else {
-          notFound();
+          redirect('/');
         }
       } catch (error) {
         console.error("Error fetching performance data:", error);
-        notFound();
+        redirect('/');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [indexTicker, storedIndexes]);
+  }, [indexTicker, dispatch, storedIndexes]);
 
   if (loading) {
     return <VaultDetailPage index={null} />;
   }
   if (!vault) {
-    notFound();
+    redirect('/');
   }
 
   return <VaultDetailPage index={vault} />;

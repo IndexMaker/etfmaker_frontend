@@ -88,6 +88,8 @@ export class EtfPriceService {
       custodyArtifact.abi,
       this.signer,
     );
+
+    this.dbService = new DbService();
   }
 
   async computeLivePrice(indexId: string, chainId: number): Promise<number> {
@@ -174,6 +176,91 @@ export class EtfPriceService {
       totalManaged: ethers.formatUnits(totalManagedRaw, 6),
       totalVolume: ethers.formatUnits(totalVolumeRaw, 6),
     };
+  }
+
+  async getTotalHoldings(indexId: number) {
+    const previousDay = new Date();
+    previousDay.setDate(previousDay.getDate() - 1); // Go back 1 day
+    previousDay.setUTCHours(0, 0, 0, 0); // Normalize to midnight UTC
+    const priceRow = await this.dbService
+      .getDb()
+      .select()
+      .from(dailyPrices)
+      .where(
+        and(
+          eq(dailyPrices.indexId, indexId.toString()),
+          eq(
+            dailyPrices.date,
+            new Date(previousDay.getTime()).toISOString().split('T')[0],
+          ),
+        ),
+      )
+      .orderBy(desc(dailyPrices.date))
+      .limit(1);
+    if (priceRow && priceRow.length > 0) {
+      return Object.keys(priceRow[0].quantities).length || 0;
+    }
+
+    return 0;
+  }
+
+  async getIndexesDatafromFile() {
+    const raw = await fs.readFile(this.INDEX_LIST_PATH, 'utf8');
+    const allIndexes: Array<any> = JSON.parse(raw);
+
+    return allIndexes;
+  }
+
+  async calculateTotalReturns(
+    indexId: number,
+    currentDate = new Date(),
+  ): Promise<Record<string, string>> {
+    const today = new Date(currentDate);
+    today.setUTCHours(0, 0, 0, 0);
+
+    const timeFrames = {
+      threeMonth: 3,
+      ytd: 'ytd',
+      oneYear: 1,
+      threeYear: 3,
+      fiveYear: 5,
+      tenYear: 10,
+    };
+
+    const previousDay = new Date();
+    previousDay.setDate(previousDay.getDate() - 1); // Go back 1 day
+    previousDay.setUTCHours(0, 0, 0, 0); // Normalize to midnight UTC
+    const jan1 = new Date(today.getFullYear(), 0, 1).getTime();
+
+    const latestPrice = await this.getPriceForDate(
+      indexId,
+      previousDay.getTime(),
+    );
+    const result: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(timeFrames)) {
+      let pastDate: number;
+
+      if (value === 'ytd') {
+        pastDate = jan1;
+      } else {
+        const past = new Date(today);
+        past.setUTCFullYear(today.getUTCFullYear() - Number(value));
+        pastDate = past.getTime();
+      }
+
+      const pastPrice = await this.getPriceForDate(indexId, pastDate);
+
+      if (!pastPrice || pastPrice === 0 || !latestPrice || latestPrice === 0) {
+        result[key] = '0.00';
+        continue;
+      }
+
+      const change = ((latestPrice - pastPrice) / pastPrice) * 100;
+      result[key] = change.toFixed(2);
+    }
+
+    return result;
   }
 
   async getDepositTransactions(indexId: number, address?: string) {
@@ -305,7 +392,7 @@ export class EtfPriceService {
       indexId: item.indexId,
       indexName: item.indexName,
       indexSymbol: item.indexSymbol,
-      user: address && address !== '0x0000' ? null : item.user ,
+      user: address && address !== '0x0000' ? null : item.user,
       totalSupply: item.totalSupply,
       supplyValueUSD: item.supplyValueUSD,
       depositCount: item.count,
@@ -1132,6 +1219,63 @@ export class EtfPriceService {
     }
   }
 
+  async getIndexDailyPriceByIndexID(indexId: number) {
+    const existingPrices = await this.dbService
+      .getDb()
+      .select({
+        date: dailyPrices.date,
+        price: dailyPrices.price,
+        quantities: dailyPrices.quantities,
+      })
+      .from(dailyPrices)
+      .where(eq(dailyPrices.indexId, indexId.toString()))
+      .orderBy(asc(dailyPrices.date));
+
+    return existingPrices;
+  }
+
+  async getTopHoldingsFromRebalance(indexId: number): Promise<{
+    holdings: { name: string; percentage: string }[];
+    summary: { top10: string; top20: string; top50: string };
+    totalHoldings: string;
+  }> {
+    const rebalance = await this.dbService
+      .getDb()
+      .query.tempRebalances.findFirst({
+        where: eq(tempRebalances.indexId, indexId.toString()),
+        orderBy: desc(tempRebalances.timestamp),
+      });
+
+    if (!rebalance) throw new Error(`No rebalance found for index ${indexId}`);
+
+    // Parse weights: [ [tokenName, weight], ... ]
+    const weights =
+      typeof rebalance.weights === 'string'
+        ? (JSON.parse(rebalance.weights) as [string, number][])
+        : rebalance.weights;
+
+    const holdings = weights.map(([name, weight]) => ({
+      name: name.split('.')[1].replace('USDC', '').replace('USDT', ''),
+      percentage: (weight / 100).toFixed(2),
+    }));
+
+    const sumTop = (count: number) =>
+      holdings
+        .slice(0, count)
+        .reduce((sum, h) => sum + parseFloat(h.percentage), 0)
+        .toFixed(2);
+
+    return {
+      holdings: holdings.slice(0, 10),
+      summary: {
+        top10: sumTop(10),
+        top20: sumTop(20),
+        top50: sumTop(50),
+      },
+      totalHoldings: String(holdings.length),
+    };
+  }
+
   async getDailyPriceData(indexId: number): Promise<any[]> {
     const indexData = await this.getIndexDataFromFile(indexId);
 
@@ -1905,9 +2049,10 @@ export class EtfPriceService {
       // Fetch Total Supply for the ERC20 contract (assuming you have a way to get ERC20 contract address for the index)
       const USDValueOfUSDC =
         await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
-      const totalSupply = indexData && indexData?.indexId === 21 ?  await this.getTotalSupplyForIndex(
-        indexData?.name || '',
-      ) : 0;
+      const totalSupply =
+        indexData && indexData?.indexId === 21
+          ? await this.getTotalSupplyForIndex(indexData?.name || '')
+          : 0;
 
       const totalSupplyUSD = USDValueOfUSDC * Number(totalSupply);
 
@@ -2127,7 +2272,7 @@ export class EtfPriceService {
 
   async calculateYtdReturn(indexId: number): Promise<number> {
     const previousDay = new Date();
-    previousDay.setDate(previousDay.getDate() - 2); // Go back 1 day
+    previousDay.setDate(previousDay.getDate() - 1); // Go back 1 day
     previousDay.setUTCHours(0, 0, 0, 0); // Normalize to midnight UTC
 
     const jan1 = new Date(new Date().getFullYear(), 0, 1).setUTCHours(
@@ -2143,6 +2288,30 @@ export class EtfPriceService {
     const jan1Price = await this.getPriceForDate(indexId, jan1);
     if (!jan1Price || jan1Price === 0) return 0;
     return (((latestPrice || 0) - jan1Price) / jan1Price) * 100;
+  }
+
+  async calculateCalendarYearReturns(
+    indexId: number,
+    years: number[],
+  ): Promise<number[]> {
+    const results: number[] = [];
+
+    for (const year of years) {
+      const jan1 = new Date(Date.UTC(year, 0, 1)).getTime();
+      const dec31 = new Date(Date.UTC(year, 11, 31)).getTime();
+
+      const startPrice = await this.getPriceForDate(indexId, jan1);
+      const endPrice = await this.getPriceForDate(indexId, dec31);
+
+      if (!startPrice || startPrice === 0 || !endPrice || endPrice === 0) {
+        results.push(0); // or null, or skip if you want
+      } else {
+        const returnPct = ((endPrice - startPrice) / startPrice) * 100;
+        results.push(parseFloat(returnPct.toFixed(2)));
+      }
+    }
+
+    return results;
   }
 
   async getHistoricalPriceForDate(
@@ -2252,6 +2421,90 @@ export class EtfPriceService {
       .sort((a, b) => b.market_cap - a.market_cap);
 
     return sortAssets;
+  }
+
+  async fetchSubIndustryDiversification(
+    indexId: number,
+  ): Promise<{ name: string; percentage: string }[]> {
+    const db = this.dbService.getDb();
+
+    const rebalance = await db.query.tempRebalances.findFirst({
+      where: eq(tempRebalances.indexId, indexId.toString()),
+      orderBy: desc(tempRebalances.timestamp),
+    });
+
+    if (!rebalance) {
+      console.warn(`No rebalance found for index ${indexId}`);
+      return [];
+    }
+
+    const weights = JSON.parse(rebalance.weights) as [string, number][];
+    let coins: Array<[string, number]>;
+
+    if (typeof rebalance.coins === 'string') {
+      try {
+        coins = JSON.parse(rebalance.coins);
+      } catch (e) {
+        throw new Error(`Invalid coins JSON: ${rebalance.coins}`);
+      }
+    } else if (Array.isArray(rebalance.coins)) {
+      coins = rebalance.coins;
+    } else {
+      coins = Object.entries(rebalance.coins as Record<string, number>);
+    }
+
+    const sectorMap = new Map<string, number>();
+
+    for (const [coinId, weight] of coins) {
+      const category = await this.coinGeckoService.getOrCreateCategory(coinId);
+      const currentWeight = sectorMap.get(category) || 0;
+      sectorMap.set(category, currentWeight + weight);
+    }
+
+    const result = Array.from(sectorMap.entries()).map(([name, total]) => ({
+      name,
+      percentage: (total / 100).toFixed(2),
+    }));
+
+    // Sort descending by weight
+    return result.sort(
+      (a, b) => parseFloat(b.percentage) - parseFloat(a.percentage),
+    );
+  }
+
+  async fetchAssetAllocation(
+    indexId: number,
+  ): Promise<{ name: string; percentage: string }[]> {
+    const db = this.dbService.getDb();
+
+    const rebalance = await db.query.tempRebalances.findFirst({
+      where: eq(tempRebalances.indexId, indexId.toString()),
+      orderBy: desc(tempRebalances.timestamp),
+    });
+
+    if (!rebalance) return [];
+
+    const coins =
+      typeof rebalance.coins === 'string'
+        ? JSON.parse(rebalance.coins)
+        : Array.isArray(rebalance.coins)
+          ? rebalance.coins
+          : Object.entries(rebalance.coins as Record<string, number>);
+
+    const allocationMap = new Map<string, number>();
+
+    for (const [coinId, weight] of coins) {
+      const category = await this.coinGeckoService.getOrCreateCategory(coinId); // You can rename this as needed
+      const existing = allocationMap.get(category) || 0;
+      allocationMap.set(category, existing + weight);
+    }
+
+    return Array.from(allocationMap.entries())
+      .map(([name, value]) => ({
+        name,
+        percentage: value.toFixed(2),
+      }))
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
   }
 
   async fetchMarketData(coinIds: string[]) {
