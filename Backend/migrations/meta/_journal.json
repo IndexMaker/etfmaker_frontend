@@ -148,6 +148,13 @@
       "when": 1752592098273,
       "tag": "0020_furry_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1753168981885,
+      "tag": "0021_rainy_vindicator",
+      "breakpoints": true
     }
   ]
 }

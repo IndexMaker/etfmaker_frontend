@@ -38,11 +38,11 @@ export class PdfController {
         indexName,
       );
 
-      res.set({
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="${title}-${indexName}.pdf"`,
-      });
-      fs.createReadStream(pdfPath).pipe(res);
+      // res.set({
+      //   'Content-Type': 'application/pdf',
+      //   'Content-Disposition': `attachment; filename="${title}-${indexName}.pdf"`,
+      // });
+      // fs.createReadStream(pdfPath).pipe(res);
     } else if (title === 'costs') {
     }
   }

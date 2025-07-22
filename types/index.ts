@@ -16,6 +16,7 @@ export interface Project {
 export interface IndexListEntry {
   indexId: number;
   name: string;
+  address: string;
   ticker: string;
   curator: string;
   totalSupply: number;

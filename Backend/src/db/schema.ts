@@ -225,6 +225,7 @@ export const blockchainEvents = pgTable('blockchain_events', {
   network: text('network').notNull(),             // e.g. 'base', 'mainnet'
   userAddress: text('user_address'),
   amount: numeric('amount'),
+  quantity: numeric('quantity').default('0'),
   timestamp: timestamp('timestamp', { withTimezone: true }), // optional
 }, (table) => ({
   uniqueTxHash: unique().on(table.txHash),

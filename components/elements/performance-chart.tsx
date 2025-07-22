@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,6 +15,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-date-fns";
+import { useQuoteContext } from "@/contexts/quote-context";
 
 ChartJS.register(
   CategoryScale,
@@ -57,6 +58,9 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   showETHComparison = false,
 }) => {
   const chartRef = useRef<any>(null);
+  const { indexPrices } = useQuoteContext();
+  const [patchedData, setPatchedData] = useState<any[]>([]);
+  const [pulsePoint, setPulsePoint] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -65,6 +69,69 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       }
     };
   }, []);
+
+  const normalizeData = (
+    dataset: ChartDataPoint[],
+    usePercentage: boolean,
+    startDate?: Date | null
+  ) => {
+    if (dataset.length === 0) return [];
+    const filteredData = startDate
+      ? dataset.filter((item) => new Date(item.date) >= startDate)
+      : dataset;
+
+    if (filteredData.length === 0) return [];
+
+    const firstValue = filteredData[0].price || filteredData[0].value;
+    return filteredData.map((item) => ({
+      x: new Date(item.date),
+      y: usePercentage
+        ? ((item.price || item.value) / firstValue - 1) * 100
+        : item.price || item.value,
+    }));
+  };
+
+  const indexNormalized = normalizeData(
+    data || [],
+    showComparison || showETHComparison
+  );
+  const indexStartDate =
+    indexNormalized.length > 0 ? indexNormalized[0].x : null;
+
+  const btcNormalized = showComparison
+    ? normalizeData(btcData, true, indexStartDate)
+    : [];
+
+  const ethNormalized = showETHComparison
+    ? normalizeData(ethData, true, indexStartDate)
+    : [];
+
+  // 🔁 Patch last point with live price
+  useEffect(() => {
+    if (!indexNormalized || indexNormalized.length === 0) return;
+
+    const lastPrice = Number(indexPrices[ticker]);
+    const updated = [...indexNormalized];
+
+    if (!isNaN(lastPrice) && isFinite(lastPrice)) {
+      updated[updated.length - 1] = {
+        ...updated[updated.length - 1],
+        y:
+          showComparison || showETHComparison
+            ? data?.[0]?.price || data?.[0]?.value
+              ? (lastPrice / (data?.[0]?.price || data?.[0]?.value) - 1) * 100
+              : lastPrice
+            : lastPrice,
+      };
+      setPulsePoint(true); // Trigger animation
+      setPatchedData(updated);
+    } else {
+      setPatchedData(indexNormalized);
+    }
+
+    const timeout = setTimeout(() => setPulsePoint(false), 800);
+    return () => clearTimeout(timeout);
+  }, [indexPrices, ticker, data]);
 
   if (!data || data.length === 0) {
     if (!isLoading)
@@ -84,52 +151,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     }
   }
 
-  const normalizeData = (
-    dataset: ChartDataPoint[],
-    usePercentage: boolean,
-    startDate?: Date | null
-  ) => {
-    if (dataset.length === 0) return [];
-
-    // Filter data if startDate is provided
-    const filteredData = startDate
-      ? dataset.filter((item) => new Date(item.date) >= startDate)
-      : dataset;
-
-    if (filteredData.length === 0) return [];
-
-    if (usePercentage) {
-      const firstValue = filteredData[0].price || filteredData[0].value;
-      return filteredData.map((item) => ({
-        x: new Date(item.date),
-        y: ((item.price || item.value) / firstValue - 1) * 100,
-      }));
-    } else {
-      return filteredData.map((item) => ({
-        x: new Date(item.date),
-        y: item.price || item.value,
-      }));
-    }
-  };
-
-  // First normalize index data to get its start date
-  const normalizedIndexData = normalizeData(
-    data,
-    showComparison || showETHComparison
-  );
-  const indexStartDate =
-    normalizedIndexData.length > 0 ? normalizedIndexData[0].x : null;
-
-  // Then normalize BTC and ETH data starting from the same date
-  const normalizedBtcData = showComparison
-    ? normalizeData(btcData, true, indexStartDate)
-    : [];
-  const normalizedEthData = showETHComparison
-    ? normalizeData(ethData, true, indexStartDate)
-    : [];
-
   const getGradient = (ctx: CanvasRenderingContext2D, chartArea: any) => {
-    if (!chartArea) return null;
     const gradient = ctx.createLinearGradient(
       0,
       chartArea.bottom,
@@ -140,23 +162,33 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     gradient.addColorStop(1, "rgba(255, 0, 0, 0.1)");
     return gradient;
   };
-  const chartData: any = {
+
+  const chartData = {
     datasets: [
       {
         label: `${ticker} Index`,
-        data: normalizedIndexData,
+        data: patchedData,
         borderColor:
           showComparison || showETHComparison ? "#3b82f6" : "#ff3a33",
-        backgroundColor: (context: any) => {
-          if (showComparison || showETHComparison)
-            return "rgba(59, 130, 246, 0.1)";
-          const chart = context.chart;
-          const { ctx, chartArea } = chart;
+        backgroundColor: (ctx: any) => {
+          const chart = ctx.chart;
+          const { chartArea } = chart;
           if (!chartArea) return null;
-          return getGradient(ctx, chartArea);
+          return showComparison || showETHComparison
+            ? "rgba(59, 130, 246, 0.1)"
+            : getGradient(chart.ctx, chartArea);
         },
         tension: 0.4,
-        pointRadius: 0,
+        pointRadius: (ctx: any) => {
+          const index = ctx.dataIndex;
+          const lastIndex = patchedData.length - 1;
+          return index === lastIndex ? 0 : 0;
+        },
+        pointBackgroundColor: (ctx: any) => {
+          const index = ctx.dataIndex;
+          const lastIndex = patchedData.length - 1;
+          return index === lastIndex ? "#ff3a33" : "transparent";
+        },
         pointHoverRadius: 5,
         borderWidth: 2,
         fill: showComparison || showETHComparison ? false : "origin",
@@ -165,12 +197,11 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
         ? [
             {
               label: "Bitcoin (BTC)",
-              data: normalizedBtcData,
+              data: btcNormalized,
               borderColor: "#f7931a",
               backgroundColor: "rgba(247, 147, 26, 0.1)",
               tension: 0.4,
               pointRadius: 0,
-              pointHoverRadius: 5,
               borderWidth: 2,
             },
           ]
@@ -179,12 +210,11 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
         ? [
             {
               label: "Ethereum (ETH)",
-              data: normalizedEthData,
+              data: ethNormalized,
               borderColor: "#e95f6a",
               backgroundColor: "rgba(98, 126, 234, 0.1)",
               tension: 0.4,
               pointRadius: 0,
-              pointHoverRadius: 5,
               borderWidth: 2,
             },
           ]
@@ -201,29 +231,25 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     },
     scales: {
       x: {
-        type: "time" as const,
+        type: "time",
         time: {
-          unit: "month" as const,
+          unit: "month",
           tooltipFormat: "dd MMM yyyy",
           displayFormats: {
             month: "MMM yyyy",
           },
         },
-        grid: {
-          display: false,
-        },
+        grid: { display: false },
       },
       y: {
         beginAtZero: false,
         ticks: {
-          callback: (value: number | string) => {
-            if (typeof value === "number") {
-              return showComparison || showETHComparison
+          callback: (value: number | string) =>
+            typeof value === "number"
+              ? showComparison || showETHComparison
                 ? `${value.toFixed(2)}%`
-                : `$${value.toLocaleString()}`;
-            }
-            return value;
-          },
+                : `$${value.toLocaleString()}`
+              : value,
         },
         title: {
           display: true,
@@ -235,74 +261,54 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       },
     },
     plugins: {
-      legend: {
-        position: "top" as const,
-      },
+      legend: { position: "top" },
       tooltip: {
         callbacks: {
-          title: (context: any) => {
-            const date = new Date(context[0].parsed.x);
-            return date.toLocaleDateString("en-US", {
+          title: (ctx: any) =>
+            new Date(ctx[0].parsed.x).toLocaleDateString("en-US", {
               year: "numeric",
               month: "short",
               day: "numeric",
-            });
-          },
-          label: (context: any) => {
-            const label = context.dataset.label || "";
-            const value = context.parsed.y;
+            }),
+          label: (ctx: any) => {
+            const label = ctx.dataset.label || "";
+            const value = ctx.parsed.y;
             return showComparison || showETHComparison
               ? `${label}: ${value.toFixed(2)}%`
               : `${label}: $${value.toFixed(2)}`;
           },
-          footer: (context: any) => {
-            if ((!showComparison && !showETHComparison) || context.length < 2)
+          footer: (ctx: any) => {
+            if ((!showComparison && !showETHComparison) || ctx.length < 2)
               return null;
-
-            const indexValue = context[0]?.parsed.y ?? 0;
-            const btcValue = context.find((c: any) =>
-              c.dataset.label.includes("BTC")
-            )?.parsed.y;
-            const ethValue = context.find((c: any) =>
-              c.dataset.label.includes("ETH")
-            )?.parsed.y;
+            const indexValue = ctx[0]?.parsed.y ?? 0;
+            const btc = ctx.find((c: any) => c.dataset.label.includes("BTC"))
+              ?.parsed.y;
+            const eth = ctx.find((c: any) => c.dataset.label.includes("ETH"))
+              ?.parsed.y;
 
             const lines = ["Comparison:"];
-            if (btcValue !== undefined) {
-              const vsBtc = (indexValue - btcValue).toFixed(2);
-              lines.push(`vs BTC: ${vsBtc}%`);
+            if (btc !== undefined) {
+              lines.push(`vs BTC: ${(indexValue - btc).toFixed(2)}%`);
               lines.push(
-                indexValue > btcValue
-                  ? "Outperforming BTC"
-                  : "Underperforming BTC"
+                indexValue > btc ? "Outperforming BTC" : "Underperforming BTC"
               );
             }
-            if (ethValue !== undefined) {
-              const vsEth = (indexValue - ethValue).toFixed(2);
-              lines.push(`vs ETH: ${vsEth}%`);
+            if (eth !== undefined) {
+              lines.push(`vs ETH: ${(indexValue - eth).toFixed(2)}%`);
               lines.push(
-                indexValue > ethValue
-                  ? "Outperforming ETH"
-                  : "Underperforming ETH"
+                indexValue > eth ? "Outperforming ETH" : "Underperforming ETH"
               );
             }
             return lines;
           },
         },
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        backgroundColor: "rgba(0,0,0,0.8)",
         padding: 12,
-        usePointStyle: true,
-        bodyFont: {
-          size: 14,
-          weight: "bold",
-        },
-        footerFont: {
-          size: 12,
-        },
+        bodyFont: { size: 14, weight: "bold" },
+        footerFont: { size: 12 },
       },
     },
   };
-
   return (
     <div className="w-full h-96">
       {isLoading ? (
@@ -310,7 +316,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       ) : (
         <Line
           ref={chartRef}
-          data={chartData}
+          data={chartData as any}
           options={options}
           plugins={[
             {
@@ -319,9 +325,41 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
                 if (!showComparison) {
                   const ctx = chart.ctx;
                   const chartArea = chart.chartArea;
+                  if (!chartArea || !ctx) return;
                   const gradient = getGradient(ctx, chartArea);
                   chart.data.datasets[0].backgroundColor = gradient;
                 }
+              },
+            },
+            {
+              id: "lastPointLine",
+              afterDatasetsDraw(chart) {
+                const dataset = chart.data.datasets?.[0];
+                if (!dataset) return;
+            
+                const meta = chart.getDatasetMeta(0);
+                const lastIndex = dataset.data.length - 1;
+                const point = meta?.data?.[lastIndex];
+                console.log(point)
+                // Check if point is drawn
+                if (!point || typeof point.x !== "number" || typeof point.y !== "number") {
+                  console.warn("No last point found to draw a line.");
+                  return;
+                }
+            
+                const ctx = chart.ctx;
+                const lineLength = 100;
+            
+                ctx.save();
+                ctx.strokeStyle = "#ff3a33"; // Red color
+                ctx.lineWidth = 2;
+            
+                ctx.beginPath();
+                ctx.moveTo(point.x, point.y - lineLength / 2);
+                ctx.lineTo(point.x, point.y + lineLength / 2);
+                ctx.stroke();
+            
+                ctx.restore();
               },
             },
           ]}

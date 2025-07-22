@@ -223,3 +223,18 @@ export const downloadDailyPriceData = async (
     );
   }
 };
+
+export const sendMintInvoiceToBackend = async (
+  payload: any
+): Promise<void> => {
+  try {
+    await axios.post(`${API_BASE_URL}/indices/deposit_transaction`, payload);
+  } catch (error) {
+    console.error(
+      axios.isAxiosError(error)
+        ? error.message
+        : "Failed to send mint invoice"
+    );
+    throw error;
+  }
+};

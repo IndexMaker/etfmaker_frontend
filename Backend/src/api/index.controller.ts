@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Res } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { IndexRegistryService } from 'src/modules/blockchain/index-registry.service';
 import { EtfPriceService } from 'src/modules/computation/etf-price.service';
@@ -8,6 +8,7 @@ import { BinanceService } from 'src/modules/data-fetcher/binance.service';
 import { Response } from 'express';
 import { CoinGeckoService } from 'src/modules/data-fetcher/coingecko.service';
 import { HuggingFaceService } from 'src/modules/computation/huggingface.service';
+import { CreateDepositTransactionDto } from 'src/transactions/create-deposit-transaction.dto';
 
 @ApiTags('indices')
 @Controller('indices')
@@ -439,5 +440,10 @@ export class IndexController {
   async fetchIndexLists() {
     const lists = await this.etfPriceService.getIndexList();
     return lists;
+  }
+
+  @Post('deposit_transaction')
+  async recordDeposit(@Body() dto: CreateDepositTransactionDto) {
+    return this.etfPriceService.saveBlockchainEvent(dto);
   }
 }

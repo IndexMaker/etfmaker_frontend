@@ -1,0 +1,1 @@
+ALTER TABLE "blockchain_events" ADD COLUMN "quantity" numeric DEFAULT '0';

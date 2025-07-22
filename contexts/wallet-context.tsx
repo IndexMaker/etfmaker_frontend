@@ -12,6 +12,7 @@ import { shortenAddress } from "@/lib/utils";
 import { ethers } from "ethers";
 import { setTimeout } from "timers";
 import { clearSelectedVault } from "@/redux/vaultSlice";
+import { useDispatch } from "react-redux";
 
 type WalletState = {
   label: string;
@@ -50,7 +51,6 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [connecting, setConnecting] = useState(false);
   const [chainId, setChainId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-
   const isConnected = !!wallet;
   const address = wallet?.accounts[0]?.address || null;
   const displayAddress = address ? shortenAddress(address) : null;
@@ -61,7 +61,9 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Check if wallet is still connected
   const checkConnection = useCallback(async () => {
-    if (!wallet || !wallet.provider) return;
+    if (!wallet || !wallet.provider) {
+      return;
+    }
 
     try {
       await wallet.provider.getNetwork(); // Verify provider is responsive
@@ -187,7 +189,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       // Clear local state
       setWallet(null);
       setChainId(null);
-      clearSelectedVault()
+      clearSelectedVault();
       localStorage.removeItem(LAST_WALLET_KEY);
     } catch (error) {
       console.error("Error disconnecting wallet:", error);

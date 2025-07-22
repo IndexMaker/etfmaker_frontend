@@ -32,6 +32,7 @@ import {
 } from 'src/common/types/index.types';
 import { calculateLETV, formatTimestamp } from 'src/common/utils/utils';
 import { promises as fs } from 'fs';
+import { CreateDepositTransactionDto } from 'src/transactions/create-deposit-transaction.dto';
 
 type Weight = [string, number];
 
@@ -130,23 +131,23 @@ export class EtfPriceService {
     const provider = this.provider;
 
     // 1. Sync Deposit & Withdraw events from blockchain to DB
-    await this.indexRegistryService.syncBlockchainEvents({
-      provider,
-      network: 'base',
-      contractAddress,
-      eventDefs: [
-        {
-          name: 'Deposit',
-          abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
-          topic: ethers.id('Deposit(uint256,address)'),
-        },
-        {
-          name: 'Withdraw',
-          abi: 'event Withdraw(uint256 amount, address to, bytes executionReport)',
-          topic: ethers.id('Withdraw(uint256,address,bytes)'),
-        },
-      ],
-    });
+    // await this.indexRegistryService.syncBlockchainEvents({
+    //   provider,
+    //   network: 'base',
+    //   contractAddress,
+    //   eventDefs: [
+    //     {
+    //       name: 'Deposit',
+    //       abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+    //       topic: ethers.id('Deposit(uint256,address)'),
+    //     },
+    //     {
+    //       name: 'Withdraw',
+    //       abi: 'event Withdraw(uint256 amount, address to, bytes executionReport)',
+    //       topic: ethers.id('Withdraw(uint256,address,bytes)'),
+    //     },
+    //   ],
+    // });
 
     // 2. Get current USDC balance from chain (totalManaged)
     const usdcContract = new ethers.Contract(
@@ -286,18 +287,18 @@ export class EtfPriceService {
     const network = 'base'; // e.g., 'base', 'mainnet'
 
     // 1. Sync Deposit events for this contract from blockchain to DB
-    await this.indexRegistryService.syncBlockchainEvents({
-      provider: this.provider,
-      network,
-      contractAddress: indexAddress,
-      eventDefs: [
-        {
-          name: 'Deposit',
-          abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
-          topic: ethers.id('Deposit(uint256,address,uint256,address,address)'),
-        },
-      ],
-    });
+    // await this.indexRegistryService.syncBlockchainEvents({
+    //   provider: this.provider,
+    //   network,
+    //   contractAddress: indexAddress,
+    //   eventDefs: [
+    //     {
+    //       name: 'Deposit',
+    //       abi: 'event Deposit(uint256 amount, address from, uint256 seqNumNewOrderSingle, address affiliate1, address affiliate2)',
+    //       topic: ethers.id('Deposit(uint256,address,uint256,address,address)'),
+    //     },
+    //   ],
+    // });
 
     // 2. Query synced deposit logs from DB
     const db = this.dbService.getDb();
@@ -430,12 +431,12 @@ export class EtfPriceService {
       await this.coinGeckoService.getUSDCUSDPrice('usd-coin');
 
     // 1. Sync Mint + Transfer events from blockchain
-    await this.indexRegistryService.syncBlockchainEvents({
-      provider: this.provider,
-      network,
-      contractAddress,
-      eventDefs,
-    });
+    // await this.indexRegistryService.syncBlockchainEvents({
+    //   provider: this.provider,
+    //   network,
+    //   contractAddress,
+    //   eventDefs,
+    // });
 
     // 2. Query from local DB
     const events = await this.dbService
@@ -2084,6 +2085,7 @@ export class EtfPriceService {
       indexList.push({
         indexId,
         name: indexData?.name || '',
+        address: indexData?.address || '',
         ticker: indexData?.symbol || '',
         curator: process.env.OTC_CUSTODY_ADDRESS!,
         totalSupply: Number(totalSupply),
@@ -2565,5 +2567,39 @@ export class EtfPriceService {
       console.error('Failed to read index data from file:', err);
       return null;
     }
+  }
+
+  async saveBlockchainEvent(dto: CreateDepositTransactionDto) {
+    await this.dbService
+      .getDb()
+      .insert(blockchainEvents)
+      .values({
+        txHash: dto.txHash,
+        blockNumber: dto.blockNumber,
+        logIndex: dto.logIndex,
+        eventType: dto.eventType,
+        contractAddress: dto.contractAddress,
+        network: dto.network,
+        userAddress: dto.userAddress,
+        amount: dto.amount,
+        quantity: dto.quantity,
+        timestamp: new Date().toISOString(),
+      })
+      .onConflictDoUpdate({
+        target: blockchainEvents.txHash, // 👈 match tx_hash
+        set: {
+          blockNumber: dto.blockNumber,
+          logIndex: dto.logIndex,
+          eventType: dto.eventType,
+          contractAddress: dto.contractAddress,
+          network: dto.network,
+          userAddress: dto.userAddress,
+          amount: dto.amount,
+          quantity: dto.quantity,
+          timestamp: new Date().toISOString(),
+        },
+      });
+
+    return { success: true };
   }
 }

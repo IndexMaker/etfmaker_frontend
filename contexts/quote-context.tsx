@@ -11,6 +11,9 @@ interface QuoteContextType {
   isConnected: boolean;
   indexPrices: Record<string, string>;
   sendMessage: (message: any) => void;
+  sendNewIndexOrder: (order: any) => void;
+  sendNewQuoteRequest: (order: any) => void;
+  requestQuoteAndWait: (order: any) => Promise<number>;
 }
 
 const QuoteContext = createContext<QuoteContextType | undefined>(undefined);
@@ -27,12 +30,29 @@ export function QuoteProvider({
   network = 8453,
 }: Props) {
   const storedIndexes = useSelector((state: RootState) => state.index.indices);
-  const { connect, disconnect, isConnected, indexPrices, sendMessage } =
-    useQuoteSocket(storedIndexes, amount, network);
+  const {
+    connect,
+    disconnect,
+    isConnected,
+    indexPrices,
+    sendMessage,
+    sendNewIndexOrder,
+    sendNewQuoteRequest,
+    requestQuoteAndWait,
+  } = useQuoteSocket(storedIndexes, amount, network);
 
   return (
     <QuoteContext.Provider
-      value={{ connect, disconnect, isConnected, indexPrices, sendMessage }}
+      value={{
+        connect,
+        disconnect,
+        isConnected,
+        indexPrices,
+        sendMessage,
+        sendNewIndexOrder,
+        sendNewQuoteRequest,
+        requestQuoteAndWait,
+      }}
     >
       {children}
     </QuoteContext.Provider>

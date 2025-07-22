@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { TrendingUp, X , LayoutDashboard} from "lucide-react";
+import { TrendingUp, X , LayoutDashboard, Users} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { usePathname } from "next/navigation";
@@ -188,7 +188,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
               </NavItem>
               <NavItem
                 href="/private-dashboard"
-                icon={GithubLogo}
+                icon={Users}
                 active={isRouteActive("/private-dashboard")}
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
@@ -197,7 +197,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 {t("common.marketInsights")}
               </NavItem>
               <NavItem
-                href="https://www.symm.io/"
+                href="https://github.com/FundMakerFdn/etfmaker_frontend"
                 icon={IndexMaker}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
