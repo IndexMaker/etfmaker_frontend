@@ -372,7 +372,7 @@ export function EarnContent({
                 </div>
               </div>
               <div className="p-4 border-none bg-foreground mb-10">
-                <p className="text-secondary text-center text-[12px]">
+                <div className="text-secondary text-center text-[12px]">
                   {depositTransactionLoading ? (
                     // Skeleton loading state
                     <div className="space-y-3 animate-pulse">
@@ -389,7 +389,7 @@ export function EarnContent({
                   ) : (
                     t("common.noClaimableRewards")
                   )}
-                </p>
+                </div>
               </div>
             </>
           ) : (

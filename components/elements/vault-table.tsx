@@ -24,13 +24,14 @@ import LeftArrow from "../icons/left-arrow";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/language-context";
 import { cn } from "@/lib/utils";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { IndexListEntry } from "@/types";
 import IndexMaker from "../icons/indexmaker";
 import { useWallet } from "../../contexts/wallet-context";
 import USDC from "../../public/logos/usd-coin.png";
 import { getIndexData } from "@/lib/IndexMockupData";
+import { addSelectedVault } from "@/redux/vaultSlice";
 
 interface VaultTableProps {
   visibleColumns: {
@@ -64,7 +65,8 @@ export function VaultTable({
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
-
+  const dispatch = useDispatch();
+  
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
   );

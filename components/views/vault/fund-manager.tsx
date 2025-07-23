@@ -9,7 +9,7 @@ export default function FundManager({indexId = 'SY100'}: {indexId: string}) {
     <Card className="w-full min-w-[350px] h-[440px] border-none bg-foreground overflow-auto flex flex-1 p-2 gap-2">
       {/* Header */}
       <div className="px-3 pb-1 border-b border-gray-200">
-        <h2 className="flex items-center gap-2 text-[16px] font-semibold">
+        <h2 className="flex items-center gap-2 text-[16px] font-bold">
           Fund Manager(s)
           <Info className="h-4 w-4 text-[#2470ff]" />
         </h2>
@@ -64,7 +64,7 @@ export default function FundManager({indexId = 'SY100'}: {indexId: string}) {
       </CardContent>
 
       {/* Footer */}
-      <CardFooter className="p-4 border-t border-gray-200">
+      {/* <CardFooter className="p-4 border-t border-gray-200">
         <div className="w-full">
           <h3 className="font-medium mb-2">Commentary</h3>
           <div className="grid grid-cols-2 gap-2">
@@ -79,7 +79,7 @@ export default function FundManager({indexId = 'SY100'}: {indexId: string}) {
             ))}
           </div>
         </div>
-      </CardFooter>
+      </CardFooter> */}
     </Card>
   );
 }

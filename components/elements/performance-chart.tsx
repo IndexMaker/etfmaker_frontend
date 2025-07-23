@@ -332,33 +332,51 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
               },
             },
             {
-              id: "lastPointLine",
+              id: "lastPriceLine",
               afterDatasetsDraw(chart) {
                 const dataset = chart.data.datasets?.[0];
                 if (!dataset) return;
-            
+
                 const meta = chart.getDatasetMeta(0);
                 const lastIndex = dataset.data.length - 1;
                 const point = meta?.data?.[lastIndex];
-                console.log(point)
+
                 // Check if point is drawn
-                if (!point || typeof point.x !== "number" || typeof point.y !== "number") {
+                if (
+                  !point ||
+                  typeof point.x !== "number" ||
+                  typeof point.y !== "number"
+                ) {
                   console.warn("No last point found to draw a line.");
                   return;
                 }
-            
+
                 const ctx = chart.ctx;
-                const lineLength = 100;
-            
+                const chartArea = chart.chartArea;
+                if (!chartArea) return;
+
+                const lastPrice = dataset.data[lastIndex] as any;
+
                 ctx.save();
-                ctx.strokeStyle = "#ff3a33"; // Red color
+                ctx.strokeStyle = "#ff3a33"; // Red line
+                ctx.fillStyle = "#ff3a33"; // Same color for label
                 ctx.lineWidth = 2;
-            
+                ctx.setLineDash([5, 5]); // Optional dashed line
+
+                // Draw horizontal line
                 ctx.beginPath();
-                ctx.moveTo(point.x, point.y - lineLength / 2);
-                ctx.lineTo(point.x, point.y + lineLength / 2);
+                ctx.moveTo(chartArea.left, point.y);
+                ctx.lineTo(chartArea.right, point.y);
                 ctx.stroke();
-            
+
+                // Draw label (top-left of line)
+                const labelText = `Price: ${
+                  lastPrice.y !== undefined ? lastPrice.y : lastPrice
+                } USDC`;
+                ctx.font = "12px sans-serif";
+                ctx.textBaseline = "bottom";
+                ctx.fillText(labelText, chartArea.left + 6, point.y - 4); // Offset slightly above the line
+
                 ctx.restore();
               },
             },

@@ -126,12 +126,12 @@ export function Header({
   );
 
   // Listen for wallet chain changes
-  useEffect(() => {
-    if (!wallet || !wallet.provider) {
-      dispatch(clearSelectedVault())
-      return;
-    }
-  }, [wallet, dispatch])
+  // useEffect(() => {
+  //   if (!wallet || !wallet.provider) {
+  //     dispatch(clearSelectedVault())
+  //     return;
+  //   }
+  // }, [wallet, dispatch])
   useEffect(() => {
     if (wallet && wallet.chains.length > 0) {
       const chainId = wallet.chains[0].id;

@@ -481,7 +481,7 @@ export function SupplyPanel({
                             {vault.performance?.oneYearReturn.toFixed(2) || "0"}{" "}
                             %
                           </span>
-                          {Number(vault.performance?.oneYearReturn) > 5 && (
+                          {/* {Number(vault.performance?.oneYearReturn) > 5 && (
                             <CustomTooltip
                               key={"instantApy"}
                               content={
@@ -527,12 +527,11 @@ export function SupplyPanel({
                                 </div>
                               }
                             >
-                              {/* <span className="text-[11px] text-blue-400">
+                              <span className="text-[11px] text-blue-400">
                                 <InstantAPY className="w-[15px] h-[15px] hover:transition-all cursor-pointer" />
-                              </span> */}
-                              <></>
+                              </span>
                             </CustomTooltip>
-                          )}
+                          )} */}
                         </div>
                       </div>
 
@@ -679,7 +678,7 @@ export function SupplyPanel({
                     (_vault) =>
                       isNaN(Number(_vault.amount)) ||
                       Number(_vault.amount) === 0
-                  ).length > 0
+                  ).length > 0 || !wallet
                 }
                 onClick={handleSupply}
               >

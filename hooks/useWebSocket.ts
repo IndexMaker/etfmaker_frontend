@@ -13,7 +13,18 @@ export default function useQuoteSocket(
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const seqNumRef = useRef(1);
   const quoteCallbacks = useRef<Record<string, (quantity: number) => void>>({});
+  const reconnectAttempts = useRef(0);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnect = () => {
+    if (reconnectTimeoutRef.current || wsRef.current) return;
 
+    const timeout = Math.min(1000 * 2 ** reconnectAttempts.current, 10000); // max 10s
+    reconnectTimeoutRef.current = setTimeout(() => {
+      reconnectAttempts.current += 1;
+      reconnectTimeoutRef.current = null;
+      connect(); // try to reconnect
+    }, timeout);
+  };
   const connect = () => {
     if (wsRef.current) return;
 
@@ -21,6 +32,11 @@ export default function useQuoteSocket(
 
     wsRef.current.onopen = () => {
       setIsConnected(true);
+      reconnectAttempts.current = 0;
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
 
     wsRef.current.onmessage = (event: MessageEvent) => {
@@ -47,6 +63,8 @@ export default function useQuoteSocket(
     wsRef.current.onclose = () => {
       setIsConnected(false);
       wsRef.current = null;
+
+      reconnect();
     };
   };
 

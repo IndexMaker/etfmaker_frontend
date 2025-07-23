@@ -14,6 +14,8 @@ import IndexMaker from "../icons/indexmaker";
 import USDC from "../../public/logos/usd-coin.png";
 import CustomTooltip from "./custom-tooltip";
 import { toast } from "sonner";
+import { useQuoteContext } from "@/contexts/quote-context";
+import { sendMintInvoiceToBackend } from "@/api/indices";
 
 interface TransactionItem {
   token: string;
@@ -60,6 +62,7 @@ export function TransactionConfirmModal({
   const [finalizing, setFinalizing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { wallet, address, connectWallet } = useWallet();
+  const { requestQuoteAndWait, sendNewIndexOrder } = useQuoteContext();
 
   const handleConfirm = async () => {
     if (!wallet) {
@@ -139,7 +142,32 @@ export function TransactionConfirmModal({
       setTxHash(tx.hash);
       setFinalizing(true);
 
-      // const _tx = await otcIndex.mint(OTC_INDEX_ADDRESS, amount, seqNum);
+      const quantity = await requestQuoteAndWait({
+        address: wallet?.accounts[0]?.address || "",
+        symbol: "USDC",
+        side: "1",
+        amount: amount,
+      });
+
+      await sendMintInvoiceToBackend({
+        txHash: tx.hash,
+        blockNumber: tx.blockNumber,
+        logIndex: 0,
+        eventType: "mint",
+        contractAddress: OTC_INDEX_ADDRESS,
+        network: "base",
+        userAddress: wallet?.accounts[0]?.address,
+        amount: Number(amount),
+        quantity: quantity || 0
+      });
+
+      sendNewIndexOrder({
+        address: wallet?.accounts[0]?.address || "",
+        symbol: "USDC",
+        side: "1",
+        amount: amount,
+        quantity,
+      });
       // Show success modal
       setShowSuccessModal(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));

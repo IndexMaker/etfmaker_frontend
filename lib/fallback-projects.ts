@@ -20,9 +20,9 @@ export const fallbackProjects: Project[] = [
   },
   {
     id: 2,
-    projectId: "carbon",
-    name: "Carbon Index",
-    description: "Carbon Index is a leading onchain index provider, enabling index providers to launch liquidity in minutes.",
+    projectId: "tbd",
+    name: "TBD Index",
+    description: "TBD Index is a leading onchain index provider, enabling index providers to launch liquidity in minutes.",
     icon: "brahma",
     websiteUrl: "https://app.carbon.org",
     docsUrl: "https://docs.carbon.org",

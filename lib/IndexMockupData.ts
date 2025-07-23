@@ -4,11 +4,11 @@ import USMap from "@/components/icons/us-map";
 // Icon mapping
 export const iconComponents = {
   Cpu: CPU,
-  MapPin: USMap
+  MapPin: USMap,
 };
 
 export const indexData: any = {
-  'SY100': {
+  SY100: {
     fundDetails: [
       { label: "Fund Category", value: "Large Growth" },
       { label: "Fund Inception", value: "01/07/2025" },
@@ -16,41 +16,50 @@ export const indexData: any = {
         label: "Exp Ratio (Gross)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Exp Ratio (Net)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
-      { label: "NAV", value: "$1000.60", date: "06/30/2025", hasTooltip: false }, // @TODO auto update
+      { label: "NAV", value: "$1000.60", date: "06/30/2025", hasTooltip: true }, // @TODO auto update
       { label: "Minimum to Invest", value: "$10.00" },
       {
         label: "Turnover Rate",
         value: "90.00%",
         date: "01/31/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Portfolio Net Assets ($M)",
         value: "$1000.60",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Share Class Net Assets ($M)",
         value: "$1000.60",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "12 Month Low-High",
         value: "$118,172 - $358,760", // TODO make it automatically updated
         date: "06/30/2025",
-        hasTooltip: false,  
+        hasTooltip: false,
       },
     ],
+    equityStyleMap: {
+      currentPosition: { x: 2, y: 0 }, // Growth, Large Cap
+      historicalPosition: { x: 2, y: 0 }, // Blend, Large Cap
+      category: "Large Growth",
+      fundAssetsCovered: "95.84%",
+      description:
+        "Invest in companies with market values greater than $10 billion that fund managers believe are poised for growth. Growth can be based on a variety of factors, such as revenue or earnings growth. Growth funds are typically focused on generating capital gains rather than income.",
+      asOfDate: "05/31/2025",
+    },
     fundManagerData: {
       manager: {
         name: "Symmio Index",
@@ -80,39 +89,43 @@ export const indexData: any = {
       topSector: {
         name: "Information Technology",
         iconName: "Cpu",
-        weight: null
+        weight: "93.66%",
       },
       topCountry: {
         name: "United States",
         weight: "93.66%",
-        iconName: "MapPin"
+        iconName: "MapPin",
       },
       objective: "Capital growth",
       strategy: `Investing at least 95% of assets in cryptocurrencies among the top 100 by market capitalization, allocated on an equal-weighted basis. Excludes assets issued by protocols that have not undergone a standardized vetting process for security, transparency, and operational integrity. Investing primarily in liquid, widely traded tokens listed on reputable centralized or decentralized exchanges.`,
       risk: `Cryptocurrencies and related markets are highly volatile and can decline significantly in response to adverse issuer-specific, technological, regulatory, political, market, or macroeconomic developments. The digital asset ecosystem is particularly susceptible to technological obsolescence, rapidly evolving protocols, frequent forks, declining token values and transaction fees, and competition from emerging blockchain projects, as well as broad fluctuations in investor sentiment and general economic conditions..`,
       disclosures: `This description is only intended to provide a brief overview of the index. Read the index's key investors information docuement
-      for more detailed information about the index.`
+      for more detailed information about the index.`,
     },
-    fundRisk: "Crypto markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments. The technology industries can be significantly affected by obsolescence of existing technology, short product cycles, falling prices and profits, and competition from new markets, and general economic conditions. Foreign securities are subject to ,interest rate, currency exchange rate, economic, and political risks. The securities of smaller, less well-known companies can be more volatile than those of larger companies. The fund may have additional ,volatility because it can invest a significant portion of assets in securities of a small number of individual issuers.",
+    fundRisk:
+      "Crypto markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments. The technology industries can be significantly affected by obsolescence of existing technology, short product cycles, falling prices and profits, and competition from new markets, and general economic conditions. Foreign securities are subject to ,interest rate, currency exchange rate, economic, and political risks. The securities of smaller, less well-known companies can be more volatile than those of larger companies. The fund may have additional ,volatility because it can invest a significant portion of assets in securities of a small number of individual issuers.",
     portfolioManagerInsights: [
       {
         id: 1,
         imageUrl: "chris-lin-bio",
         imageClassName: "w-full h-[100px] object-cover",
         title: "Breakthrough biotechs with a bright future",
-        description: "Symmio Index's Founder considers SY100 as a way to replace Bitcoin in a portfolio to keep growth with smaller market caps while diversifying risk.",
-        isLink: true
+        description:
+          "Symmio Index's Founder considers SY100 as a way to replace Bitcoin in a portfolio to keep growth with smaller market caps while diversifying risk.",
+        isLink: true,
       },
       {
         id: 2,
         imageUrl: "chris-lin",
         imageClassName: "w-[135px] h-[135px] object-cover",
         title: "Finance Revolution  ",
-        description: "Symmio Index sees crypto large cap as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
-        isLink: true
-      }
+        description:
+          "Symmio Index sees crypto large cap as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
+        isLink: true,
+      },
     ],
-    description: "SY Crypto 100 is a market-weighted index of the top 100 cryptocurrencies by market cap.",
+    description:
+      "SY Crypto 100 is a market-weighted index of the top 100 cryptocurrencies by market cap.",
     documents: [
       {
         id: "Index Overview",
@@ -128,7 +141,7 @@ export const indexData: any = {
       },
     ],
   },
-  'SYAZ': {
+  SYAZ: {
     fundDetails: [
       { label: "Index Category", value: "Large Growth" },
       { label: "Fund Inception", value: "12/31/1984" },
@@ -136,33 +149,33 @@ export const indexData: any = {
         label: "Exp Ratio (Gross)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Exp Ratio (Net)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
-      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: false },
+      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: true },
       { label: "Minimum to Invest", value: "$0.00" },
       {
         label: "Turnover Rate",
         value: "55.00%",
         date: "01/31/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Portfolio Net Assets ($M)",
         value: "$29,465.73",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Share Class Net Assets ($M)",
         value: "$21,799.68",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "12 Month Low-High",
@@ -171,6 +184,15 @@ export const indexData: any = {
         hasTooltip: false,
       },
     ],
+    equityStyleMap: {
+      currentPosition: { x: 2, y: 0 }, // Growth, Large Cap
+      historicalPosition: { x: 1, y: 0 }, // Blend, Large Cap
+      category: "Large Growth",
+      fundAssetsCovered: "95.84%",
+      description:
+        "Invest in companies with market values greater than $10 billion that fund managers believe are poised for growth. Growth can be based on a variety of factors, such as revenue or earnings growth. Growth funds are typically focused on generating capital gains rather than income.",
+      asOfDate: "05/31/2025",
+    },
     fundManagerData: {
       manager: {
         name: "Christopher W. Lin",
@@ -187,7 +209,10 @@ export const indexData: any = {
           name: "Fidelity Advisor® Equity Growth Fund Class C",
           startDate: "04/11/2025",
         },
-        { name: "VIP Growth Portfolio - Service Class 2", startDate: "04/11/2025" },
+        {
+          name: "VIP Growth Portfolio - Service Class 2",
+          startDate: "04/11/2025",
+        },
       ],
       commentaryLinks: [
         { title: "Quarterly Fund Review", url: "#" },
@@ -200,12 +225,12 @@ export const indexData: any = {
       topSector: {
         name: "Information Technology",
         iconName: "Cpu",
-        weight: null
+        weight: "93.66%",
       },
       topCountry: {
         name: "United States",
         weight: "93.66%",
-        iconName: "MapPin"
+        iconName: "MapPin",
       },
       objective: "Seeks capital appreciation.",
       strategy: `Normally investing at least 80% of assets in securities principally traded on NASDAQ or an over-the-counter
@@ -217,28 +242,32 @@ export const indexData: any = {
       significantly affected by obsolescence of existing technology, short product cycles, falling prices and
       profits, and competition from new market entrants and general economic conditions.`,
       disclosures: `This description is only intended to provide a brief overview of the mutual fund. Read the fund's prospectus
-      for more detailed information about the fund.`
+      for more detailed information about the fund.`,
     },
-    fundRisk: "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
+    fundRisk:
+      "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
     portfolioManagerInsights: [
       {
         id: 1,
         imageUrl: "chris-lin-bio",
         imageClassName: "w-full h-[100px] object-cover",
         title: "Breakthrough biotechs with a bright future",
-        description: "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
-        isLink: true
+        description:
+          "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
+        isLink: true,
       },
       {
         id: 2,
         imageUrl: "chris-lin",
         imageClassName: "w-[135px] h-[135px] object-cover",
         title: "AI-Revolutionary",
-        description: "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
-        isLink: true
-      }
+        description:
+          "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
+        isLink: true,
+      },
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    description:
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
         id: "Index Overview",
@@ -254,7 +283,7 @@ export const indexData: any = {
       },
     ],
   },
-  'SYAI': {
+  SYAI: {
     fundDetails: [
       { label: "Index Category", value: "Large Growth" },
       { label: "Fund Inception", value: "12/31/1984" },
@@ -262,33 +291,33 @@ export const indexData: any = {
         label: "Exp Ratio (Gross)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Exp Ratio (Net)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
-      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: false },
+      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: true },
       { label: "Minimum to Invest", value: "$0.00" },
       {
         label: "Turnover Rate",
         value: "55.00%",
         date: "01/31/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Portfolio Net Assets ($M)",
         value: "$29,465.73",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Share Class Net Assets ($M)",
         value: "$21,799.68",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "12 Month Low-High",
@@ -297,6 +326,15 @@ export const indexData: any = {
         hasTooltip: false,
       },
     ],
+    equityStyleMap: {
+      currentPosition: { x: 2, y: 0 }, // Growth, Large Cap
+      historicalPosition: { x: 1, y: 0 }, // Blend, Large Cap
+      category: "Large Growth",
+      fundAssetsCovered: "95.84%",
+      description:
+        "Invest in companies with market values greater than $10 billion that fund managers believe are poised for growth. Growth can be based on a variety of factors, such as revenue or earnings growth. Growth funds are typically focused on generating capital gains rather than income.",
+      asOfDate: "05/31/2025",
+    },
     fundManagerData: {
       manager: {
         name: "Christopher W. Lin",
@@ -313,7 +351,10 @@ export const indexData: any = {
           name: "Fidelity Advisor® Equity Growth Fund Class C",
           startDate: "04/11/2025",
         },
-        { name: "VIP Growth Portfolio - Service Class 2", startDate: "04/11/2025" },
+        {
+          name: "VIP Growth Portfolio - Service Class 2",
+          startDate: "04/11/2025",
+        },
       ],
       commentaryLinks: [
         { title: "Quarterly Fund Review", url: "#" },
@@ -326,12 +367,12 @@ export const indexData: any = {
       topSector: {
         name: "Information Technology",
         iconName: "Cpu",
-        weight: null
+        weight: "93.66%",
       },
       topCountry: {
         name: "United States",
         weight: "93.66%",
-        iconName: "MapPin"
+        iconName: "MapPin",
       },
       objective: "Seeks capital appreciation.",
       strategy: `Normally investing at least 80% of assets in securities principally traded on NASDAQ or an over-the-counter
@@ -343,28 +384,32 @@ export const indexData: any = {
       significantly affected by obsolescence of existing technology, short product cycles, falling prices and
       profits, and competition from new market entrants and general economic conditions.`,
       disclosures: `This description is only intended to provide a brief overview of the mutual fund. Read the fund's prospectus
-      for more detailed information about the fund.`
+      for more detailed information about the fund.`,
     },
-    fundRisk: "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
+    fundRisk:
+      "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
     portfolioManagerInsights: [
       {
         id: 1,
         imageUrl: "chris-lin-bio",
         imageClassName: "w-full h-[100px] object-cover",
         title: "Breakthrough biotechs with a bright future",
-        description: "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
-        isLink: true
+        description:
+          "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
+        isLink: true,
       },
       {
         id: 2,
         imageUrl: "chris-lin",
         imageClassName: "w-[135px] h-[135px] object-cover",
         title: "AI-Revolutionary",
-        description: "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
-        isLink: true
-      }
+        description:
+          "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
+        isLink: true,
+      },
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    description:
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
         id: "Index Overview",
@@ -380,7 +425,7 @@ export const indexData: any = {
       },
     ],
   },
-  'SYME': {
+  SYME: {
     fundDetails: [
       { label: "Index Category", value: "Large Growth" },
       { label: "Fund Inception", value: "12/31/1984" },
@@ -388,33 +433,33 @@ export const indexData: any = {
         label: "Exp Ratio (Gross)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Exp Ratio (Net)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
-      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: false },
+      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: true },
       { label: "Minimum to Invest", value: "$0.00" },
       {
         label: "Turnover Rate",
         value: "55.00%",
         date: "01/31/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Portfolio Net Assets ($M)",
         value: "$29,465.73",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Share Class Net Assets ($M)",
         value: "$21,799.68",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "12 Month Low-High",
@@ -423,6 +468,15 @@ export const indexData: any = {
         hasTooltip: false,
       },
     ],
+    equityStyleMap: {
+      currentPosition: { x: 2, y: 0 }, // Growth, Large Cap
+      historicalPosition: { x: 1, y: 0 }, // Blend, Large Cap
+      category: "Large Growth",
+      fundAssetsCovered: "95.84%",
+      description:
+        "Invest in companies with market values greater than $10 billion that fund managers believe are poised for growth. Growth can be based on a variety of factors, such as revenue or earnings growth. Growth funds are typically focused on generating capital gains rather than income.",
+      asOfDate: "05/31/2025",
+    },
     fundManagerData: {
       manager: {
         name: "Christopher W. Lin",
@@ -439,7 +493,10 @@ export const indexData: any = {
           name: "Fidelity Advisor® Equity Growth Fund Class C",
           startDate: "04/11/2025",
         },
-        { name: "VIP Growth Portfolio - Service Class 2", startDate: "04/11/2025" },
+        {
+          name: "VIP Growth Portfolio - Service Class 2",
+          startDate: "04/11/2025",
+        },
       ],
       commentaryLinks: [
         { title: "Quarterly Fund Review", url: "#" },
@@ -452,12 +509,12 @@ export const indexData: any = {
       topSector: {
         name: "Information Technology",
         iconName: "Cpu",
-        weight: null
+        weight: "93.66%",
       },
       topCountry: {
         name: "United States",
         weight: "93.66%",
-        iconName: "MapPin"
+        iconName: "MapPin",
       },
       objective: "Seeks capital appreciation.",
       strategy: `Normally investing at least 80% of assets in securities principally traded on NASDAQ or an over-the-counter
@@ -469,28 +526,32 @@ export const indexData: any = {
       significantly affected by obsolescence of existing technology, short product cycles, falling prices and
       profits, and competition from new market entrants and general economic conditions.`,
       disclosures: `This description is only intended to provide a brief overview of the mutual fund. Read the fund's prospectus
-      for more detailed information about the fund.`
+      for more detailed information about the fund.`,
     },
-    fundRisk: "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
+    fundRisk:
+      "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
     portfolioManagerInsights: [
       {
         id: 1,
         imageUrl: "chris-lin-bio",
         imageClassName: "w-full h-[100px] object-cover",
         title: "Breakthrough biotechs with a bright future",
-        description: "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
-        isLink: true
+        description:
+          "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
+        isLink: true,
       },
       {
         id: 2,
         imageUrl: "chris-lin",
         imageClassName: "w-[135px] h-[135px] object-cover",
         title: "AI-Revolutionary",
-        description: "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
-        isLink: true
-      }
+        description:
+          "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
+        isLink: true,
+      },
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    description:
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
         id: "Index Overview",
@@ -506,7 +567,7 @@ export const indexData: any = {
       },
     ],
   },
-  'SYL2': {
+  SYL2: {
     fundDetails: [
       { label: "Index Category", value: "Large Growth" },
       { label: "Fund Inception", value: "12/31/1984" },
@@ -514,33 +575,33 @@ export const indexData: any = {
         label: "Exp Ratio (Gross)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Exp Ratio (Net)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
-      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: false },
+      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: true },
       { label: "Minimum to Invest", value: "$0.00" },
       {
         label: "Turnover Rate",
         value: "55.00%",
         date: "01/31/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Portfolio Net Assets ($M)",
         value: "$29,465.73",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Share Class Net Assets ($M)",
         value: "$21,799.68",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "12 Month Low-High",
@@ -549,6 +610,15 @@ export const indexData: any = {
         hasTooltip: false,
       },
     ],
+    equityStyleMap: {
+      currentPosition: { x: 2, y: 0 }, // Growth, Large Cap
+      historicalPosition: { x: 1, y: 0 }, // Blend, Large Cap
+      category: "Large Growth",
+      fundAssetsCovered: "95.84%",
+      description:
+        "Invest in companies with market values greater than $10 billion that fund managers believe are poised for growth. Growth can be based on a variety of factors, such as revenue or earnings growth. Growth funds are typically focused on generating capital gains rather than income.",
+      asOfDate: "05/31/2025",
+    },
     fundManagerData: {
       manager: {
         name: "Christopher W. Lin",
@@ -565,7 +635,10 @@ export const indexData: any = {
           name: "Fidelity Advisor® Equity Growth Fund Class C",
           startDate: "04/11/2025",
         },
-        { name: "VIP Growth Portfolio - Service Class 2", startDate: "04/11/2025" },
+        {
+          name: "VIP Growth Portfolio - Service Class 2",
+          startDate: "04/11/2025",
+        },
       ],
       commentaryLinks: [
         { title: "Quarterly Fund Review", url: "#" },
@@ -578,12 +651,12 @@ export const indexData: any = {
       topSector: {
         name: "Information Technology",
         iconName: "Cpu",
-        weight: null
+        weight: "93.66%",
       },
       topCountry: {
         name: "United States",
         weight: "93.66%",
-        iconName: "MapPin"
+        iconName: "MapPin",
       },
       objective: "Seeks capital appreciation.",
       strategy: `Normally investing at least 80% of assets in securities principally traded on NASDAQ or an over-the-counter
@@ -595,28 +668,32 @@ export const indexData: any = {
       significantly affected by obsolescence of existing technology, short product cycles, falling prices and
       profits, and competition from new market entrants and general economic conditions.`,
       disclosures: `This description is only intended to provide a brief overview of the mutual fund. Read the fund's prospectus
-      for more detailed information about the fund.`
+      for more detailed information about the fund.`,
     },
-    fundRisk: "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
+    fundRisk:
+      "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
     portfolioManagerInsights: [
       {
         id: 1,
         imageUrl: "chris-lin-bio",
         imageClassName: "w-full h-[100px] object-cover",
         title: "Breakthrough biotechs with a bright future",
-        description: "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
-        isLink: true
+        description:
+          "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
+        isLink: true,
       },
       {
         id: 2,
         imageUrl: "chris-lin",
         imageClassName: "w-[135px] h-[135px] object-cover",
         title: "AI-Revolutionary",
-        description: "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
-        isLink: true
-      }
+        description:
+          "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
+        isLink: true,
+      },
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    description:
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
         id: "Index Overview",
@@ -632,7 +709,7 @@ export const indexData: any = {
       },
     ],
   },
-  'SYDF': {
+  SYDF: {
     fundDetails: [
       { label: "Index Category", value: "Large Growth" },
       { label: "Fund Inception", value: "12/31/1984" },
@@ -640,33 +717,33 @@ export const indexData: any = {
         label: "Exp Ratio (Gross)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Exp Ratio (Net)",
         value: "0.73%",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
-      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: false },
+      { label: "NAV", value: "$20.60", date: "06/30/2025", hasTooltip: true },
       { label: "Minimum to Invest", value: "$0.00" },
       {
         label: "Turnover Rate",
         value: "55.00%",
         date: "01/31/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Portfolio Net Assets ($M)",
         value: "$29,465.73",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "Share Class Net Assets ($M)",
         value: "$21,799.68",
         date: "06/30/2025",
-        hasTooltip: false,
+        hasTooltip: true,
       },
       {
         label: "12 Month Low-High",
@@ -675,6 +752,15 @@ export const indexData: any = {
         hasTooltip: false,
       },
     ],
+    equityStyleMap: {
+      currentPosition: { x: 2, y: 0 }, // Growth, Large Cap
+      historicalPosition: { x: 1, y: 0 }, // Blend, Large Cap
+      category: "Large Growth",
+      fundAssetsCovered: "95.84%",
+      description:
+        "Invest in companies with market values greater than $10 billion that fund managers believe are poised for growth. Growth can be based on a variety of factors, such as revenue or earnings growth. Growth funds are typically focused on generating capital gains rather than income.",
+      asOfDate: "05/31/2025",
+    },
     fundManagerData: {
       manager: {
         name: "Christopher W. Lin",
@@ -691,7 +777,10 @@ export const indexData: any = {
           name: "Fidelity Advisor® Equity Growth Fund Class C",
           startDate: "04/11/2025",
         },
-        { name: "VIP Growth Portfolio - Service Class 2", startDate: "04/11/2025" },
+        {
+          name: "VIP Growth Portfolio - Service Class 2",
+          startDate: "04/11/2025",
+        },
       ],
       commentaryLinks: [
         { title: "Quarterly Fund Review", url: "#" },
@@ -704,12 +793,12 @@ export const indexData: any = {
       topSector: {
         name: "Information Technology",
         iconName: "Cpu",
-        weight: null
+        weight: "93.66%",
       },
       topCountry: {
         name: "United States",
         weight: "93.66%",
-        iconName: "MapPin"
+        iconName: "MapPin",
       },
       objective: "Seeks capital appreciation.",
       strategy: `Normally investing at least 80% of assets in securities principally traded on NASDAQ or an over-the-counter
@@ -721,28 +810,32 @@ export const indexData: any = {
       significantly affected by obsolescence of existing technology, short product cycles, falling prices and
       profits, and competition from new market entrants and general economic conditions.`,
       disclosures: `This description is only intended to provide a brief overview of the mutual fund. Read the fund's prospectus
-      for more detailed information about the fund.`
+      for more detailed information about the fund.`,
     },
-    fundRisk: "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
+    fundRisk:
+      "Stock markets, especially foreign markets, are volatile and can decline significantly in response to adverse issuer, political, regulatory, market, or economic developments...",
     portfolioManagerInsights: [
       {
         id: 1,
         imageUrl: "chris-lin-bio",
         imageClassName: "w-full h-[100px] object-cover",
         title: "Breakthrough biotechs with a bright future",
-        description: "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
-        isLink: true
+        description:
+          "Fidelity's Chris Lin considers two biotech companies well-positioned to revolutionize drug development and the treatment of major diseases.",
+        isLink: true,
       },
       {
         id: 2,
         imageUrl: "chris-lin",
         imageClassName: "w-[135px] h-[135px] object-cover",
         title: "AI-Revolutionary",
-        description: "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
-        isLink: true
-      }
+        description:
+          "Fidelity U.S. large cap growth portfolio managers see artificial intelligence as the most compelling multiyear investment theme that is going to drive major disruption across a variety of businesses.",
+        isLink: true,
+      },
     ],
-    description: "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
+    description:
+      "The Spark DAI 1 vault curated by SparkDAO is intended to seamlessly allocate DAI liquidity from Maker to IndexMaker markets.",
     documents: [
       {
         id: "Index Overview",
@@ -757,7 +850,7 @@ export const indexData: any = {
         description: "Security audit report by ChainSecurity",
       },
     ],
-  }
+  },
 };
 
 // Helper function to get data by index ID
