@@ -20,14 +20,22 @@ export default function VaultPage() {
     if (!indexTicker) {
       notFound();
     }
-
+    const lowerTicker = indexTicker.toLowerCase();
+    const localVaultsJson =
+      typeof window !== "undefined"
+        ? localStorage.getItem("storedVaults")
+        : null;
+    const localVaults: IndexListEntry[] = localVaultsJson
+      ? JSON.parse(localVaultsJson)
+      : [];
     // First check Redux store
-    const index = storedIndexes.find(
-      (index) => index.ticker.toLowerCase() === indexTicker.toLowerCase()
+    const vaultFromLocal = localVaults.find(
+      (index) => index.ticker.toLowerCase() === lowerTicker
     );
 
-    if (index) {
-      setVault(index);
+    if (vaultFromLocal) {
+      setVault(vaultFromLocal);
+      dispatch(setIndices(localVaults));
       setLoading(false);
       return;
     }
@@ -46,24 +54,24 @@ export default function VaultPage() {
         if (foundIndex) {
           setVault(foundIndex);
         } else {
-          redirect('/');
+          redirect("/");
         }
       } catch (error) {
         console.error("Error fetching performance data:", error);
-        redirect('/');
+        redirect("/");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [indexTicker, dispatch, storedIndexes]);
+  }, [indexTicker, dispatch]);
 
   if (loading) {
     return <VaultDetailPage index={null} />;
   }
   if (!vault) {
-    redirect('/');
+    redirect("/");
   }
 
   return <VaultDetailPage index={vault} />;

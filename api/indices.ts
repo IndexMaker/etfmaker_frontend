@@ -235,6 +235,19 @@ export const sendMintInvoiceToBackend = async (
         ? error.message
         : "Failed to send mint invoice"
     );
-    throw error;
+  }
+};
+
+export const subscribeEmail = async (
+  payload: any
+): Promise<void> => {
+  try {
+    await axios.post(`${API_BASE_URL}/indices/subscribe`, payload);
+  } catch (error) {
+    console.error(
+      axios.isAxiosError(error)
+        ? error.message
+        : "Failed to send email"
+    );
   }
 };

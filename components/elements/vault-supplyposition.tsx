@@ -107,9 +107,9 @@ export function VaultSupply({ supplyPositions, myPositions = false }: VaultSuppl
                   </TableCell>
                 </TableRow>
               ) : (
-                supplyPositions.map((allocation) => (
+                supplyPositions.map((allocation, index) => (
                   <TableRow
-                    key={allocation.id}
+                    key={'position-' + index}
                     className="border-[#afafaf1a] hover:bg-foreground/50 h-[54px] text-[13px]"
                   >
                     {allColumns.map((column, index) => (

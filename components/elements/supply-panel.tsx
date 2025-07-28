@@ -31,6 +31,7 @@ import { TransactionConfirmModal } from "./transaction-modal";
 import USDC from "../../public/logos/usd-coin.png";
 import { useQuoteContext } from "@/contexts/quote-context";
 import AnimatedPrice from "./animate-price";
+import { useMediaQuery } from "react-responsive";
 
 interface SupplyPanelProps {
   vaultIds: VaultInfo[];
@@ -65,12 +66,6 @@ export function SupplyPanel({
 }: SupplyPanelProps) {
   const {
     wallet,
-    isConnected,
-    connecting,
-    connectWallet,
-    disconnectWallet,
-    switchNetwork,
-    switchWallet,
   } = useWallet();
   const { indexPrices } = useQuoteContext();
   const [quantity, setQuantity] = useState<{ [key: string]: number }>({});
@@ -80,6 +75,7 @@ export function SupplyPanel({
   const [transactions, setTransactions] = useState<TransactionData[] | null>(
     null
   );
+  const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
   const [maxpopoverOpen, setMaxPopoverOpen] = useState(false);
   const [insufficientValue, setInsufficientValue] = useState(false);
   // const storedWallet = useSelector((state: RootState) => state.wallet.wallet);
@@ -626,6 +622,14 @@ export function SupplyPanel({
           </div>
           {/* Footer */}
           <div className="mt-auto px-4 py-6 border-t border-accent relative flex flex-col gap-2">
+            <div className="relative z-0 opacity-90 select-none pointer-events-none"></div>
+            <div className={`absolute inset-0 z-10 backdrop-blur-[8px] bg-black/30 flex items-center justify-center mb-[-60px] ${isSmallWindow ? 'mt-[calc(-100vh+600px)]' : 'mt-[calc(-100vh+650px)]'}`}>
+              <div className="text-center px-6">
+                <p className="text-secondary text-[14px] font-bold">
+                  🚫 Non-whitelisted wallet connected
+                </p>
+              </div>
+            </div>
             <div className="p-0 flex flex-col">
               <span className="text-yellow-500 text-[11px] text-right">
                 ⚠️Withdraw and Rebalances are pause until DAO is formed.

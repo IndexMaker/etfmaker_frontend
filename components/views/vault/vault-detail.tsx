@@ -224,7 +224,7 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
 
     index &&
       dispatch(addSelectedVault({ name: index.name, ticker: index.ticker }));
-  }, [index]);
+  }, [index, dispatch]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const getCutoffDate = () => {
@@ -430,19 +430,19 @@ export function VaultDetailPage({ index }: VaultDetailPageProps) {
                       <Link href={"#"}>
                         <div className="flex flex-col items-center justify-center hover:text-[#2470ff]">
                           <FileText className="w-4" />
-                          <span>Properties</span>
+                          <Link href={`#`}>KID</Link>
+                        </div>
+                      </Link>
+                      <Link target="_blank" href={"#"}>
+                        <div className="flex flex-col items-center justify-center text-[11px] hover:text-[#2470ff]">
+                          <FileText className="w-4" />
+                          <Link target="_blank" href={`${process.env.NEXT_PUBLIC_BACKEND_API}/pdf-generation/pdfview/factsheet/${index.ticker || 'SY100'}`}>Factsheet</Link>
                         </div>
                       </Link>
                       <Link href={"#"}>
                         <div className="flex flex-col items-center justify-center text-[11px] hover:text-[#2470ff]">
                           <FileText className="w-4" />
-                          <span>Reporting method</span>
-                        </div>
-                      </Link>
-                      <Link href={"#"}>
-                        <div className="flex flex-col items-center justify-center text-[11px] hover:text-[#2470ff]">
-                          <FileText className="w-4" />
-                          <span>DK</span>
+                          <Link target="_blank" href={`#`}>Methodology</Link>
                         </div>
                       </Link>
                     </div>

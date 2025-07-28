@@ -176,7 +176,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
             )}
           >
             <div className={cn("space-y-1", collapsed ? "px-0" : "px-[14px]")}>
-              <NavItem
+              {/* <NavItem
                 href="/analytics"
                 active={isRouteActive("/analytics")}
                 className="text-muted h-[28px] px-[6px] py-[2px]"
@@ -185,19 +185,20 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 iconClassName="mr-[2px]"
               >
                 {t("common.analytics")}
-              </NavItem>
+              </NavItem> */}
               <NavItem
                 href="/private-dashboard"
                 icon={Users}
                 active={isRouteActive("/private-dashboard")}
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                external={true}
                 iconClassName="mr-[2px] text-muted"
               >
                 {t("common.marketInsights")}
               </NavItem>
               <NavItem
-                href="https://github.com/FundMakerFdn/etfmaker_frontend"
+                href="https://github.com/IndexMaker/index-maker"
                 icon={IndexMaker}
                 external
                 className="text-muted h-[28px] px-[6px] py-[2px]"
@@ -223,6 +224,7 @@ export function Sidebar({ open, setOpen }: SidebarProps) {
                 icon={Feedback}
                 className="text-muted h-[28px] px-[6px] py-[2px]"
                 collapsed={collapsed}
+                external={true}
                 iconClassName="mr-[2px]"
               >
                 {t("common.support")}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -16,6 +16,7 @@ import {
 import { Line } from "react-chartjs-2";
 import "chartjs-adapter-date-fns";
 import { useQuoteContext } from "@/contexts/quote-context";
+import { useTheme } from "next-themes";
 
 ChartJS.register(
   CategoryScale,
@@ -61,7 +62,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   const { indexPrices } = useQuoteContext();
   const [patchedData, setPatchedData] = useState<any[]>([]);
   const [pulsePoint, setPulsePoint] = useState(false);
-
+  const { theme } = useTheme();
   useEffect(() => {
     return () => {
       if (chartRef.current) {
@@ -90,6 +91,86 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
         : item.price || item.value,
     }));
   };
+
+  const getGradient = (ctx: CanvasRenderingContext2D, chartArea: any) => {
+    const gradient = ctx.createLinearGradient(
+      0,
+      chartArea.bottom,
+      0,
+      chartArea.top
+    );
+    gradient.addColorStop(0, "rgba(0, 0, 255, 0.005)");
+    gradient.addColorStop(1, "rgba(0, 0, 255, 0.1)");
+    return gradient;
+  };
+  
+  const chartPlugins = useMemo(() => {
+    return [
+      {
+        id: "customGradient",
+        beforeDraw(chart: any) {
+          if (!showComparison) {
+            const ctx = chart.ctx;
+            const chartArea = chart.chartArea;
+            if (!chartArea || !ctx) return;
+            const gradient = getGradient(ctx, chartArea);
+            chart.data.datasets[0].backgroundColor = gradient;
+          }
+        },
+      },
+      {
+        id: "lastPriceLine",
+        afterDatasetsDraw(chart: any) {
+          if (showComparison || showETHComparison) return;
+
+          const dataset = chart.data.datasets?.[0];
+          if (!dataset) return;
+
+          const meta = chart.getDatasetMeta(0);
+          const lastIndex = dataset.data.length - 1;
+          const point = meta?.data?.[lastIndex];
+
+          if (
+            !point ||
+            typeof point.x !== "number" ||
+            typeof point.y !== "number"
+          )
+            return;
+
+          const ctx = chart.ctx;
+          const chartArea = chart.chartArea;
+          if (!chartArea) return;
+
+          const lastPrice = dataset.data[lastIndex] as any;
+
+          ctx.save();
+          ctx.strokeStyle = theme === "dark" ? "#ff3a33" : "#000000";
+          ctx.fillStyle = theme === "dark" ? "#ff3a33" : "#000000";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]);
+
+          const startX =
+            chartArea.left + 0.75 * (chartArea.right - chartArea.left);
+          const endX = chartArea.right;
+
+          ctx.beginPath();
+          ctx.moveTo(startX, point.y);
+          ctx.lineTo(endX, point.y);
+          ctx.stroke();
+
+          const labelText = `Price: ${
+            lastPrice.y !== undefined ? lastPrice.y : lastPrice
+          } USDC`;
+
+          ctx.font = "bold 14px sans-serif";
+          ctx.textBaseline = "bottom";
+          ctx.fillText(labelText, startX + 6, point.y - 4);
+          ctx.restore();
+        },
+      },
+    ];
+  }, [showComparison, showETHComparison, theme]);
+  const chartKey = `${showComparison}-${showETHComparison}-${theme}`;
 
   const indexNormalized = normalizeData(
     data || [],
@@ -151,31 +232,19 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     }
   }
 
-  const getGradient = (ctx: CanvasRenderingContext2D, chartArea: any) => {
-    const gradient = ctx.createLinearGradient(
-      0,
-      chartArea.bottom,
-      0,
-      chartArea.top
-    );
-    gradient.addColorStop(0, "rgba(255, 0, 0, 0.005)");
-    gradient.addColorStop(1, "rgba(255, 0, 0, 0.1)");
-    return gradient;
-  };
-
   const chartData = {
     datasets: [
       {
         label: `${ticker} Index`,
         data: patchedData,
         borderColor:
-          showComparison || showETHComparison ? "#3b82f6" : "#ff3a33",
+          showComparison || showETHComparison ? "#3b82f6" : "#3b82f6",
         backgroundColor: (ctx: any) => {
           const chart = ctx.chart;
           const { chartArea } = chart;
           if (!chartArea) return null;
           return showComparison || showETHComparison
-            ? "rgba(59, 130, 246, 0.1)"
+            ? "#3b82f6"
             : getGradient(chart.ctx, chartArea);
         },
         tension: 0.4,
@@ -187,7 +256,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
         pointBackgroundColor: (ctx: any) => {
           const index = ctx.dataIndex;
           const lastIndex = patchedData.length - 1;
-          return index === lastIndex ? "#ff3a33" : "transparent";
+          return index === lastIndex ? "#e95f6a" : "transparent";
         },
         pointHoverRadius: 5,
         borderWidth: 2,
@@ -309,78 +378,18 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       },
     },
   };
+
   return (
     <div className="w-full h-96">
       {isLoading ? (
         <div className="w-full h-96 rounded bg-accent animate-pulse" />
       ) : (
         <Line
+          key={chartKey}
           ref={chartRef}
           data={chartData as any}
           options={options}
-          plugins={[
-            {
-              id: "customGradient",
-              beforeDraw(chart: any) {
-                if (!showComparison) {
-                  const ctx = chart.ctx;
-                  const chartArea = chart.chartArea;
-                  if (!chartArea || !ctx) return;
-                  const gradient = getGradient(ctx, chartArea);
-                  chart.data.datasets[0].backgroundColor = gradient;
-                }
-              },
-            },
-            {
-              id: "lastPriceLine",
-              afterDatasetsDraw(chart) {
-                const dataset = chart.data.datasets?.[0];
-                if (!dataset) return;
-
-                const meta = chart.getDatasetMeta(0);
-                const lastIndex = dataset.data.length - 1;
-                const point = meta?.data?.[lastIndex];
-
-                // Check if point is drawn
-                if (
-                  !point ||
-                  typeof point.x !== "number" ||
-                  typeof point.y !== "number"
-                ) {
-                  console.warn("No last point found to draw a line.");
-                  return;
-                }
-
-                const ctx = chart.ctx;
-                const chartArea = chart.chartArea;
-                if (!chartArea) return;
-
-                const lastPrice = dataset.data[lastIndex] as any;
-
-                ctx.save();
-                ctx.strokeStyle = "#ff3a33"; // Red line
-                ctx.fillStyle = "#ff3a33"; // Same color for label
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]); // Optional dashed line
-
-                // Draw horizontal line
-                ctx.beginPath();
-                ctx.moveTo(chartArea.left, point.y);
-                ctx.lineTo(chartArea.right, point.y);
-                ctx.stroke();
-
-                // Draw label (top-left of line)
-                const labelText = `Price: ${
-                  lastPrice.y !== undefined ? lastPrice.y : lastPrice
-                } USDC`;
-                ctx.font = "12px sans-serif";
-                ctx.textBaseline = "bottom";
-                ctx.fillText(labelText, chartArea.left + 6, point.y - 4); // Offset slightly above the line
-
-                ctx.restore();
-              },
-            },
-          ]}
+          plugins={chartPlugins}
         />
       )}
     </div>

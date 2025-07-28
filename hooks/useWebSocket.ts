@@ -88,7 +88,7 @@ export default function useQuoteSocket(
     const message = {
       standard_header: {
         msg_type: "NewIndexOrder",
-        sender_comp_id: "CLIENT",
+        sender_comp_id: "FE",
         target_comp_id: "SERVER",
         seq_num: seqNumRef.current++,
         timestamp: new Date().toISOString(),

@@ -39,6 +39,7 @@ type WalletContextType = {
   displayAddress: string | null;
   chainId: string | null;
   isAdmin: boolean;
+  isWhitelisted: boolean;
 };
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -51,6 +52,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [connecting, setConnecting] = useState(false);
   const [chainId, setChainId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isWhitelisted, setIsWhitelisted] = useState(false);
   const isConnected = !!wallet;
   const address = wallet?.accounts[0]?.address || null;
   const displayAddress = address ? shortenAddress(address) : null;
@@ -59,6 +61,10 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       ethers.getAddress(process.env.NEXT_PUBLIC_ADMIN_ADDRESS || "")
     : false;
 
+  const checkWhitelistStatus = async (address: string): Promise<boolean> => {
+    // TODO: Replace with real logic later for checking connected wallet is in our whitelist
+    return false;
+  };
   // Check if wallet is still connected
   const checkConnection = useCallback(async () => {
     if (!wallet || !wallet.provider) {
@@ -72,6 +78,19 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       await disconnectWallet();
     }
   }, [wallet]);
+
+  useEffect(() => {
+    const updateWhitelist = async () => {
+      if (address) {
+        const result = await checkWhitelistStatus(address);
+        setIsWhitelisted(result);
+      } else {
+        setIsWhitelisted(false);
+      }
+    };
+
+    updateWhitelist();
+  }, [address]);
 
   // Initialize wallet and handle auto-connection
   useEffect(() => {
@@ -142,7 +161,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     init();
 
     return () => {
-      unsubscribe?.();
+      // unsubscribe?.();
       if (intervalId) clearInterval(intervalId);
     };
   }, []);
@@ -297,6 +316,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         displayAddress,
         chainId,
         isAdmin,
+        isWhitelisted
       }}
     >
       {children}

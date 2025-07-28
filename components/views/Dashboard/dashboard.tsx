@@ -9,7 +9,8 @@ import { mockup_vaults } from "@/lib/data";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { addSelectedVault, clearSelectedVault } from "@/redux/vaultSlice";
-import { AdditionalMenu } from "@/components/layouts/additionalMenu";
+import { usePathname } from "next/navigation";
+import { useWallet } from "@/contexts/wallet-context";
 interface DashboardProps {
   children?: React.ReactNode;
   _sidebarOpen?: boolean;
@@ -18,6 +19,9 @@ export default function Dashboard({
   children,
   _sidebarOpen = false,
 }: DashboardProps) {
+  const { wallet } = useWallet();
+  const pathname = usePathname();
+  const isVaultPage = pathname?.startsWith("/vault/");
   const [sidebarOpen, setSidebarOpen] = useState(_sidebarOpen);
   const [showHowEarnWorks, setShowHowEarnWorks] = useState(false);
   useEffect(() => {
@@ -93,7 +97,7 @@ export default function Dashboard({
               />
             )}
           </main>
-          {selectedVault.length > 0 && (
+          {selectedVault.length > 0 && ((!wallet && isVaultPage) || wallet) && (
             <SupplyPanel
               vaultIds={selectedVault}
               onClose={handleCloseSupplyPanel}

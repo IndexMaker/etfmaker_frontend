@@ -85,8 +85,12 @@ export function EarnContent({
   );
 
   const dispatch = useDispatch();
-  const totalManaged = useSelector((state: RootState) => state.index.totalManaged);
-  const totalVolume = useSelector((state: RootState) => state.index.totalVolume);
+  const totalManaged = useSelector(
+    (state: RootState) => state.index.totalManaged
+  );
+  const totalVolume = useSelector(
+    (state: RootState) => state.index.totalVolume
+  );
   const [depositTransactionLoading, setDepositTransactionLoading] =
     useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -102,6 +106,8 @@ export function EarnContent({
         const data = response;
         setIndexLists(data || []);
         dispatch(setIndices(data || []));
+
+        localStorage.setItem("storedVaults", JSON.stringify(data));
       } catch (error) {
         console.error("Error fetching performance data:", error);
         setIsLoading(false);
@@ -124,10 +130,10 @@ export function EarnContent({
   }, []);
 
   useEffect(() => {
-    const termsAccepted = localStorage.getItem("termsAccepted");
-    if ((!termsAccepted || termsAccepted === "false") && wallet) {
-      setShowHowEarnWorks(true);
-    }
+    // const termsAccepted = localStorage.getItem("termsAccepted");
+    // if ((!termsAccepted || termsAccepted === "false") && wallet) {
+    //   setShowHowEarnWorks(true);
+    // }
 
     if (wallet?.accounts) {
       const _fetchDepositTransaction = async (_indexId: number) => {
@@ -383,7 +389,10 @@ export function EarnContent({
                       t("common.noEarnPosition")
                     ) : (
                       <div className="mt-[-30] m-[-16]">
-                        <VaultSupply supplyPositions={supplyPositions} myPositions={true} />
+                        <VaultSupply
+                          supplyPositions={supplyPositions}
+                          myPositions={true}
+                        />
                       </div>
                     )
                   ) : (
@@ -404,9 +413,14 @@ export function EarnContent({
               <CustomButton
                 variant="secondary"
                 className="h-auto text-[11px] rounded-[2px]"
-                onClick={() => setShowHowEarnWorks(true)}
+                // onClick={() => setShowHowEarnWorks(true)}
               >
-                {t("common.howDoesItWork")}
+                <Link
+                  target="_blank"
+                  href={"https://psymm.gitbook.io/indexmaker"}
+                >
+                  {t("common.howDoesItWork")}
+                </Link>
               </CustomButton>
             </div>
 

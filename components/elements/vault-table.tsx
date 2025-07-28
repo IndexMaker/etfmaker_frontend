@@ -66,7 +66,7 @@ export function VaultTable({
   const currentVaults = vaults.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(vaults.length / itemsPerPage);
   const dispatch = useDispatch();
-  
+
   const selectedVault = useSelector(
     (state: RootState) => state.vault.selectedVault
   );
@@ -88,7 +88,7 @@ export function VaultTable({
 
   const assetDetail = (vault: IndexListEntry) => {
     if (!vault.ticker) return;
-    router.push("/vault/" + vault?.ticker);
+    window.open("/vault/" + vault.ticker, "_blank");
   };
 
   // Determine if a column is sortable

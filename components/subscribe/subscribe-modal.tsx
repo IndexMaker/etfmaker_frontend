@@ -7,7 +7,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/contexts/language-context";
 import { useState } from "react";
-
+import { toast } from "sonner";
+import { subscribeEmail } from "@/api/indices";
+import { useDebounce } from "use-debounce";
+import { useMediaQuery } from "react-responsive";
 export function SubscribeModal({
   isOpen,
   onClose,
@@ -18,17 +21,42 @@ export function SubscribeModal({
   IndexName?: string;
 }) {
   const { t } = useLanguage();
+  const isSmallWindow = useMediaQuery({ maxWidth: 1024 });
+  const [email, setEmail] = useState("");
+  const [debouncedEmail] = useDebounce(email, 300);
   const [privacyChecked, setPrivacyChecked] = useState(false);
+  const [twitterHandle, setTwitterHandle] = useState("");
+
+  const handleSubmit = async () => {
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(debouncedEmail);
+    if (!isValidEmail) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    try {
+      await subscribeEmail({ email: debouncedEmail, twitter: twitterHandle });
+      toast.success("Thanks for subscribing!");
+      localStorage.setItem("alreadySubscribed", "true");
+      onClose();
+    } catch (err) {
+      toast.error("Subscription failed.");
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] sm:max-w-[90vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className={`  max-h-[90vh] overflow-y-auto ${
+          isSmallWindow ? "!w-[80vw] !max-w-[90vw]" : "!w-[50vw] !max-w-[60vw]"
+        }`}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold mb-4 text-primary">
-              Subscribe to <span className="text-[#FFD700]">SYMMIO</span>{" "}
-              Insights
+              Subscribe to IndexMaker Insights
             </h2>
             <p className="text-lg mb-6 text-secondary text-left">
               {t("subscribe.description") ||
@@ -50,7 +78,7 @@ export function SubscribeModal({
           </p> */}
 
           {/* Form */}
-          <form className="space-y-6 flex flex-col">
+          <div className="space-y-6 flex flex-col">
             {/* Email Field */}
             <div className="flex flex-row gap-4 justify-between">
               <div className="w-full">
@@ -63,14 +91,33 @@ export function SubscribeModal({
                 <Input
                   id="email"
                   type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-4 border rounded-lg text-[18px] text-primary h-[64px]"
                   placeholder="your@email.com"
                   required
                 />
               </div>
+              <div className="w-full">
+                <Label
+                  htmlFor="twitter"
+                  className="block mb-2 font-medium text-primary"
+                >
+                  {
+                    "COMPANY TWITTER HANDLE (optional)"}
+                </Label>
+                <Input
+                  id="twitter"
+                  type="text"
+                  value={twitterHandle}
+                  onChange={(e) => setTwitterHandle(e.target.value)}
+                  className="w-full p-4 border rounded-lg text-[18px] text-primary h-[64px]"
+                  placeholder="@yourcompany"
+                />
+              </div>
 
               {/* Investor Type Field */}
-              <div className="w-full">
+              {/* <div className="w-full">
                 <Label className="block mb-2 font-medium text-primary">
                   {t("subscribe.investorType") || "INVESTOR TYPE"}
                 </Label>
@@ -83,7 +130,7 @@ export function SubscribeModal({
                       "INSTITUTIONAL INVESTOR"}
                   </option>
                 </select>
-              </div>
+              </div> */}
             </div>
 
             {/* Privacy Policy Checkbox */}
@@ -107,13 +154,13 @@ export function SubscribeModal({
 
             {/* Submit Button */}
             <Button
-              type="submit"
-              className="w-full py-6 text-lg font-bold"
+              onClick={handleSubmit}
+              className="w-full py-6 text-lg font-bold cursor-pointer"
               disabled={!privacyChecked}
             >
               {t("subscribe.submitButton") || "SUBSCRIBE"}
             </Button>
-          </form>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
